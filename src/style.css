@@ -23,12 +23,28 @@ body {
 
 #app {
   display: grid;
-  grid-template-columns: 250px 1fr 320px;
+  grid-template-columns: auto 1fr auto;
   height: 100vh;
 }
 
-aside {
+/* ---------- side panels: rail + body + resize handle ---------- */
+
+.side {
+  display: flex;
+  min-height: 0;
   background: var(--panel);
+}
+
+#left-side {
+  border-right: 1px solid var(--line);
+}
+
+#right-side {
+  border-left: 1px solid var(--line);
+}
+
+.side-body {
+  width: var(--w, 280px);
   padding: 14px;
   overflow-y: auto;
   display: flex;
@@ -36,12 +52,76 @@ aside {
   gap: 8px;
 }
 
-#left {
+.side.collapsed .side-body,
+.side.collapsed .resizer {
+  display: none;
+}
+
+.rail {
+  width: 32px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  background: var(--bg);
+}
+
+#left-side .rail {
   border-right: 1px solid var(--line);
 }
 
-#right {
+#right-side .rail {
   border-left: 1px solid var(--line);
+}
+
+.rail-btn {
+  width: 26px;
+  height: 22px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-color: transparent;
+}
+
+.rail-btn svg {
+  width: 20px;
+  height: 16px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.rail-btn svg .bar {
+  fill: var(--muted);
+  stroke: none;
+}
+
+.rail-btn:hover svg,
+.side:not(.collapsed) .rail-btn svg {
+  stroke: var(--accent);
+}
+
+.rail-btn:hover svg .bar,
+.side:not(.collapsed) .rail-btn svg .bar {
+  fill: var(--accent);
+}
+
+.resizer {
+  width: 5px;
+  flex: none;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resizer:hover,
+.resizer.dragging {
+  background: var(--accent);
+  opacity: 0.5;
 }
 
 h1 {
@@ -437,4 +517,38 @@ legend {
 #b-list li {
   flex-wrap: wrap;
   font-size: 12px;
+}
+
+/* ---------- scrollbars in the app theme (panels, cards, text areas, lists) ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The `hidden` attribute must win over display rules like `label { display: flex }`. */
+[hidden] {
+  display: none !important;
 }

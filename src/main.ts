@@ -59,6 +59,7 @@ let selectedId: string | null = null;
 const left = document.getElementById('left')!;
 const right = document.getElementById('right')!;
 const settings = loadSettings();
+setupSidePanels();
 const viewer = new Viewer(document.getElementById('stage')!);
 viewer.setLinkOpacity(settings.linkOpacity);
 viewer.setLabelDepthFade(settings.labelDepthFade);
@@ -376,8 +377,13 @@ function renderRight() {
                 <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
               </select>
             </label>
-            <label title="${esc(CENTER_HINT)}">Центр оболочки
-              <select id="f-center" ${n.frame!.fixedSize ? 'disabled' : ''}>
+            ${
+              n.frame!.fixedSize
+                ? '<div class="muted">Центр оболочки — на нулевом уровне: у фиксированного размера он всегда там. Чтобы выбрать другой, переключите «Размер оболочки» на «по содержимому».</div>'
+                : ''
+            }
+            <label title="${esc(CENTER_HINT)}" ${n.frame!.fixedSize ? 'hidden' : ''}>Центр оболочки
+              <select id="f-centerMode">
                 <option value="content" ${centerOf(n) === 'content' ? 'selected' : ''}>по содержимому</option>
                 <option value="shift" ${centerOf(n) === 'shift' ? 'selected' : ''}>на уровне группы (сдвиг содержимого)</option>
                 <option value="zero" ${centerOf(n) === 'zero' ? 'selected' : ''}>на нулевом уровне (симметрично)</option>
@@ -509,7 +515,7 @@ function renderRight() {
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
   edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' ? 'torus' : undefined));
-  edit('#f-center', (el) => {
+  edit('#f-centerMode', (el) => {
     n.frame!.center = el.value === 'content' ? undefined : (el.value as ShellCenter);
     n.frame!.centerOnLevel = undefined; // replaced by `center`
   });
@@ -759,6 +765,52 @@ function renderSpaceSettings() {
       .then((nextId) => (nextId ? loadSpace(nextId) : null))
       .then((next) => next && switchTo(next));
   });
+}
+
+// ---------- side panels: hide / show and resize ----------
+
+const PANEL_MIN = 180;
+const PANEL_MAX = 640;
+
+function setupSidePanels() {
+  for (const side of ['left', 'right'] as const) {
+    const el = document.getElementById(`${side}-side`)!;
+    const state = settings.panels[side];
+    const apply = () => {
+      el.classList.toggle('collapsed', state.collapsed);
+      el.style.setProperty('--w', `${state.width}px`);
+    };
+    apply();
+
+    el.querySelector(`[data-toggle="${side}"]`)!.addEventListener('click', () => {
+      state.collapsed = !state.collapsed;
+      apply();
+      saveSettings(settings);
+    });
+
+    // Drag the inner edge; the left panel grows to the right, the right one to the left.
+    const handle = el.querySelector('.resizer') as HTMLElement;
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      handle.classList.add('dragging');
+      const startX = e.clientX;
+      const startW = state.width;
+      const move = (ev: PointerEvent) => {
+        const dx = (ev.clientX - startX) * (side === 'left' ? 1 : -1);
+        state.width = Math.round(Math.min(PANEL_MAX, Math.max(PANEL_MIN, startW + dx)));
+        apply();
+      };
+      const up = () => {
+        handle.classList.remove('dragging');
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', up);
+        saveSettings(settings);
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', up);
+    });
+  }
 }
 
 // ---------- backups, export, import ----------

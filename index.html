@@ -7,9 +7,26 @@
   </head>
   <body>
     <div id="app">
-      <aside id="left"></aside>
+      <!-- Side panels: an always-visible rail (toggle + future buttons), the panel body and a resize handle. -->
+      <aside class="side" id="left-side" data-side="left">
+        <div class="rail">
+          <button class="rail-btn" data-toggle="left" title="Скрыть / показать левую панель">
+            <svg viewBox="0 0 20 16" aria-hidden="true"><rect x="1" y="1" width="18" height="14" rx="2" /><rect class="bar" x="3" y="3" width="4" height="10" rx="1" /></svg>
+          </button>
+        </div>
+        <div class="side-body" id="left"></div>
+        <div class="resizer" title="Потяните, чтобы изменить ширину"></div>
+      </aside>
       <main id="stage"></main>
-      <aside id="right"></aside>
+      <aside class="side" id="right-side" data-side="right">
+        <div class="resizer" title="Потяните, чтобы изменить ширину"></div>
+        <div class="side-body" id="right"></div>
+        <div class="rail">
+          <button class="rail-btn" data-toggle="right" title="Скрыть / показать правую панель">
+            <svg viewBox="0 0 20 16" aria-hidden="true"><rect x="1" y="1" width="18" height="14" rx="2" /><rect class="bar" x="13" y="3" width="4" height="10" rx="1" /></svg>
+          </button>
+        </div>
+      </aside>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

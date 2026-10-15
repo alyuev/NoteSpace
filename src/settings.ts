@@ -26,6 +26,13 @@ export interface ViewSettings {
   depthScale: number;
   /** How strongly far objects dissolve into the background, 0..1. */
   objectDepthFade: number;
+  /** Side panels: width in pixels and whether they are hidden. */
+  panels: { left: PanelState; right: PanelState };
+}
+
+export interface PanelState {
+  width: number;
+  collapsed: boolean;
 }
 
 const KEY = 'notespace.settings.v1';
@@ -39,6 +46,7 @@ const DEFAULTS: ViewSettings = {
   labelShrink: DEFAULT_LABEL_SHRINK,
   depthScale: DEFAULT_DEPTH_SCALE,
   objectDepthFade: DEFAULT_OBJECT_DEPTH_FADE,
+  panels: { left: { width: 250, collapsed: false }, right: { width: 320, collapsed: false } },
 };
 
 export function loadSettings(): ViewSettings {
