@@ -12,6 +12,8 @@ export interface ViewSettings {
   linkOpacity: number;
   /** Show each group's zero-level ring. */
   showFrames: boolean;
+  /** Show the vertical axis through the centre of the space. */
+  showAxis: boolean;
   /** How strongly labels far from the camera fade, 0..1. */
   labelDepthFade: number;
   /** Labels grow when the camera comes closer. */
@@ -30,6 +32,7 @@ const KEY = 'notespace.settings.v1';
 const DEFAULTS: ViewSettings = {
   linkOpacity: DEFAULT_LINK_OPACITY,
   showFrames: true,
+  showAxis: true,
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,
   labelScale: 1,

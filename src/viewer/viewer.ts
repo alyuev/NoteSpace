@@ -83,6 +83,8 @@ export class Viewer {
   private linkOpacity = DEFAULT_LINK_OPACITY;
   /** Draw each group's zero-level ring (its frame of reference). Takes effect on the next render. */
   showFrames = true;
+  /** Draw the vertical axis through the centre of the space. Takes effect on the next render. */
+  showAxis = true;
   private labelDepthFade = DEFAULT_LABEL_DEPTH_FADE;
   private objectDepthFade = DEFAULT_OBJECT_DEPTH_FADE;
   /** Labels grow when the camera comes closer to them. */
@@ -194,11 +196,13 @@ export class Viewer {
     const alpha = (id: string) => (lit.has(id) ? 1 : DIM);
 
     let minY = 0;
+    let maxY = 0;
     let extent = 0;
     for (const n of space.nodes) {
       const p = layout.placed.get(n.id)!;
       if (!p.visible) continue;
       minY = Math.min(minY, p.world.y);
+      maxY = Math.max(maxY, p.world.y + p.radius);
       extent = Math.max(extent, Math.hypot(p.world.x, p.world.z) + p.radius);
       const a = alpha(n.id);
       const selected = n.id === view.selectedId;
@@ -208,6 +212,7 @@ export class Viewer {
       if (isExpandedGroup(n)) {
         const shell = layout.shells.get(n.id)!;
         minY = Math.min(minY, shell.center.y - shell.radii.y);
+        maxY = Math.max(maxY, shell.center.y + shell.radii.y);
         this.addShell(n.id, style.color, shell, a, selected);
         // Ring at the group's local zero level: makes its frame of reference visible.
         if (this.showFrames) {
@@ -268,6 +273,15 @@ export class Viewer {
     const gridSize = Math.max(600, Math.ceil((extent * 2.5) / 100) * 100);
     const grid = new THREE.GridHelper(gridSize, gridSize / 10, '#2a2e42', '#20222f');
     grid.position.y = minY - 6;
+
+    // Central axis: a faint vertical line through the origin of the space, from the grid up.
+    if (this.showAxis) {
+      const axis = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, minY - 6, 0), new THREE.Vector3(0, maxY + 10, 0)]),
+        new THREE.LineBasicMaterial({ color: '#a9b1d6', transparent: true, opacity: 0.18, depthWrite: false }),
+      );
+      this.content.add(axis);
+    }
     this.content.add(grid);
 
     if (!this.fitted) {
@@ -396,17 +410,26 @@ export class Viewer {
     this.content.add(mesh);
     this.pickShells.push(mesh);
 
-    const outline = new THREE.LineSegments(
-      torus
-        ? new THREE.EdgesGeometry(new THREE.TorusGeometry(torus.major, torus.tube, 8, 36), 30)
-        : new THREE.EdgesGeometry(new THREE.SphereGeometry(1, 16, 8), 30),
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity: (selected ? 0.5 : 0.18) * a }),
-    );
-    outline.scale.copy(mesh.scale);
-    outline.rotation.copy(mesh.rotation);
-    outline.position.copy(mesh.position);
+    const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: (selected ? 0.5 : 0.18) * a });
+    let outline: THREE.Object3D;
+    if (torus) {
+      // Smooth outer and inner edge of the ring (polygon edges of a torus read as a jagged mesh).
+      const circle = (radius: number) =>
+        new THREE.BufferGeometry().setFromPoints(
+          new THREE.EllipseCurve(0, 0, radius, radius).getPoints(96).map((p) => new THREE.Vector3(p.x, 0, p.y)),
+        );
+      const outer = new THREE.LineLoop(circle(torus.major + torus.tube), material);
+      outline = new THREE.LineLoop(circle(Math.max(torus.major - torus.tube, 0.1)), material);
+      outline.add(outer);
+      outline.position.set(c.x, torus.y, c.z);
+    } else {
+      outline = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(1, 16, 8), 30), material);
+      outline.scale.copy(mesh.scale);
+      outline.position.copy(mesh.position);
+    }
     outline.userData.outlineOf = id;
-    outline.userData.baseOpacity = (outline.material as THREE.Material).opacity;
+    // Both torus circles share this material, so hover highlighting reaches them together.
+    outline.userData.baseOpacity = material.opacity;
     this.content.add(outline);
   }
 

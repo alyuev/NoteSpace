@@ -55,6 +55,7 @@ viewer.labelZoom = settings.labelZoom;
 viewer.labelScale = settings.labelScale;
 viewer.labelShrink = settings.labelShrink;
 viewer.showFrames = settings.showFrames;
+viewer.showAxis = settings.showAxis;
 viewer.onSelect = (id) => {
   selectedId = id;
   refresh(false);
@@ -167,6 +168,7 @@ function renderLeft() {
       <input id="objectFade" type="range" min="0" max="100" step="1" value="${Math.round(settings.objectDepthFade * 100)}">
     </label>
     <label class="check"><input id="labelZoom" type="checkbox" ${settings.labelZoom ? 'checked' : ''}> Подписи крупнее вблизи</label>
+    <label class="check" title="Тонкая вертикальная линия через центр пространства"><input id="showAxis" type="checkbox" ${settings.showAxis ? 'checked' : ''}> Центральная ось</label>
     <label class="check" title="Пунктирное кольцо на высоте локального уровня 0 каждой группы"><input id="showFrames" type="checkbox" ${settings.showFrames ? 'checked' : ''}> Нулевой уровень групп</label>
 
     <h2>Управление</h2>
@@ -226,6 +228,12 @@ function renderLeft() {
     settings.labelZoom = (e.target as HTMLInputElement).checked;
     viewer.labelZoom = settings.labelZoom;
     saveSettings(settings);
+  });
+  on(left, '#showAxis', 'change', (e) => {
+    settings.showAxis = (e.target as HTMLInputElement).checked;
+    viewer.showAxis = settings.showAxis;
+    saveSettings(settings);
+    renderScene();
   });
   on(left, '#showFrames', 'change', (e) => {
     settings.showFrames = (e.target as HTMLInputElement).checked;
