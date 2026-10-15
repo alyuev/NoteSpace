@@ -1,0 +1,2 @@
+# Same line endings everywhere: clean diffs for code and for the space files in data/.
+* text=auto eol=lf
