@@ -283,7 +283,8 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     const ry = Math.max(size.y, 0.05) / 2;
     const rz = Math.max(size.z, 0.1) / 2;
     const measured = layoutGroupBody(groupId); // symmetric around level 0 (see `centerMode`)
-    const h = Math.min(rx, rz) / Math.max(measured.r, 1e-6);
+    const fill = Math.min(1, Math.max(0.05, group.frame?.fill ?? 1));
+    const h = (fill * Math.min(rx, rz)) / Math.max(measured.r, 1e-6);
     // Levels are squeezed into the thickness, but never stretched beyond the horizontal scale.
     const v = Math.min(h, ry / Math.max(measured.ry, 1e-6));
     forgetInside(group.id);

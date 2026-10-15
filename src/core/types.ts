@@ -47,6 +47,8 @@ export interface GroupFrame {
    * things inside does not change the group's size. The centre is at local level 0.
    */
   fixedSize?: { x: number; y: number; z: number };
+  /** With a fixed size: share of the shell's width the contents take, 0.05..1 (default 1 = fill it). */
+  fill?: number;
   /** Shell shape. A torus lies horizontally; children are placed along its ring, pinned ones in the hole. */
   shell?: ShellShape;
   /** Visibility of the shell, 0..1 (1 = default); contents are not affected. */

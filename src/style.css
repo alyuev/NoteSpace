@@ -552,3 +552,31 @@ legend {
 [hidden] {
   display: none !important;
 }
+
+/* Curved captions of rings (tori). */
+.ring-labels {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.ring-labels path {
+  fill: none;
+  stroke: none;
+}
+
+.arc-label {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 3px;
+  stroke-opacity: 0.6;
+}
+
+.arc-label.hovered {
+  filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 8px currentColor) brightness(1.35);
+}

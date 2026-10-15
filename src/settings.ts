@@ -20,8 +20,8 @@ export interface ViewSettings {
   labelZoom: boolean;
   /** Overall label size multiplier, 0.5..2. */
   labelScale: number;
-  /** Label size factor per nesting level, 0.5..1. */
-  labelShrink: number;
+  /** Caption size factor per nesting level, 0.4..1 (on top of following the object's size). */
+  labelDepthShrink: number;
   /** Size of a group's contents relative to the group's level, per nesting level, 0.4..1. */
   depthScale: number;
   /** How strongly far objects dissolve into the background, 0..1. */
@@ -43,7 +43,7 @@ const DEFAULTS: ViewSettings = {
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,
   labelScale: 1,
-  labelShrink: DEFAULT_LABEL_SHRINK,
+  labelDepthShrink: DEFAULT_LABEL_SHRINK,
   depthScale: DEFAULT_DEPTH_SCALE,
   objectDepthFade: DEFAULT_OBJECT_DEPTH_FADE,
   panels: { left: { width: 250, collapsed: false }, right: { width: 320, collapsed: false } },

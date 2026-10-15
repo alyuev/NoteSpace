@@ -66,7 +66,7 @@ viewer.setLabelDepthFade(settings.labelDepthFade);
 viewer.setObjectDepthFade(settings.objectDepthFade);
 viewer.labelZoom = settings.labelZoom;
 viewer.labelScale = settings.labelScale;
-viewer.labelShrink = settings.labelShrink;
+viewer.labelShrink = settings.labelDepthShrink;
 viewer.showFrames = settings.showFrames;
 viewer.showAxis = settings.showAxis;
 viewer.onSelect = (id) => {
@@ -168,8 +168,8 @@ function renderLeft() {
     <label title="Во сколько раз содержимое группы меньше самой группы — на каждом уровне вложенности (размер записей, шаг уровней, отступы)">Масштаб вложенных групп: <span id="depthScaleValue">${Math.round(settings.depthScale * 100)}%</span>
       <input id="depthScale" type="range" min="40" max="100" step="5" value="${Math.round(settings.depthScale * 100)}">
     </label>
-    <label title="Во сколько раз уменьшается шрифт подписи на каждом уровне вложенности">Шрифт вложенных уровней: <span id="labelShrinkValue">${Math.round(settings.labelShrink * 100)}%</span>
-      <input id="labelShrink" type="range" min="50" max="100" step="5" value="${Math.round(settings.labelShrink * 100)}">
+    <label title="Во сколько раз уменьшается подпись на каждом уровне вложенности — дополнительно к тому, что подпись соразмерна своему объекту">Шрифт вложенных уровней: <span id="labelShrinkValue">${Math.round(settings.labelDepthShrink * 100)}%</span>
+      <input id="labelShrink" type="range" min="40" max="100" step="5" value="${Math.round(settings.labelDepthShrink * 100)}">
     </label>
     <label>Размер подписей: <span id="labelScaleValue">${Math.round(settings.labelScale * 100)}%</span>
       <input id="labelScale" type="range" min="50" max="200" step="5" value="${Math.round(settings.labelScale * 100)}">
@@ -180,7 +180,6 @@ function renderLeft() {
     <label title="Удалённые от камеры объекты растворяются в фоне">Растворение объектов вдали: <span id="objectFadeValue">${Math.round(settings.objectDepthFade * 100)}%</span>
       <input id="objectFade" type="range" min="0" max="100" step="1" value="${Math.round(settings.objectDepthFade * 100)}">
     </label>
-    <label class="check"><input id="labelZoom" type="checkbox" ${settings.labelZoom ? 'checked' : ''}> Подписи крупнее вблизи</label>
     <label class="check" title="Тонкая вертикальная линия через центр пространства"><input id="showAxis" type="checkbox" ${settings.showAxis ? 'checked' : ''}> Центральная ось</label>
     <label class="check" title="Пунктирное кольцо на высоте локального уровня 0 каждой группы"><input id="showFrames" type="checkbox" ${settings.showFrames ? 'checked' : ''}> Нулевой уровень групп</label>
 
@@ -188,7 +187,7 @@ function renderLeft() {
     <ul class="help">
       <li>ЛКМ — вращение, ПКМ — сдвиг, колесо — масштаб</li>
       <li>Клик — выбрать (по группе — ещё и перенести к ней центр), двойной клик — перенести центр к объекту, клик в пустоту — настройки пространства</li>
-      <li>Задержите курсор на объекте ~1 с — появится его описание</li>
+      <li>Задержите курсор на объекте ~0,5 с — появится его описание</li>
       <li>Пунктирное кольцо — нулевой уровень группы (её система отсчёта)</li>
       <li>Пунктирная линия — запись с глобальным уровнем внутри группы</li>
     </ul>
@@ -219,9 +218,9 @@ function renderLeft() {
     renderScene();
   });
   on(left, '#labelShrink', 'input', (e) => {
-    settings.labelShrink = Number((e.target as HTMLInputElement).value) / 100;
-    viewer.labelShrink = settings.labelShrink;
-    left.querySelector('#labelShrinkValue')!.textContent = `${Math.round(settings.labelShrink * 100)}%`;
+    settings.labelDepthShrink = Number((e.target as HTMLInputElement).value) / 100;
+    viewer.labelShrink = settings.labelDepthShrink;
+    left.querySelector('#labelShrinkValue')!.textContent = `${Math.round(settings.labelDepthShrink * 100)}%`;
     saveSettings(settings);
     renderScene();
   });
@@ -235,11 +234,6 @@ function renderLeft() {
     settings.objectDepthFade = Number((e.target as HTMLInputElement).value) / 100;
     viewer.setObjectDepthFade(settings.objectDepthFade);
     left.querySelector('#objectFadeValue')!.textContent = `${Math.round(settings.objectDepthFade * 100)}%`;
-    saveSettings(settings);
-  });
-  on(left, '#labelZoom', 'change', (e) => {
-    settings.labelZoom = (e.target as HTMLInputElement).checked;
-    viewer.labelZoom = settings.labelZoom;
     saveSettings(settings);
   });
   on(left, '#showAxis', 'change', (e) => {
@@ -401,7 +395,10 @@ function renderRight() {
                     <label>В–З (X)<input id="f-fx" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.x}"></label>
                     <label>С–Ю (Z)<input id="f-fz" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.z}"></label>
                     <label>Толщина (Y)<input id="f-fy" type="number" step="0.1" min="0.05" value="${n.frame!.fixedSize.y}"></label>
-                  </div>`
+                  </div>
+                  <label title="Какую долю ширины оболочки занимает содержимое. 100% — заполняет целиком (может и увеличить содержимое), меньше — всё внутри, вместе с подписями, пропорционально уменьшается">Заполнение содержимым: <span id="f-fillValue">${Math.round((n.frame!.fill ?? 1) * 100)}%</span>
+                    <input id="f-fill" type="range" min="5" max="100" step="5" value="${Math.round((n.frame!.fill ?? 1) * 100)}">
+                  </label>`
                 : ''
             }
             <label>Видимость оболочки: ${Math.round((n.frame!.shellOpacity ?? 1) * 100)}%
@@ -529,6 +526,22 @@ function renderRight() {
   });
   edit('#f-fx', (el) => (n.frame!.fixedSize!.x = Math.max(0.1, num(el, n.frame!.fixedSize!.x))));
   edit('#f-fz', (el) => (n.frame!.fixedSize!.z = Math.max(0.1, num(el, n.frame!.fixedSize!.z))));
+  // Live value while dragging; the layout is recalculated on release.
+  // Live while dragging: relayout and redraw the scene once per frame (the panel stays as is, so
+  // the slider keeps the drag); saving and the panel refresh happen on release.
+  let fillFrame = 0;
+  on(right, '#f-fill', 'input', (e) => {
+    const value = Number((e.target as HTMLInputElement).value);
+    right.querySelector('#f-fillValue')!.textContent = `${value}%`;
+    n.frame!.fill = value / 100;
+    if (fillFrame) return;
+    fillFrame = requestAnimationFrame(() => {
+      fillFrame = 0;
+      layout = computeLayout(space, layout, { depthScale: settings.depthScale });
+      renderScene();
+    });
+  });
+  edit('#f-fill', (el) => (n.frame!.fill = Number(el.value) / 100));
   edit('#f-fy', (el) => (n.frame!.fixedSize!.y = Math.max(0.05, num(el, n.frame!.fixedSize!.y))));
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));

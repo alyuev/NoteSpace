@@ -19,7 +19,15 @@ const SHARED = new Set<THREE.BufferGeometry>([...Object.values(GEOMETRY), SHELL_
 
 const DIM = 0.1;
 /** Hover time before an object's description card appears. */
-const CARD_DELAY_MS = 1000;
+const CARD_DELAY_MS = 500;
+/**
+ * Picking by apparent size: objects smaller than this on screen (radius, px) are not targets, so
+ * from afar the pointer catches a group as a whole rather than the tiny things inside it.
+ */
+const PICK_NODE_MIN_PX = 4;
+const PICK_SHELL_MIN_PX = 30;
+/** Share of the pending wheel zoom applied per frame: smaller = smoother, longer glide. */
+const ZOOM_EASE = 0.08;
 /** Distance (both left and up) from the object to the card's bottom-right corner. */
 const CARD_OFFSET_PX = 36;
 /** Card sides in order of preference: name, screen x direction, screen y direction (+1 = up). */
@@ -36,10 +44,20 @@ export const DEFAULT_OBJECT_DEPTH_FADE = 0.6;
 
 /** Base label sizes; each nesting level multiplies them by `labelShrink`. */
 const LABEL_PX: Record<string, number> = { group: 15, note: 12, link: 10 };
-export const DEFAULT_LABEL_SHRINK = 0.8;
+export const DEFAULT_LABEL_SHRINK = 0.7;
 export const DEFAULT_DEPTH_SCALE = 0.75;
 const MIN_LABEL_PX = 5;
 const MAX_LABEL_PX = 28;
+/** Object caption height relative to the object's radius (notes) or shell radius (groups). */
+const NOTE_LABEL_K = 1.0;
+const GROUP_LABEL_K = 0.16;
+/** Ring (torus) caption height relative to the tube's thickness. */
+const RING_LABEL_K = 0.9;
+/** Link caption height relative to the smaller caption of the two linked objects. */
+const LINK_LABEL_K = 0.8;
+/** Object captions fade out between these on-screen heights (px) instead of shrinking unreadably. */
+const LABEL_HIDE_PX = 4;
+const LABEL_FULL_PX = 8;
 
 /** normal — no tag filter; strong — both ends match the filter; dim — filtered out. */
 type LinkState = 'normal' | 'strong' | 'dim';
@@ -71,6 +89,11 @@ export class Viewer {
   private focusGoal: THREE.Vector3 | null = null;
   private fitted = false;
   private hoverId: string | null = null;
+  /** Wheel zoom still to apply (log scale: + away, − closer) and the point it zooms about. */
+  private zoomPending = 0;
+  private zoomPoint: THREE.Vector3 | null = null;
+  private readonly ringSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  private readonly arcTexts: { label: CSS2DObject; path: SVGPathElement; text: SVGTextElement }[] = [];
   private space: Space | null = null;
   private cardId: string | null = null;
   private cardObj: CSS2DObject | null = null;
@@ -109,12 +132,16 @@ export class Viewer {
     container.append(this.renderer.domElement);
     this.labels.domElement.className = 'labels';
     container.append(this.labels.domElement);
+    // Curved captions of rings (text along the projected ring), drawn under the regular labels.
+    this.ringSvg.setAttribute('class', 'ring-labels');
+    container.insertBefore(this.ringSvg, this.labels.domElement);
 
     this.camera.position.set(70, 60, 100);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     // Wheel zooms towards the point under the cursor, so the camera's focus follows what you look at.
-    this.controls.zoomToCursor = true;
+    // Wheel zoom is our own (see `bindSmoothZoom`): OrbitControls applies each wheel step at once.
+    this.controls.enableZoom = false;
     this.controls.target.set(0, 15, 0);
     this.controls.addEventListener('start', () => {
       this.focusGoal = null;
@@ -122,6 +149,7 @@ export class Viewer {
     });
 
     this.bindPicking();
+    this.bindSmoothZoom();
     new ResizeObserver(() => this.resize()).observe(container);
     this.resize();
     this.renderer.setAnimationLoop(() => this.frame());
@@ -224,7 +252,24 @@ export class Viewer {
             0.12 * a, // auxiliary guide: keep it faint
           );
         }
-        this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
+        const label = this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
+        // Caption height follows the group's size on screen.
+        // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius.
+        label.userData.worldSize =
+          (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
+          // Nested groups are often nearly as big as their parents: shrink captions per level too.
+          Math.pow(this.labelShrink, p.depth);
+        // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
+        if (shell.torus) {
+          // Angles of the objects on the ring: the caption goes into a gap between them.
+          const members = (idx.children.get(n.id) ?? [])
+            .map((c) => layout.placed.get(c.id)!)
+            .filter((c) => c.visible && Math.hypot(c.world.x - shell.center.x, c.world.z - shell.center.z) > shell.torus!.major * 0.5)
+            .map((c) => Math.atan2(c.world.z - shell.center.z, c.world.x - shell.center.x))
+            .sort((a, b) => a - b);
+          label.userData.ring = { x: shell.center.x, z: shell.center.z, ...shell.torus, members };
+          this.addArcText(label, n.title, mainColor(style));
+        }
         continue;
       }
 
@@ -250,7 +295,11 @@ export class Viewer {
       this.content.add(mesh);
       this.pickNodes.push(mesh);
       const title = hidden ? `${n.title} (+${hidden})` : n.title;
-      this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
+      const label = this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
+      // Caption height follows the object's size on screen.
+      // Notes already get smaller with nesting, so their captions just follow their size (the extra
+      // per-level shrink is for groups, whose nested shells can be almost as big as their parents).
+      label.userData.worldSize = p.meshRadius * NOTE_LABEL_K;
 
       if (p.tethered) {
         const parent = idx.parentOf(n.id)!;
@@ -270,7 +319,12 @@ export class Viewer {
       const color = l.color ?? '#c0caf5';
       const parts: THREE.Object3D[] = [this.addLine(p1, p2, color, opacity, false)];
       if (l.directed) parts.push(this.addArrow(p1, p2, color, opacity));
-      if (l.label) parts.push(this.addLabel(l.label, lerp(p1, p2, 0.5), color, opacity, 'link'));
+      if (l.label) {
+        const caption = this.addLabel(l.label, lerp(p1, p2, 0.5), color, opacity, 'link');
+        // As small as the smaller of the two linked objects' captions.
+        caption.userData.worldSize = Math.min(this.captionSize(layout, a), this.captionSize(layout, b)) * LINK_LABEL_K;
+        parts.push(caption);
+      }
       for (const p of parts) p.userData.link = state;
     }
 
@@ -339,8 +393,13 @@ export class Viewer {
         const v = camRight.clone().multiplyScalar(sx).addScaledVector(camUp, sy).normalize();
         const r = shell.radii;
         const t = 1 / Math.sqrt((v.x / r.x) ** 2 + (v.y / r.y) ** 2 + (v.z / r.z) ** 2);
-        if (shell.torus) point.setY(shell.torus.y);
-        point.addScaledVector(v, t * 0.97);
+        if (shell.torus) {
+          // A ring: point at the ring on that side, not at the shared centre of concentric rings.
+          const hdir = new THREE.Vector3(v.x, 0, v.z);
+          if (hdir.lengthSq() < 1e-6) hdir.set(camRight.x, 0, camRight.z);
+          hdir.normalize();
+          point.set(center.x, shell.torus.y, center.z).addScaledVector(hdir, shell.torus.major + shell.torus.tube * 0.9);
+        } else point.addScaledVector(v, t * 0.97);
       }
       const s = point.clone().project(this.camera);
       const px = ((s.x + 1) / 2) * rect.width;
@@ -407,8 +466,9 @@ export class Viewer {
       mesh.position.set(c.x, c.y, c.z);
     }
     mesh.userData.id = id;
-    // For picking the innermost of nested shells.
+    // For picking the innermost of nested shells, and for picking by apparent size.
     mesh.userData.size = r.x * r.y * r.z;
+    mesh.userData.radius = Math.max(r.x, r.z);
     mesh.userData.baseOpacity = (mesh.material as THREE.Material).opacity;
     mesh.renderOrder = -1;
     this.content.add(mesh);
@@ -511,13 +571,24 @@ export class Viewer {
       const t = THREE.MathUtils.clamp((d - dist * 0.6) / dist, 0, 1); // 0 = near, 1 = far
       fade = 1 - this.labelDepthFade * 0.95 * t;
     }
-    const opacity = obj.element.classList.contains('hovered') ? 1 : (obj.userData.baseOpacity as number) * fade;
-    // Size uses the absolute distance against the overview distance: flying in towards deep
-    // (small-labelled) contents makes their labels readable.
-    // Deep labels may grow more, so that up close they reach a readable size again.
-    const maxZoom = 3 / Math.max((obj.userData.depthFactor as number) ?? 1, 0.05);
-    const zoom = this.labelZoom ? THREE.MathUtils.clamp(Math.sqrt(this.overviewDist / d), 0.75, maxZoom) : 1;
-    const px = Math.min(MAX_LABEL_PX * this.labelScale, (obj.userData.basePx as number) * zoom * this.labelScale);
+    const hovered = obj.element.classList.contains('hovered');
+    let opacity = hovered ? 1 : (obj.userData.baseOpacity as number) * fade;
+    let px: number;
+    const worldSize = obj.userData.worldSize as number | undefined;
+    if (worldSize) {
+      // Object captions: as tall as the object looks on screen, so captions of small (deep or
+      // squeezed) objects are small and grow together with them when the camera comes closer.
+      const pxPerUnit = this.renderer.domElement.clientHeight / (2 * d * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
+      px = Math.min(MAX_LABEL_PX * this.labelScale, worldSize * pxPerUnit * this.labelScale);
+      // Too small to read: fade out instead of piling up into an unreadable blot.
+      if (!hovered) opacity *= THREE.MathUtils.clamp((px - LABEL_HIDE_PX) / (LABEL_FULL_PX - LABEL_HIDE_PX), 0, 1);
+      px = Math.max(px, LABEL_HIDE_PX);
+    } else {
+      // Link captions: base size, slightly larger up close.
+      const maxZoom = 3 / Math.max((obj.userData.depthFactor as number) ?? 1, 0.05);
+      const zoom = this.labelZoom ? THREE.MathUtils.clamp(Math.sqrt(this.overviewDist / d), 0.75, maxZoom) : 1;
+      px = Math.min(MAX_LABEL_PX * this.labelScale, (obj.userData.basePx as number) * zoom * this.labelScale);
+    }
     // Touch the DOM only when a value visibly changes.
     if (Math.abs(opacity - ((obj.userData.shownOpacity as number | undefined) ?? -1)) > 0.02) {
       obj.userData.shownOpacity = opacity;
@@ -607,6 +678,8 @@ export class Viewer {
     }
     this.pickNodes.length = 0;
     this.labelObjs.length = 0;
+    this.ringSvg.replaceChildren();
+    this.arcTexts.length = 0;
     this.pickShells.length = 0;
   }
 
@@ -620,9 +693,13 @@ export class Viewer {
       ray.setFromCamera(ndc, this.camera);
       // Nodes win over the group shells that surround them; small nodes get a few pixels of tolerance.
       // Of several shells under the pointer, the innermost (smallest) one: the group you are inside of.
-      const shellHits = ray.intersectObjects(this.pickShells);
-      const innermost = shellHits.sort((a, b) => a.object.userData.size - b.object.userData.size)[0];
-      const hit = ray.intersectObjects(this.pickNodes)[0] ?? this.nearestNode(ndc, rect, 12) ?? innermost;
+      // Of several shells under the pointer: the innermost one that looks big enough to aim at;
+      // if none does, the outermost (the group you can actually see).
+      const shellHits = ray.intersectObjects(this.pickShells).sort((a, b) => a.object.userData.size - b.object.userData.size);
+      const shellHit = shellHits.find((h) => this.screenRadius(h.object, h.object.userData.radius) >= PICK_SHELL_MIN_PX) ?? shellHits.at(-1);
+      // Nodes win over shells, but only once they are big enough on screen to be told apart.
+      const nodeHit = ray.intersectObjects(this.pickNodes).find((h) => this.screenRadius(h.object, h.object.scale.x) >= PICK_NODE_MIN_PX);
+      const hit = nodeHit ?? this.nearestNode(ndc, rect, 12) ?? shellHit;
       return (hit?.object.userData.id as string | undefined) ?? null;
     };
     // Hover highlight, at most once per frame.
@@ -658,6 +735,92 @@ export class Viewer {
       const id = pick(e);
       if (id) this.flyTo(id);
     });
+  }
+
+  /**
+   * Curved caption of a ring: an SVG text along a path that `layoutArcTexts` rebuilds every frame
+   * from the front arc of the ring projected onto the screen. The regular label object stays (hidden)
+   * as the source of brightness, size and hover state, so all label effects apply.
+   */
+  private addArcText(label: CSS2DObject, title: string, color: string) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const id = `arc-${this.arcTexts.length}-${Math.random().toString(36).slice(2, 7)}`;
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('id', id);
+    const text = document.createElementNS(ns, 'text');
+    text.setAttribute('class', 'arc-label');
+    text.style.fill = color;
+    text.style.color = color; // for the hover glow (currentColor)
+    const tp = document.createElementNS(ns, 'textPath');
+    tp.setAttribute('href', `#${id}`);
+    tp.setAttribute('startOffset', '50%');
+    tp.setAttribute('text-anchor', 'middle');
+    tp.textContent = title;
+    text.append(tp);
+    this.ringSvg.append(path, text);
+    label.element.style.visibility = 'hidden';
+    this.arcTexts.push({ label, path, text });
+  }
+
+  private layoutArcTexts() {
+    if (!this.arcTexts.length) return;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const cam = this.camera.position;
+    const p = new THREE.Vector3();
+    for (const { label, path, text } of this.arcTexts) {
+      const ring = label.userData.ring as { x: number; z: number; y: number; major: number; tubeY: number; members: number[] };
+      const front = gapCentre(Math.atan2(cam.z - ring.z, cam.x - ring.x), ring.members);
+      const pts: [number, number][] = [];
+      let behind = false;
+      // Front arc of ±80°, slightly above the tube so the text sits on the ring.
+      for (let i = -16; i <= 16; i++) {
+        const a = front + (i / 16) * ((80 * Math.PI) / 180);
+        p.set(ring.x + Math.cos(a) * ring.major, ring.y + ring.tubeY, ring.z + Math.sin(a) * ring.major).project(this.camera);
+        if (p.z > 1) behind = true;
+        pts.push([((p.x + 1) / 2) * rect.width, ((1 - p.y) / 2) * rect.height]);
+      }
+      if (behind) {
+        text.style.display = 'none';
+        continue;
+      }
+      // Text reads left to right whichever way the ring is seen.
+      if (pts[0][0] > pts[pts.length - 1][0]) pts.reverse();
+      path.setAttribute('d', 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L'));
+      const st = label.element.style;
+      text.style.display = '';
+      text.style.opacity = st.opacity;
+      text.style.fontSize = st.fontSize;
+      text.classList.toggle('hovered', label.element.classList.contains('hovered'));
+    }
+  }
+
+  /** World height of a node's caption (see the label sizes in `render`). */
+  private captionSize(layout: Layout, id: string): number {
+    const p = layout.placed.get(id)!;
+    const shell = layout.shells.get(id);
+    if (!shell) return p.meshRadius * NOTE_LABEL_K;
+    const own = shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K;
+    return own * Math.pow(this.labelShrink, p.depth);
+  }
+
+  /** Puts each torus caption on its ring, at the point nearest to the viewer (every frame). */
+  private placeRingLabels() {
+    const cam = this.camera.position;
+    for (const obj of this.labelObjs) {
+      const ring = obj.userData.ring as { x: number; z: number; y: number; major: number; tube: number; tubeY: number } | undefined;
+      if (!ring) continue;
+      let dx = cam.x - ring.x;
+      let dz = cam.z - ring.z;
+      const len = Math.hypot(dx, dz);
+      if (len < 1e-6) {
+        dx = 0;
+        dz = 1;
+      } else {
+        dx /= len;
+        dz /= len;
+      }
+      obj.position.set(ring.x + dx * ring.major, ring.y + ring.tubeY, ring.z + dz * ring.major);
+    }
   }
 
   /** Emphasises the object under the pointer (brighter node / shell) and shows a pointer cursor. */
@@ -699,6 +862,7 @@ export class Viewer {
   private nearestNode(ndc: THREE.Vector2, rect: DOMRect, px: number): { object: THREE.Object3D } | undefined {
     let best: { object: THREE.Object3D; depth: number } | undefined;
     for (const obj of this.pickNodes) {
+      if (this.screenRadius(obj, obj.scale.x) < PICK_NODE_MIN_PX) continue; // a dot from here
       const s = obj.position.clone().project(this.camera);
       if (s.z > 1) continue; // behind the camera
       const dx = ((s.x - ndc.x) * rect.width) / 2;
@@ -706,6 +870,12 @@ export class Viewer {
       if (Math.hypot(dx, dy) <= px && (!best || s.z < best.depth)) best = { object: obj, depth: s.z };
     }
     return best;
+  }
+
+  /** Apparent radius in screen pixels of something of world radius `r` at `obj`'s position. */
+  private screenRadius(obj: THREE.Object3D, r: number): number {
+    const d = Math.max(this.camera.position.distanceTo(obj.position), 1e-3);
+    return (r * this.renderer.domElement.clientHeight) / (2 * d * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
   }
 
   private resize() {
@@ -717,7 +887,55 @@ export class Viewer {
     this.labels.setSize(w, h);
   }
 
+  /**
+   * Smooth wheel zoom towards the point under the cursor: wheel steps add up into a pending zoom,
+   * which the render loop applies a fraction at a time (eased, like the damped rotation).
+   */
+  private bindSmoothZoom() {
+    const el = this.renderer.domElement;
+    el.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        this.focusGoal = null;
+        this.cameraGoal = null;
+        // Normalise wheel units (lines / pages / pixels); one notch ≈ 100 px ≈ 15 % closer or farther.
+        const px = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1);
+        this.zoomPending += THREE.MathUtils.clamp(px, -400, 400) * 0.0015;
+        // Zoom towards the point under the cursor, on the plane through the focus point facing the camera.
+        const rect = el.getBoundingClientRect();
+        const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(ndc, this.camera);
+        const normal = this.camera.getWorldDirection(new THREE.Vector3());
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, this.controls.target);
+        this.zoomPoint = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? this.controls.target.clone();
+      },
+      { passive: false },
+    );
+  }
+
+  /** Applies a share of the pending wheel zoom (called every frame). */
+  private stepZoom() {
+    if (Math.abs(this.zoomPending) < 1e-4 || !this.zoomPoint) {
+      this.zoomPending = 0;
+      return;
+    }
+    // Small share per frame: a long, soft glide (≈ 1 s to settle at 60 fps).
+    const step = this.zoomPending * ZOOM_EASE;
+    this.zoomPending -= step;
+    const factor = Math.exp(step); // > 1: away, < 1: closer
+    const p = this.zoomPoint;
+    // Scale camera and focus about the point under the cursor, so that point stays put on screen.
+    const newCam = this.camera.position.clone().sub(p).multiplyScalar(factor).add(p);
+    const newTarget = this.controls.target.clone().sub(p).multiplyScalar(factor).add(p);
+    if (newCam.distanceTo(newTarget) < 0.05) return; // do not pass through the focus point
+    this.camera.position.copy(newCam);
+    this.controls.target.copy(newTarget);
+  }
+
   private frame() {
+    this.stepZoom();
     if (this.focusGoal) {
       const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(0.12);
       this.controls.target.add(delta);
@@ -748,6 +966,8 @@ export class Viewer {
       nearest = Math.min(nearest, this.camera.position.distanceTo(obj.position));
     }
     const ref = Math.min(dist, Math.max(nearest * 3, 1e-3));
+    this.placeRingLabels();
+    this.layoutArcTexts();
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
     this.labels.render(this.scene, this.camera);
     // The label renderer orders elements by depth; the card must stay above every caption.
@@ -790,6 +1010,22 @@ function sectorGeometry(shape: Shape, colors: string[]): THREE.BufferGeometry {
   SHARED.add(geo);
   sectorCache.set(key, geo);
   return geo;
+}
+
+/** Middle of the gap between sorted `members` angles that contains `angle` (or `angle` itself). */
+function gapCentre(angle: number, members: number[]): number {
+  if (members.length < 2) return members.length === 1 ? members[0] + Math.PI : angle;
+  const TAU = 2 * Math.PI;
+  const norm = (a: number) => ((a % TAU) + TAU) % TAU;
+  const a = norm(angle);
+  const ms = members.map(norm).sort((x, y) => x - y);
+  for (let i = 0; i < ms.length; i++) {
+    const from = ms[i];
+    const to = i + 1 < ms.length ? ms[i + 1] : ms[0] + TAU;
+    const at = a < from ? a + TAU : a;
+    if (at >= from && at <= to) return (from + to) / 2;
+  }
+  return angle;
 }
 
 function countDescendants(idx: SpaceIndex, id: string): number {
