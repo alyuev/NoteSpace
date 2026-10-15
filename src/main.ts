@@ -2,7 +2,7 @@ import './style.css';
 import type { TagFilter } from './core/filter';
 import { computeLayout, SpaceIndex, type Layout } from './core/layout';
 import { createFromTemplate, TEMPLATES, templateOf, updateFromTemplate } from './core/templates';
-import { newId, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
+import { newId, type ShellCenter, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
 import { loadSettings, saveSettings } from './settings';
 import {
   backupSpace,
@@ -28,6 +28,18 @@ const LEVEL_HINT = `Уровень — высота узла в простран
 Внутри вложенных групп шаг дополнительно уменьшается «Масштабом вложенных групп» (Настройки вида).`;
 const LEVEL_MODE_HINT = `Локальный — высота относительно родительской группы (едет вместе с ней).
 Глобальный — высота от общего нуля пространства, независимо от группы.`;
+
+const CENTER_HINT = `Где центр оболочки группы:
+• по содержимому — посередине между самым нижним и самым верхним содержимым;
+• на уровне группы — содержимое сдвигается, чтобы центр оболочки был ровно на уровне самой группы (нулевой уровень внутри при этом может уйти вниз или вверх);
+• на нулевом уровне — оболочка строится симметрично от нулевого уровня группы: совпадают позиция группы, её пунктирное кольцо и геометрический центр.`;
+const FIXED_HINT = `По содержимому — оболочка растёт, когда внутрь добавляют объекты.
+Фиксированный — размер задаётся тремя диаметрами (восток–запад, север–юг, толщина), а всё содержимое вместе с подписями пропорционально уменьшается, чтобы поместиться. Центр — на нулевом уровне группы.`;
+
+/** Shell centre mode of a group, including the old `centerOnLevel` flag. */
+function centerOf(n: SpaceNode): ShellCenter {
+  return n.frame?.center ?? (n.frame?.centerOnLevel ? 'shift' : 'content');
+}
 
 const SHAPES: Shape[] = ['sphere', 'box', 'cone', 'octahedron', 'torus', 'cylinder'];
 const SHAPE_NAMES: Record<Shape, string> = {
@@ -364,7 +376,31 @@ function renderRight() {
                 <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
               </select>
             </label>
-            <label class="check" title="Содержимое сдвигается так, чтобы центр оболочки был на уровне самой группы"><input id="f-centerOnLevel" type="checkbox" ${n.frame!.centerOnLevel ? 'checked' : ''}> Центр оболочки — на уровне группы</label>
+            <label title="${esc(CENTER_HINT)}">Центр оболочки
+              <select id="f-center" ${n.frame!.fixedSize ? 'disabled' : ''}>
+                <option value="content" ${centerOf(n) === 'content' ? 'selected' : ''}>по содержимому</option>
+                <option value="shift" ${centerOf(n) === 'shift' ? 'selected' : ''}>на уровне группы (сдвиг содержимого)</option>
+                <option value="zero" ${centerOf(n) === 'zero' ? 'selected' : ''}>на нулевом уровне (симметрично)</option>
+              </select>
+            </label>
+            <label title="${esc(FIXED_HINT)}">Размер оболочки
+              <select id="f-sizing">
+                <option value="content" ${n.frame!.fixedSize ? '' : 'selected'}>по содержимому</option>
+                <option value="fixed" ${n.frame!.fixedSize ? 'selected' : ''}>фиксированный (содержимое масштабируется)</option>
+              </select>
+            </label>
+            ${
+              n.frame!.fixedSize
+                ? `<div class="row" title="Диаметры оболочки">
+                    <label>В–З (X)<input id="f-fx" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.x}"></label>
+                    <label>С–Ю (Z)<input id="f-fz" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.z}"></label>
+                    <label>Толщина (Y)<input id="f-fy" type="number" step="0.1" min="0.05" value="${n.frame!.fixedSize.y}"></label>
+                  </div>`
+                : ''
+            }
+            <label>Видимость оболочки: ${Math.round((n.frame!.shellOpacity ?? 1) * 100)}%
+              <input id="f-shellOpacity" type="range" min="0" max="100" step="5" value="${Math.round((n.frame!.shellOpacity ?? 1) * 100)}">
+            </label>
             <label class="check"><input id="f-collapsed" type="checkbox" ${n.frame!.collapsed ? 'checked' : ''}> Свернуть</label>
           </fieldset>`
         : ''
@@ -386,8 +422,24 @@ function renderRight() {
               <input id="f-color" type="color" value="${esc(n.style.color)}">
               <input id="f-size" type="number" step="0.1" min="0.3" value="${n.style.size}" title="Размер">
             </div>
+            <div class="row" title="Фигура делится на равные цветные доли (например, природа Отца и Сына)">
+              <span class="muted">Доли цвета:</span>
+              ${(n.style.colors ?? [])
+                .map((c, i) => `<input type="color" data-ci="${i}" value="${esc(c)}"><button data-cdel="${i}" title="Убрать долю">×</button>`)
+                .join('')}
+              <button id="f-cadd" title="Добавить цветную долю">+ доля</button>
+            </div>
             <button id="f-saveStyle">Сохранить как новый стиль…</button>`
       }
+      <label title="Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу">Направить на
+        <select id="f-aimAt">
+          <option value="">— по порядку —</option>
+          ${space.nodes
+            .filter((x) => x.id !== n.id)
+            .map((x) => `<option value="${esc(x.id)}" ${n.aimAt === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`)
+            .join('')}
+        </select>
+      </label>
       <label>Размер как
         <select id="f-sizeAs">
           <option value="">— собственный —</option>
@@ -457,10 +509,44 @@ function renderRight() {
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
   edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' ? 'torus' : undefined));
-  edit('#f-centerOnLevel', (el) => (n.frame!.centerOnLevel = el.checked || undefined));
+  edit('#f-center', (el) => {
+    n.frame!.center = el.value === 'content' ? undefined : (el.value as ShellCenter);
+    n.frame!.centerOnLevel = undefined; // replaced by `center`
+  });
+  edit('#f-sizing', (el) => {
+    if (el.value === 'fixed') {
+      // Start from the current size, so switching does not jump.
+      const r = layout?.shells.get(n.id)?.radii;
+      const d = (v: number | undefined) => Math.round((v ?? 10) * 2 * 10) / 10;
+      n.frame!.fixedSize = { x: d(r?.x), y: d(r?.y), z: d(r?.z) };
+    } else n.frame!.fixedSize = undefined;
+  });
+  edit('#f-fx', (el) => (n.frame!.fixedSize!.x = Math.max(0.1, num(el, n.frame!.fixedSize!.x))));
+  edit('#f-fz', (el) => (n.frame!.fixedSize!.z = Math.max(0.1, num(el, n.frame!.fixedSize!.z))));
+  edit('#f-fy', (el) => (n.frame!.fixedSize!.y = Math.max(0.05, num(el, n.frame!.fixedSize!.y))));
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
   edit('#f-sizeAs', (el) => (n.sizeAs = el.value || undefined));
+  edit('#f-aimAt', (el) => (n.aimAt = el.value || undefined));
+  edit('#f-shellOpacity', (el) => (n.frame!.shellOpacity = Number(el.value) / 100), false);
+  right.querySelectorAll<HTMLInputElement>('[data-ci]').forEach((el) =>
+    el.addEventListener('change', () => {
+      n.style.colors![Number(el.dataset.ci)] = el.value;
+      refresh(false);
+    }),
+  );
+  right.querySelectorAll<HTMLButtonElement>('[data-cdel]').forEach((b) =>
+    b.addEventListener('click', () => {
+      n.style.colors = n.style.colors!.filter((_, i) => i !== Number(b.dataset.cdel));
+      if (!n.style.colors.length) n.style.colors = undefined;
+      refresh(false);
+    }),
+  );
+  on(right, '#f-cadd', 'click', () => {
+    // The first sector starts from the node's own colour.
+    n.style.colors = [...(n.style.colors ?? [n.style.color]), '#ffffff'];
+    refresh(false);
+  });
   on(right, '#f-saveStyle', 'click', () => {
     const name = prompt('Название стиля (например, «Ангелы»)')?.trim();
     if (!name) return;

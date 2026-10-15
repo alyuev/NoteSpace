@@ -26,6 +26,20 @@ const C = {
   path: '#73daca',
 };
 
+/** Seven Master Spirits: name, colours of the natures they express (Father, Son, Spirit), description. */
+const NATURE = { father: '#ffd866', son: '#ffffff', spirit: '#89ddff' };
+const MASTER_SPIRITS: [string, string[], string][] = [
+  ['Первый Главный Дух', [NATURE.father], 'Выражает только Всеобщего Отца.'],
+  ['Второй Главный Дух', [NATURE.son], 'Выражает только Вечного Сына.'],
+  ['Третий Главный Дух', [NATURE.spirit], 'Выражает только Бесконечного Духа.'],
+  ['Четвёртый Главный Дух', [NATURE.father, NATURE.son], 'Выражает совместную природу Отца и Сына.'],
+  ['Пятый Главный Дух', [NATURE.father, NATURE.spirit], 'Выражает совместную природу Отца и Духа.'],
+  ['Шестой Главный Дух', [NATURE.son, NATURE.spirit], 'Выражает совместную природу Сына и Духа.'],
+  ['Седьмой Главный Дух', [NATURE.father, NATURE.son, NATURE.spirit], 'Выражает объединённую природу всех трёх Личностей — Отца, Сына и Духа.'],
+];
+/** Superuniverse each Master Spirit presides over (the seventh: Orvonton). */
+const MASTER_SPIRIT_TARGETS = ['su1', 'su2', 'su3', 'su4', 'su5', 'su6', 'orvonton'];
+
 /** The seven sacred worlds of the Father (inner ring), as listed in Paper 13. */
 const FATHER_WORLDS: [string, string, string][] = [
   ['divinington', 'Дивинингтон', 'Обитель Настройщиков Мысли и связанных с ними духовных сущностей.'],
@@ -58,7 +72,8 @@ export function urantiaSpace(): Space {
       pinned: { x: 0, z: 0 },
       title: 'Остров Рай',
       level: 0,
-      frame: { levelStep: 5 },
+      // Paper 11: east–west 6, north–south 7 (1/6 longer), thickness 1/10 of east–west.
+      frame: { levelStep: 5, center: 'zero', fixedSize: { x: 36, y: 3.6, z: 42 } },
       tags: ['place'],
       style: { color: C.paradise, shape: 'octahedron', size: 1.6 },
       contentHtml: `<p>Вечный центр мироздания, неподвижное ядро вселенной вселенных. Обитель Всеобщего Отца.</p>${doc('11')}`,
@@ -124,15 +139,29 @@ export function urantiaSpace(): Space {
       style: { color: '#a08060', shape: 'cylinder', size: 1 },
       contentHtml: `<p>Связан с силой и энергией: отсюда исходят контуры физической гравитации.</p>${doc('11')}`,
     }),
-    note({
+    group({
       id: 'masterSpirits',
       parentId: 'paradise',
+      pinned: { x: 0, z: 0 },
       title: 'Семь Главных Духов',
-      level: 0.5,
+      level: 0,
+      // A faint ring: one click selects all seven; each spirit faces its superuniverse.
+      frame: { levelStep: 3, shell: 'torus', shellOpacity: 0.3 },
       tags: ['person', 'admin'],
-      style: { color: '#89ddff', shape: 'octahedron', size: 1.1 },
-      contentHtml: `<p>Личности, выражающие семь возможных сочетаний Отца, Сына и Духа. Каждый курирует одну сверхвселенную.</p>${doc('16')}`,
+      style: { color: '#89ddff', shape: 'torus', size: 1 },
+      contentHtml: `<p>Личности, выражающие семь возможных сочетаний природы Отца, Сына и Духа. Каждый курирует одну сверхвселенную и стоит на линии от центра Рая к ней.</p>${doc('16')}`,
     }),
+    ...MASTER_SPIRITS.map(([title, colors, text], i) =>
+      note({
+        id: `masterSpirit${i + 1}`,
+        parentId: 'masterSpirits',
+        aimAt: MASTER_SPIRIT_TARGETS[i],
+        title,
+        tags: ['person', 'admin'],
+        style: { color: colors[0], colors: colors.length > 1 ? colors : undefined, shape: 'sphere', size: 1.1 },
+        contentHtml: `<p>${text}</p><p>Курирует ${i < 6 ? `сверхвселенную ${i + 1}` : 'Орвонтон (сверхвселенную 7)'}.</p>${doc('16')}`,
+      }),
+    ),
     // ---------- Sacred spheres: three concentric rings between Paradise and Havona ----------
     // Pinned to the centre of Havona after Paradise, in order: each torus rings the previous one.
     group({
@@ -556,9 +585,9 @@ export function urantiaSpace(): Space {
     link('havona', 'paradise', { label: 'вращается вокруг' }),
     link('netherParadise', 'darkBodies', { color: '#565f89' }),
 
-    // Each Master Spirit presides over one superuniverse
-    ...[1, 2, 3, 4, 5, 6].map((n) => link('masterSpirits', `su${n}`, { color: '#89ddff' })),
-    link('masterSpirits', 'orvonton', { color: '#89ddff', label: 'Седьмой Главный Дух' }),
+    // Each Master Spirit comes from the Infinite Spirit and presides over one superuniverse
+    ...MASTER_SPIRIT_TARGETS.map((_, i) => link('spirit', `masterSpirit${i + 1}`, { directed: true, color: '#89ddff' })),
+    ...MASTER_SPIRIT_TARGETS.map((t, i) => link(`masterSpirit${i + 1}`, t, { directed: true, color: '#89ddff' })),
 
     // Local universe creators
     link('father', 'michael', { directed: true, color: C.jesus }),

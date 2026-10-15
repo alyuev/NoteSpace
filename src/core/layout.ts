@@ -22,6 +22,8 @@ export interface Placed {
   tethered: boolean;
   /** Nesting depth: 0 for root nodes. */
   depth: number;
+  /** Product of the fixed-size scale factors of the groups around it (1 = none); shrinks captions. */
+  fitScale: number;
 }
 
 /** Horizontal torus: ring radius, horizontal and vertical tube radii, height of its centre. */
@@ -131,6 +133,8 @@ interface SimItem {
   ry: number;
   /** Minimal free space to neighbours. */
   gap: number;
+  /** Fixed direction on a ring (radians, from +x towards +z), for `aimAt`. */
+  angle?: number;
   x?: number;
   y?: number;
   fx?: number;
@@ -154,13 +158,40 @@ export interface LayoutOptions {
 }
 
 export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions = {}): Layout {
+  const aiming = space.nodes.filter((n) => n.aimAt && n.aimAt !== n.id);
+  if (!aiming.length) return layoutPass(space, prev, opts, new Map());
+  // Directions depend on where the targets end up, so lay out once, aim, and lay out again.
+  const first = layoutPass(space, prev, opts, new Map());
+  const angles = new Map<string, number>();
+  const idx = new SpaceIndex(space);
+  for (const n of aiming) {
+    const parent = idx.parentOf(n.id);
+    if (!parent || !first.placed.has(n.aimAt!)) continue;
+    const from = first.placed.get(parent)!.world;
+    const to = attachPoint(first, n.aimAt!);
+    if (Math.hypot(to.x - from.x, to.z - from.z) > 1e-6) angles.set(n.id, Math.atan2(to.z - from.z, to.x - from.x));
+  }
+  return layoutPass(space, first, opts, angles);
+}
+
+/** One layout pass; `aim` gives fixed ring angles for nodes with `aimAt`. */
+function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions, aim: Map<string, number>): Layout {
   const idx = new SpaceIndex(space);
   const depthScale = opts.depthScale ?? 1;
   const depthOf = (id: string) => idx.ancestors(id).length;
-  /** Size scale of a node, from its nesting depth. */
-  const scaleOf = (n: SpaceNode) => depthScale ** depthOf(n.id);
-  /** Scale of everything inside a group (its children's scale); 1 at the root. */
-  const inner = (g: SpaceNode | undefined) => (g ? scaleOf(g) * depthScale : 1);
+  /** Fixed-size groups: horizontal / vertical factor applied to everything inside them. */
+  const fitH = new Map<string, number>();
+  const fitV = new Map<string, number>();
+  const fitOf = (n: SpaceNode, m: Map<string, number>) => idx.ancestors(n.id).reduce((p, a) => p * (m.get(a) ?? 1), 1);
+  /** Size scale of a node: nesting depth and the fixed-size groups around it. */
+  const scaleOf = (n: SpaceNode) => depthScale ** depthOf(n.id) * fitOf(n, fitH);
+  /** Horizontal scale of everything inside a group (its children's scale); 1 at the root. */
+  const inner = (g: SpaceNode | undefined) => (g ? scaleOf(g) * depthScale * (fitH.get(g.id) ?? 1) : 1);
+  /** Vertical scale inside a group: like `inner`, but with the vertical fit factors. */
+  const innerV = (g: SpaceNode | undefined) =>
+    g ? depthScale ** (depthOf(g.id) + 1) * fitOf(g, fitV) * (fitV.get(g.id) ?? 1) : 1;
+  /** Shell radii of fixed-size groups. */
+  const fixedRadii = new Map<string, Vec3>();
   const local = new Map<string, { x: number; z: number }>();
   /** Own extent of expanded groups, from their contents. */
   const natural = new Map<string, Extent>();
@@ -177,7 +208,7 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
   const step = (g: SpaceNode | undefined) => g?.frame?.levelStep ?? space.globalStep;
   const offset = (g: SpaceNode | undefined) => g?.frame?.offset ?? 0;
   /** Y of a non-global child relative to its parent's origin. */
-  const localY = (n: SpaceNode, parent: SpaceNode | undefined) => (offset(parent) + n.level * step(parent)) * inner(parent);
+  const localY = (n: SpaceNode, parent: SpaceNode | undefined) => (offset(parent) + n.level * step(parent)) * innerV(parent);
   /** Absolute Y of a node's origin (levels only; independent of horizontal layout). */
   const absY = (n: SpaceNode | undefined): number => {
     if (!n) return 0;
@@ -228,10 +259,49 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
     return t ? t.major + t.tube : r;
   };
 
-  /** Lays out a group's children (or the root's, for `null`) and returns the group's natural extent. */
+  /** Forgets everything computed inside a group, so it can be laid out again at another scale. */
+  const forgetInside = (groupId: string) => {
+    for (const n of space.nodes) {
+      if (!idx.ancestors(n.id).includes(groupId)) continue;
+      for (const m of [natural, effective, local, tori, shift, minRing, fitH, fitV, fixedRadii]) m.delete(n.id);
+    }
+  };
+
+  /**
+   * Lays out a group's children (or the root's, for `null`) and returns the group's extent.
+   * A fixed-size group is laid out twice: once at natural scale to measure its contents, then
+   * with the contents scaled to fit the fixed shell.
+   */
   function layoutGroup(groupId: string | null): Extent {
     const cached = groupId ? natural.get(groupId) : undefined;
     if (cached) return cached;
+    const group = groupId ? idx.byId.get(groupId) : undefined;
+    const size = group?.frame?.fixedSize;
+    if (!group || !size || !isExpandedGroup(group)) return layoutGroupBody(groupId);
+
+    const rx = Math.max(size.x, 0.1) / 2;
+    const ry = Math.max(size.y, 0.05) / 2;
+    const rz = Math.max(size.z, 0.1) / 2;
+    const measured = layoutGroupBody(groupId); // symmetric around level 0 (see `centerMode`)
+    const h = Math.min(rx, rz) / Math.max(measured.r, 1e-6);
+    // Levels are squeezed into the thickness, but never stretched beyond the horizontal scale.
+    const v = Math.min(h, ry / Math.max(measured.ry, 1e-6));
+    forgetInside(group.id);
+    natural.delete(group.id);
+    fitH.set(group.id, h);
+    fitV.set(group.id, v);
+    layoutGroupBody(groupId);
+    const ext = { r: Math.max(rx, rz), ry, cy: 0 };
+    fixedRadii.set(group.id, { x: rx, y: ry, z: rz });
+    natural.set(group.id, ext);
+    return ext;
+  }
+
+  /** How a group's shell is centred (fixed-size groups are always centred on level 0). */
+  const centerMode = (g: SpaceNode) =>
+    g.frame?.fixedSize ? 'zero' : (g.frame?.center ?? (g.frame?.centerOnLevel ? 'shift' : 'content'));
+
+  function layoutGroupBody(groupId: string | null): Extent {
     if (groupId) inProgress.add(groupId);
     const group = groupId ? idx.byId.get(groupId) : undefined;
     const kids = idx.children.get(groupId) ?? [];
@@ -256,7 +326,7 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
       const y = n.levelMode === 'global' ? n.level * space.globalStep - absY(group) : localY(n, group);
       // A centre-pinned torus only occupies its ring, not the ellipsoid that bounds it.
       const r = ringed && n.pinned ? ringOuter(n) : e.r;
-      const item: SimItem = { id: n.id, r, yc: y + e.cy, ry: e.ry, gap: 1.5 * k };
+      const item: SimItem = { id: n.id, r, yc: y + e.cy, ry: e.ry, gap: 1.5 * k, angle: aim.get(n.id) };
       const start = n.pinned ?? prev?.local.get(n.id);
       if (start) {
         item.x = start.x;
@@ -291,6 +361,8 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
         samples.push({ d: c + e.r * Math.cos(a), y: y0 + e.ry * Math.sin(a) });
       }
     }
+    // Centred on level 0: mirror the contents vertically, so the fitted shell is symmetric around it.
+    if (centerMode(group) === 'zero') for (const p of [...samples]) samples.push({ d: p.d, y: -p.y });
     let ext = samples.length ? fitShell(samples, SHELL_PADDING * k) : { r: NOTE_RADIUS * 2 * k, ry: NOTE_RADIUS * 2 * k, cy: 0 };
     // Torus: tube around the ring of (non-pinned) children; pinned ones stay in the hole.
     const ringKids = items.filter((it) => it.fx === undefined && !isTethered(idx, idx.byId.get(it.id)!));
@@ -304,7 +376,7 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
       torus = { major, tube, tubeY: (hi - lo) / 2 + pad * 0.6, y: (hi + lo) / 2 };
       ext = { r: Math.max(ext.r, major + tube), ry: Math.max(ext.ry, torus.tubeY), cy: ext.cy };
     }
-    if (group.frame?.centerOnLevel) {
+    if (centerMode(group) === 'shift') {
       // Move the contents instead of the shell: its centre lands on the group's own level.
       shift.set(group.id, -ext.cy);
       if (torus) torus = { ...torus, y: torus.y - ext.cy };
@@ -381,13 +453,14 @@ export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions =
         anchorId: anchor,
         tethered: isTethered(idx, n),
         depth,
+        fitScale: fitOf(n, fitH),
       });
       if (visible && isExpandedGroup(n)) {
         shells.set(n.id, {
           id: n.id,
           center: { ...world, y: world.y + ext.cy },
-          radii: { x: ext.r, y: ext.ry, z: ext.r },
-          zeroY: world.y + offset(n) * inner(n) + (shift.get(n.id) ?? 0),
+          radii: fixedRadii.get(n.id) ?? { x: ext.r, y: ext.ry, z: ext.r },
+          zeroY: world.y + offset(n) * innerV(n) + (shift.get(n.id) ?? 0),
           ...(tori.has(n.id) ? { torus: { ...tori.get(n.id)!, y: world.y + tori.get(n.id)!.y } } : {}),
         });
       }
@@ -470,7 +543,7 @@ function placeOnRing(items: SimItem[], gap: number, minInner = 0) {
   // Far enough from the centre and with neighbours not overlapping.
   const radius = Math.max(innerR + maxR + gap, n > 1 ? (maxR + gap / 2) / Math.sin(Math.PI / n) : 0);
   ring.forEach((it, i) => {
-    const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const a = it.angle ?? -Math.PI / 2 + (2 * Math.PI * i) / n;
     it.x = radius * Math.cos(a);
     it.y = radius * Math.sin(a);
   });

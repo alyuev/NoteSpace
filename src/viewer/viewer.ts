@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { matchesFilter, type TagFilter } from '../core/filter';
 import { attachPoint, isExpandedGroup, SpaceIndex, type Layout, type Shell, type Vec3 } from '../core/layout';
-import { styleOf, type Shape, type Space } from '../core/types';
+import { mainColor, styleOf, type Shape, type Space } from '../core/types';
 
 const GEOMETRY: Record<Shape, THREE.BufferGeometry> = {
   sphere: new THREE.SphereGeometry(1, 24, 16),
@@ -207,32 +207,36 @@ export class Viewer {
       const a = alpha(n.id);
       const selected = n.id === view.selectedId;
       const style = styleOf(space, n);
-      const fontScale = Math.pow(this.labelShrink, p.depth);
+      // Nesting shrinks captions, and so does a fixed-size group squeezing its contents.
+      const fontScale = Math.pow(this.labelShrink, p.depth) * p.fitScale;
 
       if (isExpandedGroup(n)) {
         const shell = layout.shells.get(n.id)!;
         minY = Math.min(minY, shell.center.y - shell.radii.y);
         maxY = Math.max(maxY, shell.center.y + shell.radii.y);
-        this.addShell(n.id, style.color, shell, a, selected);
+        this.addShell(n.id, mainColor(style), shell, a * (n.frame?.shellOpacity ?? 1), selected);
         // Ring at the group's local zero level: makes its frame of reference visible.
         if (this.showFrames) {
           this.addRing(
             { x: p.world.x, y: shell.zeroY, z: p.world.z },
             Math.min(shell.radii.x, shell.radii.z) * 0.8,
-            style.color,
+            mainColor(style),
             0.12 * a, // auxiliary guide: keep it faint
           );
         }
-        this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, style.color, a, 'group', fontScale, n.id);
+        this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
         continue;
       }
 
       const hidden = n.kind === 'group' ? countDescendants(idx, n.id) : 0;
+      const multi = style.colors && style.colors.length > 1;
       const mesh = new THREE.Mesh(
-        GEOMETRY[style.shape],
+        multi ? sectorGeometry(style.shape, style.colors!) : GEOMETRY[style.shape],
         new THREE.MeshStandardMaterial({
-          color: style.color,
-          emissive: style.color,
+          // Multi-coloured: vertex colours carry the sectors; the glow is their blend.
+          color: multi ? '#ffffff' : style.color,
+          vertexColors: !!multi,
+          emissive: mainColor(style),
           emissiveIntensity: selected ? 0.9 : filtering && lit.has(n.id) ? 0.6 : 0.15,
           roughness: 0.45,
           transparent: true,
@@ -246,12 +250,12 @@ export class Viewer {
       this.content.add(mesh);
       this.pickNodes.push(mesh);
       const title = hidden ? `${n.title} (+${hidden})` : n.title;
-      this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, style.color, a, n.kind, fontScale, n.id);
+      this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
 
       if (p.tethered) {
         const parent = idx.parentOf(n.id)!;
         const from = attachPoint(layout, layout.placed.get(parent)!.anchorId);
-        this.addLine(from, p.world, style.color, 0.45 * a, true);
+        this.addLine(from, p.world, mainColor(style), 0.45 * a, true);
       }
     }
 
@@ -752,6 +756,40 @@ export class Viewer {
       this.cardObj.element.style.zIndex = '1000000';
     }
   }
+}
+
+/**
+ * Shape geometry split into equal coloured sectors around its vertical axis (cached per
+ * shape + colours). Vertices are coloured by their angle, so sector borders follow the mesh.
+ */
+const sectorCache = new Map<string, THREE.BufferGeometry>();
+function sectorGeometry(shape: Shape, colors: string[]): THREE.BufferGeometry {
+  const key = `${shape}|${colors.join(',')}`;
+  const cached = sectorCache.get(key);
+  if (cached) return cached;
+  // Non-indexed, so that vertices on a border are not shared between two sectors.
+  const geo = GEOMETRY[shape].toNonIndexed();
+  const pos = geo.attributes.position;
+  const rgb = colors.map((c) => new THREE.Color(c));
+  const out = new Float32Array(pos.count * 3);
+  const n = colors.length;
+  // Each triangle takes the sector of its centre, so borders are clean edges.
+  for (let i = 0; i < pos.count; i += 3) {
+    let cx = 0;
+    let cz = 0;
+    for (let k = 0; k < 3; k++) {
+      cx += pos.getX(i + k);
+      // Shapes lying in the XY plane (torus) are split around their own axis.
+      cz += shape === 'torus' ? pos.getY(i + k) : pos.getZ(i + k);
+    }
+    const angle = (Math.atan2(cz, cx) + 2 * Math.PI) % (2 * Math.PI);
+    const c = rgb[Math.min(n - 1, Math.floor((angle / (2 * Math.PI)) * n))];
+    for (let k = 0; k < 3; k++) out.set([c.r, c.g, c.b], (i + k) * 3);
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(out, 3));
+  SHARED.add(geo);
+  sectorCache.set(key, geo);
+  return geo;
 }
 
 function countDescendants(idx: SpaceIndex, id: string): number {
