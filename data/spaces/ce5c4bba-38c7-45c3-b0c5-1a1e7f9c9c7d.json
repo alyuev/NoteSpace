@@ -51,7 +51,12 @@
         "offset": 0,
         "levelStep": 5,
         "collapsed": false,
-        "centerOnLevel": true
+        "center": "zero",
+        "fixedSize": {
+          "x": 36,
+          "y": 3.6,
+          "z": 42
+        }
       }
     },
     {
@@ -187,21 +192,32 @@
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "paradise",
-      "contentHtml": "<p>Личности, выражающие семь возможных сочетаний Отца, Сына и Духа. Каждый курирует одну сверхвселенную.</p><p class=\"ref\">Документ 16</p>",
+      "contentHtml": "<p>Личности, выражающие семь возможных сочетаний природы Отца, Сына и Духа. Каждый курирует одну сверхвселенную и стоит на линии от центра Рая к ней.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
         "person",
         "admin"
       ],
       "levelMode": "local",
-      "level": 0.5,
+      "level": 0,
       "id": "masterSpirits",
       "title": "Семь Главных Духов",
       "style": {
         "color": "#89ddff",
-        "shape": "octahedron",
-        "size": 1.1
+        "shape": "torus",
+        "size": 1
+      },
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.3
       }
     },
     {
@@ -1442,6 +1458,156 @@
         "shape": "torus",
         "size": 0.8
       }
+    },
+    {
+      "id": "masterSpirit1",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Первый Главный Дух",
+      "contentHtml": "<p>Выражает только Всеобщего Отца.</p><p>Курирует сверхвселенную 1.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1.1
+      },
+      "aimAt": "su1"
+    },
+    {
+      "id": "masterSpirit2",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Второй Главный Дух",
+      "contentHtml": "<p>Выражает только Вечного Сына.</p><p>Курирует сверхвселенную 2.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 1.1
+      },
+      "aimAt": "su2"
+    },
+    {
+      "id": "masterSpirit3",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Третий Главный Дух",
+      "contentHtml": "<p>Выражает только Бесконечного Духа.</p><p>Курирует сверхвселенную 3.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 1.1
+      },
+      "aimAt": "su3"
+    },
+    {
+      "id": "masterSpirit4",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Четвёртый Главный Дух",
+      "contentHtml": "<p>Выражает совместную природу Отца и Сына.</p><p>Курирует сверхвселенную 4.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1.1,
+        "colors": [
+          "#ffd866",
+          "#ffffff"
+        ]
+      },
+      "aimAt": "su4"
+    },
+    {
+      "id": "masterSpirit5",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Пятый Главный Дух",
+      "contentHtml": "<p>Выражает совместную природу Отца и Духа.</p><p>Курирует сверхвселенную 5.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1.1,
+        "colors": [
+          "#ffd866",
+          "#89ddff"
+        ]
+      },
+      "aimAt": "su5"
+    },
+    {
+      "id": "masterSpirit6",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Шестой Главный Дух",
+      "contentHtml": "<p>Выражает совместную природу Сына и Духа.</p><p>Курирует сверхвселенную 6.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 1.1,
+        "colors": [
+          "#ffffff",
+          "#89ddff"
+        ]
+      },
+      "aimAt": "su6"
+    },
+    {
+      "id": "masterSpirit7",
+      "kind": "note",
+      "parentId": "masterSpirits",
+      "title": "Седьмой Главный Дух",
+      "contentHtml": "<p>Выражает объединённую природу всех трёх Личностей — Отца, Сына и Духа.</p><p>Курирует Орвонтон (сверхвселенную 7).</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1.1,
+        "colors": [
+          "#ffd866",
+          "#ffffff",
+          "#89ddff"
+        ]
+      },
+      "aimAt": "orvonton"
     }
   ],
   "links": [
@@ -1496,49 +1662,6 @@
       "from": "netherParadise",
       "to": "darkBodies",
       "color": "#565f89"
-    },
-    {
-      "id": "masterSpirits-su1",
-      "from": "masterSpirits",
-      "to": "su1",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-su2",
-      "from": "masterSpirits",
-      "to": "su2",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-su3",
-      "from": "masterSpirits",
-      "to": "su3",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-su4",
-      "from": "masterSpirits",
-      "to": "su4",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-su5",
-      "from": "masterSpirits",
-      "to": "su5",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-su6",
-      "from": "masterSpirits",
-      "to": "su6",
-      "color": "#89ddff"
-    },
-    {
-      "id": "masterSpirits-orvonton",
-      "from": "masterSpirits",
-      "to": "orvonton",
-      "color": "#89ddff",
-      "label": "Седьмой Главный Дух"
     },
     {
       "id": "father-michael",
@@ -1759,6 +1882,104 @@
       "to": "periphParadise",
       "directed": true,
       "color": "#73daca"
+    },
+    {
+      "id": "spirit-masterSpirit1",
+      "from": "spirit",
+      "to": "masterSpirit1",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit1-su1",
+      "from": "masterSpirit1",
+      "to": "su1",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit2",
+      "from": "spirit",
+      "to": "masterSpirit2",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit2-su2",
+      "from": "masterSpirit2",
+      "to": "su2",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit3",
+      "from": "spirit",
+      "to": "masterSpirit3",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit3-su3",
+      "from": "masterSpirit3",
+      "to": "su3",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit4",
+      "from": "spirit",
+      "to": "masterSpirit4",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit4-su4",
+      "from": "masterSpirit4",
+      "to": "su4",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit5",
+      "from": "spirit",
+      "to": "masterSpirit5",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit5-su5",
+      "from": "masterSpirit5",
+      "to": "su5",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit6",
+      "from": "spirit",
+      "to": "masterSpirit6",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit6-su6",
+      "from": "masterSpirit6",
+      "to": "su6",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "spirit-masterSpirit7",
+      "from": "spirit",
+      "to": "masterSpirit7",
+      "directed": true,
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirit7-orvonton",
+      "from": "masterSpirit7",
+      "to": "orvonton",
+      "directed": true,
+      "color": "#89ddff"
     }
   ],
   "styles": [
