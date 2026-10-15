@@ -1,0 +1,22 @@
+{
+  "name": "notespace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NoteSpace — 3D knowledge base with nested groups, levels and tags",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3-force-3d": "^3.0.6",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  }
+}

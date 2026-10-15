@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# Backups duplicate what git history already keeps; they stay local.
+data/backups/
+*.tmp
+
+# Local tool settings (contain machine-specific paths).
+.claude/
