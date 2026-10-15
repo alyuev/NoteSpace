@@ -1,0 +1,1838 @@
+{
+  "id": "ce5c4bba-38c7-45c3-b0c5-1a1e7f9c9c7d",
+  "schemaVersion": 1,
+  "title": "Книга Урантии",
+  "globalStep": 10,
+  "nodes": [
+    {
+      "kind": "group",
+      "parentId": null,
+      "contentHtml": "<p>Вся вселенная вселенных: Рай в центре, вокруг — Хавона, ещё дальше — семь сверхвселенных (вместе с Хавоной — великая вселенная) и уровни внешнего пространства.</p><p class=\"ref\">Документ 12</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "master",
+      "title": "Главная вселенная",
+      "style": {
+        "color": "#565f89",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 10,
+        "collapsed": false,
+        "arrange": "ring"
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Вечный центр мироздания, неподвижное ядро вселенной вселенных. Обитель Всеобщего Отца.</p><p class=\"ref\">Документ 11</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "paradise",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Остров Рай",
+      "style": {
+        "color": "#f6c177",
+        "shape": "octahedron",
+        "size": 1.6
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "paradise",
+      "contentHtml": "<p>Союз трёх Божеств — Отца, Сына и Духа.</p><p class=\"ref\">Документ 10</p>",
+      "tags": [
+        "deity"
+      ],
+      "levelMode": "local",
+      "level": 4,
+      "id": "trinity",
+      "title": "Троица",
+      "style": {
+        "color": "#c266ff",
+        "shape": "octahedron",
+        "size": 1.2
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false
+      },
+      "pinned": {
+        "x": 0,
+        "z": 0
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "trinity",
+      "contentHtml": "<p><b>Первоисточник и Центр</b>. Творец, Вседержитель, личный Бог каждого существа.</p><p class=\"ref\">Документ 1–5</p>",
+      "tags": [
+        "deity",
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "father",
+      "title": "Всеобщий Отец",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1.4
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "trinity",
+      "contentHtml": "<p>Второй Источник и Центр. Абсолютное выражение личности Отца, центр духовной гравитации.</p><p class=\"ref\">Документ 6–7</p>",
+      "tags": [
+        "deity",
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "son",
+      "title": "Вечный Сын",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 1.3
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "trinity",
+      "contentHtml": "<p>Третий Источник и Центр, Бог Действия. Источник разума, служитель милосердия.</p><p class=\"ref\">Документ 8–9</p>",
+      "tags": [
+        "deity",
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spirit",
+      "title": "Бесконечный Дух",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 1.3
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "paradise",
+      "contentHtml": "<p>Сфера присутствия Божеств и личностной деятельности.</p><p class=\"ref\">Документ 11</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "upperParadise",
+      "title": "Верхний Рай",
+      "style": {
+        "color": "#f6c177",
+        "shape": "cylinder",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "paradise",
+      "contentHtml": "<p>Внешние области Острова: места прибытия и отправления, зоны деятельности Главных Духов.</p><p class=\"ref\">Документ 11</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "periphParadise",
+      "title": "Периферийный Рай",
+      "style": {
+        "color": "#f6c177",
+        "shape": "torus",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "paradise",
+      "contentHtml": "<p>Связан с силой и энергией: отсюда исходят контуры физической гравитации.</p><p class=\"ref\">Документ 11</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -1,
+      "id": "netherParadise",
+      "title": "Нижний Рай",
+      "style": {
+        "color": "#a08060",
+        "shape": "cylinder",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "paradise",
+      "contentHtml": "<p>Личности, выражающие семь возможных сочетаний Отца, Сына и Духа. Каждый курирует одну сверхвселенную.</p><p class=\"ref\">Документ 16</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0.5,
+      "id": "masterSpirits",
+      "title": "Семь Главных Духов",
+      "style": {
+        "color": "#89ddff",
+        "shape": "octahedron",
+        "size": 1.1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p><b>Семь священных миров Всеобщего Отца</b> — внутреннее кольцо. Отражают духовное свечение Отца, связаны с тайнами личности.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "fatherSpheres",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Сферы Отца",
+      "style": {
+        "color": "#ffd866",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus"
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Обитель Настройщиков Мысли и связанных с ними духовных сущностей.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "divinington",
+      "title": "Дивинингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Мир, где обитают воплощённые Сыны Бога различного типа.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonarington",
+      "title": "Сонарингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Мир духовных существ высшего порядка.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritington",
+      "title": "Спиритингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Обитель тех, кто осуществляет наместническое управление во вселенной.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "vicegerington",
+      "title": "Вицегерингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Мир одиночных вестников и схожих индивидуальностей.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "solitarington",
+      "title": "Солитарингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Мир высших серафимов и ангельских траекторий службы.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "seraphington",
+      "title": "Серафингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "fatherSpheres",
+      "contentHtml": "<p>Мир восходящих смертных из эволюционных миров, достигших Рая.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "ascendington",
+      "title": "Асендингтон",
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p><b>Семь светящихся миров Вечного Сына</b> — среднее кольцо. Связаны с духовным светом, излучаемым Вечным Сыном во всё творение.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonSpheres",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Сферы Сына",
+      "style": {
+        "color": "#ffffff",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus"
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld1",
+      "title": "Мир Сына 1",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld2",
+      "title": "Мир Сына 2",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld3",
+      "title": "Мир Сына 3",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld4",
+      "title": "Мир Сына 4",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld5",
+      "title": "Мир Сына 5",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld6",
+      "title": "Мир Сына 6",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "sonSpheres",
+      "contentHtml": "<p>Один из семи светящихся миров Вечного Сына.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "sonWorld7",
+      "title": "Мир Сына 7",
+      "style": {
+        "color": "#ffffff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p><b>Семь административных миров Бесконечного Духа</b> — внешнее кольцо. Исполнительные штаб-квартиры Семи Главных Духов, руководящих семью сверхвселенными.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritSpheres",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Сферы Духа",
+      "style": {
+        "color": "#89ddff",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus"
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 1.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld1",
+      "title": "Мир Духа 1",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 2.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld2",
+      "title": "Мир Духа 2",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 3.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld3",
+      "title": "Мир Духа 3",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 4.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld4",
+      "title": "Мир Духа 4",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 5.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld5",
+      "title": "Мир Духа 5",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 6.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld6",
+      "title": "Мир Духа 6",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "spiritSpheres",
+      "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 7.</p><p class=\"ref\">Документ 13</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "spiritWorld7",
+      "title": "Мир Духа 7",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Центральная, совершенная и вечная вселенная вокруг Рая — миллиард миров в семи контурах.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havona",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Хавона (центральная вселенная)",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1.4
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 4,
+        "collapsed": false,
+        "arrange": "ring",
+        "shell": "torus"
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havona",
+      "contentHtml": "<p>Последние ступени восхождения перед достижением Рая.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuits",
+      "title": "Семь контуров Хавоны",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havona",
+      "contentHtml": "<p>Два кольца тёмных тел, окружающих Хавону и отделяющих её от сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -1,
+      "id": "darkBodies",
+      "title": "Тёмные гравитационные тела",
+      "style": {
+        "color": "#565f89",
+        "shape": "torus",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su1",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 1",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su2",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 2",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su3",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 3",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su4",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 4",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su5",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 5",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "su6",
+      "sizeAs": "orvonton",
+      "title": "Сверхвселенная 6",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Седьмая сверхвселенная, наша. 10 больших секторов → 1000 малых → 100 000 локальных вселенных.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "orvonton",
+      "title": "Орвонтон (сверхвселенная 7)",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.3
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "centerOnLevel": true
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "orvonton",
+      "contentHtml": "<p>Столица Орвонтона.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "uversa",
+      "title": "Уверса",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "orvonton",
+      "contentHtml": "<p>Трое правителей сверхвселенной, созданных Троицей. Высший суд для её миров.</p><p class=\"ref\">Документ 18</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "ancients",
+      "title": "Ветхие Днями",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "orvonton",
+      "contentHtml": "<p>Наш большой сектор: 100 малых секторов.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "splandon",
+      "title": "Спландон (большой сектор)",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "splandon",
+      "contentHtml": "<p>Столица большого сектора Спландон.</p><p class=\"ref\">Документ 15, 18</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "umajor",
+      "title": "Умажор Пятый",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "splandon",
+      "contentHtml": "<p>Наш малый сектор: 100 локальных вселенных.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "ensa",
+      "title": "Энса (малый сектор)",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "ensa",
+      "contentHtml": "<p>Столица малого сектора Энса.</p><p class=\"ref\">Документ 15, 18</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "minor",
+      "title": "Минор Третий",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "ensa",
+      "contentHtml": "<p>Наша локальная вселенная: 100 созвездий, до 10 млн обитаемых миров по завершении.</p><p class=\"ref\">Документ 32–35</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "nebadon",
+      "title": "Небадон (локальная вселенная)",
+      "style": {
+        "color": "#73daca",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Столица Небадона.</p><p class=\"ref\">Документ 32</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "salvington",
+      "title": "Салвингтон",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p><b>Сын-Создатель</b> нашей вселенной, порождённый Отцом и Вечным Сыном. Седьмое пришествие совершил на Урантии как Иисус.</p><p class=\"ref\">Документ 33, 119</p>",
+      "tags": [
+        "person",
+        "admin",
+        "jesus"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "michael",
+      "title": "Михаил Небадонский",
+      "style": {
+        "color": "#ff9e64",
+        "shape": "sphere",
+        "size": 1.2
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Мать-Дух локальной вселенной, творческая соратница Михаила; источник служения разума.</p><p class=\"ref\">Документ 34</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "divineMinister",
+      "title": "Божественная Служительница",
+      "style": {
+        "color": "#89ddff",
+        "shape": "sphere",
+        "size": 1.1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Яркая Утренняя Звезда — главный исполнитель Небадона.</p><p class=\"ref\">Документ 33</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 0.5,
+      "id": "gabriel",
+      "title": "Гавриил",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Ангелы локальной вселенной, создаваемые Божественной Служительницей; служат в мирах времени и пространства.</p><p class=\"ref\">Документ 38–39</p>",
+      "tags": [
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 0.5,
+      "id": "seraphim",
+      "title": "Серафимы",
+      "styleId": "angels",
+      "style": {
+        "color": "#c0caf5",
+        "shape": "octahedron",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Райские Сыны, созданные Троицей (дайналы): учителя миров и вселенных, участвуют в планетарных пришествиях.</p><p class=\"ref\">Документ 20</p>",
+      "tags": [
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 1.5,
+      "id": "trinityTeachers",
+      "title": "Учащие Сыны Троицы",
+      "styleId": "trinitySons",
+      "style": {
+        "color": "#ffd866",
+        "shape": "octahedron",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "nebadon",
+      "contentHtml": "<p>Наше созвездие: 100 локальных систем.</p><p class=\"ref\">Документ 43</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "norlatiadek",
+      "title": "Норлатиадек (созвездие)",
+      "style": {
+        "color": "#73daca",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "norlatiadek",
+      "contentHtml": "<p>Столица созвездия Норлатиадек.</p><p class=\"ref\">Документ 43</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "edentia",
+      "title": "Эдентия",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "norlatiadek",
+      "contentHtml": "<p>Отцы Созвездия, правящие Норлатиадеком.</p><p class=\"ref\">Документ 43</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "mostHighs",
+      "title": "Всевышние",
+      "styleId": "descendingSons",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "norlatiadek",
+      "contentHtml": "<p>Наша локальная система, более 600 обитаемых миров.</p><p class=\"ref\">Документ 45</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "satania",
+      "title": "Сатания (система)",
+      "style": {
+        "color": "#9ece6a",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "satania",
+      "contentHtml": "<p>Столица системы Сатания.</p><p class=\"ref\">Документ 46</p>",
+      "tags": [
+        "capital",
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "jerusem",
+      "title": "Иерусем",
+      "style": {
+        "color": "#e0af68",
+        "shape": "box",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "satania",
+      "contentHtml": "<p>Семь миров, куда восходящие смертные попадают после жизни на планете.</p><p class=\"ref\">Документ 47</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": -0.5,
+      "id": "mansionWorlds",
+      "title": "Обительские миры",
+      "style": {
+        "color": "#73daca",
+        "shape": "torus",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "satania",
+      "contentHtml": "<p>Нынешний Суверен Системы, преемник Люцифера.</p><p class=\"ref\">Документ 45</p>",
+      "tags": [
+        "person",
+        "admin"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "lanaforge",
+      "title": "Ланафордж",
+      "styleId": "descendingSons",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "satania",
+      "contentHtml": "<p>Бывший Суверен Сатании, поднявший восстание; вместе с ним — Сатана.</p><p class=\"ref\">Документ 53–54</p>",
+      "tags": [
+        "person",
+        "rebellion"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "lucifer",
+      "title": "Люцифер",
+      "style": {
+        "color": "#f7768e",
+        "shape": "cone",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "satania",
+      "contentHtml": "<p>Обитаемый мир № 606 в Сатании. Мир, пострадавший от восстания, и мир пришествия Михаила.</p><p class=\"ref\">Документ 57–119</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": -2,
+      "id": "urantia",
+      "title": "Урантия (Земля)",
+      "style": {
+        "color": "#2ac3de",
+        "shape": "sphere",
+        "size": 1.2
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 4,
+        "collapsed": false
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Эволюционные смертные — начало пути восхождения к Раю.</p><p class=\"ref\">Документ 62–63</p>",
+      "tags": [
+        "person",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "humanity",
+      "title": "Человечество",
+      "style": {
+        "color": "#2ac3de",
+        "shape": "sphere",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Фрагмент Всеобщего Отца, пребывающий в разуме человека.</p><p class=\"ref\">Документ 107–112</p>",
+      "tags": [
+        "deity"
+      ],
+      "levelMode": "local",
+      "level": 0.5,
+      "id": "adjuster",
+      "title": "Настройщик Мысли",
+      "style": {
+        "color": "#ffd866",
+        "shape": "octahedron",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Ангелы-хранители судьбы, сопровождающие людей.</p><p class=\"ref\">Документ 113</p>",
+      "tags": [
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 0.5,
+      "id": "guardians",
+      "title": "Серафимы-хранители",
+      "styleId": "angels",
+      "style": {
+        "color": "#c0caf5",
+        "shape": "octahedron",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Планетарный Князь, примкнувший к восстанию Люцифера.</p><p class=\"ref\">Документ 66–67</p>",
+      "tags": [
+        "person",
+        "rebellion"
+      ],
+      "levelMode": "local",
+      "level": 2,
+      "id": "caligastia",
+      "title": "Калигастия",
+      "style": {
+        "color": "#f7768e",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Материальные Сын и Дочь, посланные для биологического возвышения рас.</p><p class=\"ref\">Документ 73–76</p>",
+      "tags": [
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 1.5,
+      "id": "adamEve",
+      "title": "Адам и Ева",
+      "styleId": "descendingSons",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Чрезвычайное пришествие ради сохранения идеи единого Бога, подготовившее приход Михаила.</p><p class=\"ref\">Документ 93</p>",
+      "tags": [
+        "person"
+      ],
+      "levelMode": "local",
+      "level": 1.5,
+      "id": "melchizedek",
+      "title": "Махивента Мелхиседек",
+      "styleId": "descendingSons",
+      "style": {
+        "color": "#bb9af7",
+        "shape": "cone",
+        "size": 0.9
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Земная жизнь Михаила Небадонского — его седьмое, завершающее пришествие.</p><p class=\"ref\">Документ 120–196</p>",
+      "tags": [
+        "person",
+        "jesus"
+      ],
+      "levelMode": "local",
+      "level": 2,
+      "id": "jesus",
+      "title": "Иисус из Назарета",
+      "style": {
+        "color": "#ff9e64",
+        "shape": "sphere",
+        "size": 1.2
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "urantia",
+      "contentHtml": "<p>Дух Михаила, излитый на всё человечество после его вознесения (Пятидесятница).</p><p class=\"ref\">Документ 194</p>",
+      "tags": [
+        "jesus"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "spiritOfTruth",
+      "title": "Дух Истины",
+      "style": {
+        "color": "#ff9e64",
+        "shape": "torus",
+        "size": 0.8
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "father-son",
+      "from": "father",
+      "to": "son",
+      "directed": true,
+      "color": "#ffd866"
+    },
+    {
+      "id": "father-spirit",
+      "from": "father",
+      "to": "spirit",
+      "directed": true,
+      "color": "#ffd866"
+    },
+    {
+      "id": "son-spirit",
+      "from": "son",
+      "to": "spirit",
+      "directed": true,
+      "color": "#ffd866"
+    },
+    {
+      "id": "trinity-upperParadise",
+      "from": "trinity",
+      "to": "upperParadise",
+      "label": "обитель"
+    },
+    {
+      "id": "trinity-masterSpirits",
+      "from": "trinity",
+      "to": "masterSpirits",
+      "directed": true
+    },
+    {
+      "id": "trinity-ancients",
+      "from": "trinity",
+      "to": "ancients",
+      "directed": true,
+      "label": "происхождение"
+    },
+    {
+      "id": "havona-paradise",
+      "from": "havona",
+      "to": "paradise",
+      "label": "вращается вокруг"
+    },
+    {
+      "id": "netherParadise-darkBodies",
+      "from": "netherParadise",
+      "to": "darkBodies",
+      "color": "#565f89"
+    },
+    {
+      "id": "masterSpirits-su1",
+      "from": "masterSpirits",
+      "to": "su1",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-su2",
+      "from": "masterSpirits",
+      "to": "su2",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-su3",
+      "from": "masterSpirits",
+      "to": "su3",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-su4",
+      "from": "masterSpirits",
+      "to": "su4",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-su5",
+      "from": "masterSpirits",
+      "to": "su5",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-su6",
+      "from": "masterSpirits",
+      "to": "su6",
+      "color": "#89ddff"
+    },
+    {
+      "id": "masterSpirits-orvonton",
+      "from": "masterSpirits",
+      "to": "orvonton",
+      "color": "#89ddff",
+      "label": "Седьмой Главный Дух"
+    },
+    {
+      "id": "father-michael",
+      "from": "father",
+      "to": "michael",
+      "directed": true,
+      "color": "#ff9e64"
+    },
+    {
+      "id": "son-michael",
+      "from": "son",
+      "to": "michael",
+      "directed": true,
+      "color": "#ff9e64",
+      "label": "Сын-Создатель"
+    },
+    {
+      "id": "spirit-divineMinister",
+      "from": "spirit",
+      "to": "divineMinister",
+      "directed": true,
+      "color": "#89ddff",
+      "label": "Мать-Дух"
+    },
+    {
+      "id": "michael-divineMinister",
+      "from": "michael",
+      "to": "divineMinister",
+      "label": "сотворцы"
+    },
+    {
+      "id": "michael-gabriel",
+      "from": "michael",
+      "to": "gabriel",
+      "directed": true
+    },
+    {
+      "id": "divineMinister-seraphim",
+      "from": "divineMinister",
+      "to": "seraphim",
+      "directed": true,
+      "color": "#c0caf5"
+    },
+    {
+      "id": "seraphim-guardians",
+      "from": "seraphim",
+      "to": "guardians",
+      "color": "#c0caf5"
+    },
+    {
+      "id": "guardians-humanity",
+      "from": "guardians",
+      "to": "humanity",
+      "directed": true,
+      "color": "#c0caf5"
+    },
+    {
+      "id": "trinity-trinityTeachers",
+      "from": "trinity",
+      "to": "trinityTeachers",
+      "directed": true,
+      "color": "#ffd866"
+    },
+    {
+      "id": "michael-jesus",
+      "from": "michael",
+      "to": "jesus",
+      "directed": true,
+      "color": "#ff9e64",
+      "label": "пришествие"
+    },
+    {
+      "id": "michael-spiritOfTruth",
+      "from": "michael",
+      "to": "spiritOfTruth",
+      "directed": true,
+      "color": "#ff9e64"
+    },
+    {
+      "id": "melchizedek-jesus",
+      "from": "melchizedek",
+      "to": "jesus",
+      "directed": true,
+      "label": "подготовил"
+    },
+    {
+      "id": "father-adjuster",
+      "from": "father",
+      "to": "adjuster",
+      "directed": true,
+      "color": "#ffd866",
+      "label": "фрагмент Отца"
+    },
+    {
+      "id": "divinington-adjuster",
+      "from": "divinington",
+      "to": "adjuster",
+      "color": "#ffd866"
+    },
+    {
+      "id": "masterSpirits-spiritSpheres",
+      "from": "masterSpirits",
+      "to": "spiritSpheres",
+      "color": "#89ddff",
+      "label": "штаб-квартиры"
+    },
+    {
+      "id": "ascendington-periphParadise",
+      "from": "ascendington",
+      "to": "periphParadise",
+      "color": "#73daca"
+    },
+    {
+      "id": "adjuster-humanity",
+      "from": "adjuster",
+      "to": "humanity",
+      "directed": true,
+      "color": "#ffd866"
+    },
+    {
+      "id": "spiritOfTruth-humanity",
+      "from": "spiritOfTruth",
+      "to": "humanity",
+      "directed": true,
+      "color": "#ff9e64"
+    },
+    {
+      "id": "divineMinister-humanity",
+      "from": "divineMinister",
+      "to": "humanity",
+      "directed": true,
+      "color": "#89ddff",
+      "label": "служение разума"
+    },
+    {
+      "id": "lucifer-caligastia",
+      "from": "lucifer",
+      "to": "caligastia",
+      "directed": true,
+      "color": "#f7768e",
+      "label": "восстание"
+    },
+    {
+      "id": "lanaforge-lucifer",
+      "from": "lanaforge",
+      "to": "lucifer",
+      "directed": true,
+      "color": "#f7768e",
+      "label": "сменил"
+    },
+    {
+      "id": "caligastia-adamEve",
+      "from": "caligastia",
+      "to": "adamEve",
+      "color": "#f7768e",
+      "label": "срыв миссии"
+    },
+    {
+      "id": "humanity-mansionWorlds",
+      "from": "humanity",
+      "to": "mansionWorlds",
+      "directed": true,
+      "color": "#73daca",
+      "label": "путь восхождения"
+    },
+    {
+      "id": "mansionWorlds-jerusem",
+      "from": "mansionWorlds",
+      "to": "jerusem",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "jerusem-edentia",
+      "from": "jerusem",
+      "to": "edentia",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "edentia-salvington",
+      "from": "edentia",
+      "to": "salvington",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "salvington-minor",
+      "from": "salvington",
+      "to": "minor",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "minor-umajor",
+      "from": "minor",
+      "to": "umajor",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "umajor-uversa",
+      "from": "umajor",
+      "to": "uversa",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "uversa-havonaCircuits",
+      "from": "uversa",
+      "to": "havonaCircuits",
+      "directed": true,
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuits-periphParadise",
+      "from": "havonaCircuits",
+      "to": "periphParadise",
+      "directed": true,
+      "color": "#73daca"
+    }
+  ],
+  "styles": [
+    {
+      "id": "descendingSons",
+      "name": "Нисходящие Сыны",
+      "color": "#e0af68",
+      "shape": "cone",
+      "size": 0.95
+    },
+    {
+      "id": "angels",
+      "name": "Ангелы",
+      "color": "#c0caf5",
+      "shape": "octahedron",
+      "size": 0.8
+    },
+    {
+      "id": "trinitySons",
+      "name": "Сыны Троицы",
+      "color": "#ffd866",
+      "shape": "octahedron",
+      "size": 0.9
+    },
+    {
+      "id": "441a4191-d837-49c5-b6b1-69b764b034ed",
+      "name": "Архитектурные миры",
+      "color": "#e0af68",
+      "shape": "sphere",
+      "size": 1
+    }
+  ],
+  "tags": [
+    {
+      "id": "deity",
+      "name": "божество",
+      "color": "#ffd866"
+    },
+    {
+      "id": "person",
+      "name": "личность",
+      "color": "#bb9af7"
+    },
+    {
+      "id": "admin",
+      "name": "управление",
+      "color": "#7aa2f7"
+    },
+    {
+      "id": "place",
+      "name": "место",
+      "color": "#9ece6a"
+    },
+    {
+      "id": "capital",
+      "name": "столица",
+      "color": "#e0af68"
+    },
+    {
+      "id": "ascension",
+      "name": "восхождение",
+      "color": "#73daca"
+    },
+    {
+      "id": "rebellion",
+      "name": "восстание",
+      "color": "#f7768e"
+    },
+    {
+      "id": "jesus",
+      "name": "Михаил/Иисус",
+      "color": "#ff9e64"
+    }
+  ],
+  "templateId": "urantia",
+  "frontNodeId": "orvonton"
+}

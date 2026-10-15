@@ -1,0 +1,360 @@
+{
+  "id": "268c0189-8743-4642-b4e1-8dd36d1caf8d",
+  "schemaVersion": 1,
+  "title": "Демо-пространство",
+  "globalStep": 10,
+  "nodes": [
+    {
+      "kind": "group",
+      "parentId": null,
+      "contentHtml": "<p>Проект А</p>",
+      "tags": [
+        "work"
+      ],
+      "levelMode": "local",
+      "level": 2,
+      "id": "proj",
+      "title": "Проект А",
+      "frame": {
+        "offset": -4,
+        "levelStep": 6,
+        "collapsed": false
+      },
+      "style": {
+        "color": "#bb9af7",
+        "shape": "octahedron",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "proj",
+      "contentHtml": "<img src=\"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22240%22%20height%3D%2290%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23e0af68%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f7768e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22240%22%20height%3D%2290%22%20rx%3D%2210%22%20fill%3D%22url(%23g)%22%2F%3E%3Ctext%20x%3D%2216%22%20y%3D%2256%22%20font-family%3D%22Segoe%20UI%22%20font-size%3D%2226%22%20fill%3D%22white%22%3E%D0%98%D0%B4%D0%B5%D1%8F%3C%2Ftext%3E%3C%2Fsvg%3E\"><p>Сделать <b>3D-базу знаний</b> с уровнями.</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": 0,
+      "id": "idea",
+      "title": "Идея",
+      "style": {
+        "color": "#e0af68",
+        "shape": "cone",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "proj",
+      "contentHtml": "<p>Исследование</p>",
+      "tags": [
+        "research"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "research",
+      "title": "Исследование",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "sphere",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "proj",
+      "contentHtml": "<p>Задачи</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": 2,
+      "id": "tasks",
+      "title": "Задачи",
+      "frame": {
+        "offset": 0,
+        "levelStep": 4,
+        "collapsed": false
+      },
+      "style": {
+        "color": "#9ece6a",
+        "shape": "octahedron",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "tasks",
+      "contentHtml": "<p>T1: модель данных</p>",
+      "tags": [
+        "task"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "t1",
+      "title": "T1: модель данных",
+      "style": {
+        "color": "#9ece6a",
+        "shape": "box",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "tasks",
+      "contentHtml": "<p>T2: раскладка</p>",
+      "tags": [
+        "task",
+        "urgent"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "t2",
+      "title": "T2: раскладка",
+      "style": {
+        "color": "#f7768e",
+        "shape": "box",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "tasks",
+      "contentHtml": "<p>T3: экспорт</p>",
+      "tags": [
+        "task"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "t3",
+      "title": "T3: экспорт",
+      "style": {
+        "color": "#9ece6a",
+        "shape": "box",
+        "size": 0.8
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "proj",
+      "contentHtml": "<p style=\"color:#ff9e64\">Глобальный уровень 6: стоит на «этаже целей», хотя лежит в группе.</p>",
+      "tags": [
+        "goal"
+      ],
+      "levelMode": "global",
+      "level": 6,
+      "id": "goalA",
+      "title": "Цель проекта",
+      "style": {
+        "color": "#ff9e64",
+        "shape": "torus",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": null,
+      "contentHtml": "<p>Личное</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": 0,
+      "id": "life",
+      "title": "Личное",
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
+      },
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "life",
+      "contentHtml": "<p>Здоровье</p>",
+      "tags": [
+        "goal"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "health",
+      "title": "Здоровье",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "sphere",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "life",
+      "contentHtml": "<p>Книги</p>",
+      "tags": [
+        "research"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "books",
+      "title": "Книги",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "cylinder",
+        "size": 1
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "life",
+      "contentHtml": "<p>Финансы</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": 1,
+      "id": "money",
+      "title": "Финансы",
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false
+      },
+      "style": {
+        "color": "#73daca",
+        "shape": "octahedron",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "money",
+      "contentHtml": "<p>Бюджет</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": 0,
+      "id": "budget",
+      "title": "Бюджет",
+      "style": {
+        "color": "#73daca",
+        "shape": "box",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "money",
+      "contentHtml": "<p>Инвестиции</p>",
+      "tags": [
+        "goal"
+      ],
+      "levelMode": "local",
+      "level": 1,
+      "id": "invest",
+      "title": "Инвестиции",
+      "style": {
+        "color": "#73daca",
+        "shape": "sphere",
+        "size": 1
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": null,
+      "contentHtml": "<p>Входящие</p>",
+      "tags": [],
+      "levelMode": "local",
+      "level": -1,
+      "id": "inbox",
+      "title": "Входящие",
+      "style": {
+        "color": "#a9b1d6",
+        "shape": "box",
+        "size": 1.2
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": null,
+      "contentHtml": "<h3>2026</h3><ul><li>Запустить NoteSpace</li><li>Здоровье</li></ul>",
+      "tags": [
+        "goal"
+      ],
+      "levelMode": "global",
+      "level": 6,
+      "id": "yearGoals",
+      "title": "Годовые цели",
+      "style": {
+        "color": "#ff9e64",
+        "shape": "torus",
+        "size": 1.3
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "idea-research",
+      "from": "idea",
+      "to": "research",
+      "directed": true
+    },
+    {
+      "id": "t2-goalA",
+      "from": "t2",
+      "to": "goalA",
+      "directed": true
+    },
+    {
+      "id": "books-research",
+      "from": "books",
+      "to": "research"
+    },
+    {
+      "id": "yearGoals-goalA",
+      "from": "yearGoals",
+      "to": "goalA",
+      "directed": true,
+      "label": "включает"
+    },
+    {
+      "id": "yearGoals-health",
+      "from": "yearGoals",
+      "to": "health",
+      "directed": true
+    },
+    {
+      "id": "budget-proj",
+      "from": "budget",
+      "to": "proj",
+      "color": "#e0af68",
+      "label": "финансирует"
+    },
+    {
+      "id": "inbox-tasks",
+      "from": "inbox",
+      "to": "tasks"
+    }
+  ],
+  "tags": [
+    {
+      "id": "work",
+      "name": "работа",
+      "color": "#bb9af7"
+    },
+    {
+      "id": "research",
+      "name": "исследование",
+      "color": "#7aa2f7"
+    },
+    {
+      "id": "task",
+      "name": "задача",
+      "color": "#9ece6a"
+    },
+    {
+      "id": "urgent",
+      "name": "срочно",
+      "color": "#f7768e"
+    },
+    {
+      "id": "goal",
+      "name": "цель",
+      "color": "#ff9e64"
+    }
+  ]
+}
