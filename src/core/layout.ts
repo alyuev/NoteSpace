@@ -158,6 +158,25 @@ export interface LayoutOptions {
 }
 
 export function computeLayout(space: Space, prev?: Layout, opts: LayoutOptions = {}): Layout {
+  return shiftToOrigin(computeLayoutRaw(space, prev, opts), space.originNodeId);
+}
+
+/** Moves everything together so the centre of `originId` lands at (0, 0, 0). */
+function shiftToOrigin(layout: Layout, originId: string | undefined): Layout {
+  if (!originId || !layout.placed.has(originId)) return layout;
+  const o = attachPoint(layout, originId);
+  if (!o.x && !o.y && !o.z) return layout;
+  const sub = (v: Vec3): Vec3 => ({ x: v.x - o.x, y: v.y - o.y, z: v.z - o.z });
+  for (const p of layout.placed.values()) p.world = sub(p.world);
+  for (const s of layout.shells.values()) {
+    s.center = sub(s.center);
+    s.zeroY -= o.y;
+    if (s.torus) s.torus = { ...s.torus, y: s.torus.y - o.y };
+  }
+  return layout;
+}
+
+function computeLayoutRaw(space: Space, prev?: Layout, opts: LayoutOptions = {}): Layout {
   const aiming = space.nodes.filter((n) => n.aimAt && n.aimAt !== n.id);
   if (!aiming.length) return layoutPass(space, prev, opts, new Map());
   // Directions depend on where the targets end up, so lay out once, aim, and lay out again.

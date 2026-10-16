@@ -332,13 +332,22 @@ export class Viewer {
     const grid = new THREE.GridHelper(gridSize, gridSize / 10, '#2a2e42', '#20222f');
     grid.position.y = minY - 6;
 
-    // Central axis: a faint vertical line through the origin of the space, from the grid up.
+    // Axes through the origin of the space (the origin node's centre when one is set).
     if (this.showAxis) {
-      const axis = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, minY - 6, 0), new THREE.Vector3(0, maxY + 10, 0)]),
-        new THREE.LineBasicMaterial({ color: '#a9b1d6', transparent: true, opacity: 0.18, depthWrite: false }),
-      );
-      this.content.add(axis);
+      const h = extent * 1.2;
+      const axes: [THREE.Vector3, THREE.Vector3, string][] = [
+        [new THREE.Vector3(-h, 0, 0), new THREE.Vector3(h, 0, 0), '#f7768e'],
+        [new THREE.Vector3(0, minY - 6, 0), new THREE.Vector3(0, maxY + 10, 0), '#9ece6a'],
+        [new THREE.Vector3(0, 0, -h), new THREE.Vector3(0, 0, h), '#7aa2f7'],
+      ];
+      for (const [from, to, color] of axes) {
+        this.content.add(
+          new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([from, to]),
+            new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.35, depthWrite: false }),
+          ),
+        );
+      }
     }
     this.content.add(grid);
 

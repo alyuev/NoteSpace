@@ -634,6 +634,7 @@ export function urantiaSpace(): Space {
     schemaVersion: SCHEMA_VERSION,
     title: 'Книга Урантии',
     frontNodeId: 'orvonton',
+    originNodeId: 'paradise',
     globalStep: 10,
     nodes,
     links,

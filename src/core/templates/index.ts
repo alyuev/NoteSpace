@@ -57,6 +57,7 @@ export function updateFromTemplate(space: Space, tpl: SpaceTemplate): TemplateUp
       globalStep: fresh.globalStep,
       templateId: tpl.id,
       frontNodeId: space.frontNodeId ?? fresh.frontNodeId,
+      originNodeId: space.originNodeId ?? fresh.originNodeId,
       nodes,
       links: [...fresh.links, ...ownLinks],
       tags: [...fresh.tags, ...space.tags.filter((t) => isUserId(t.id))],

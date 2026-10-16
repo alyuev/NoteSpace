@@ -625,6 +625,12 @@ function renderSpaceSettings() {
         ${space.nodes.map((x) => `<option value="${esc(x.id)}" ${space.frontNodeId === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`).join('')}
       </select>
     </label>
+    <label>Начало координат
+      <select id="s-origin">
+        <option value="">— по уровням —</option>
+        ${space.nodes.map((x) => `<option value="${esc(x.id)}" ${space.originNodeId === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`).join('')}
+      </select>
+    </label>
 
     <fieldset>
       <legend>Шаблон</legend>
@@ -704,6 +710,11 @@ function renderSpaceSettings() {
       switchTo(updated);
       flash(`Обновлено из шаблона. Резервная копия сохранена${keptNodes ? `, ваших записей сохранено: ${keptNodes}` : ''}.`);
     });
+  });
+  on(right, '#s-origin', 'change', (e) => {
+    space.originNodeId = (e.target as HTMLSelectElement).value || undefined;
+    viewer.resetView();
+    refresh(false);
   });
   on(right, '#s-front', 'change', (e) => {
     space.frontNodeId = (e.target as HTMLSelectElement).value || undefined;

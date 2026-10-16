@@ -124,6 +124,8 @@ export interface Space {
   styles?: NamedStyle[];
   /** Node turned towards the viewer when the space is opened. */
   frontNodeId?: string;
+  /** Node whose centre becomes the world origin; the whole layout is shifted together. */
+  originNodeId?: string;
   /** Template the space was created from, for "update from template". */
   templateId?: string;
 }
