@@ -185,3 +185,22 @@ export function onExternalChange(cb: (id: string, removed: boolean) => void) {
     cb(e.id, !!e.removed);
   });
 }
+
+// ---------- pictures for node styles ----------
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg)$/i;
+
+/** URL of a stored picture. */
+export function imageUrl(name: string): string {
+  return `/api/images/${encodeURIComponent(name)}`;
+}
+
+/** Uploads a picture to `data/images/` under a new unique name and returns that name. */
+export async function uploadImage(file: File): Promise<string> {
+  const ext = IMAGE_EXT.exec(file.name)?.[1]?.toLowerCase();
+  if (!ext) throw new Error('Поддерживаются png, jpg, gif, webp и svg');
+  const name = `${crypto.randomUUID().replace(/-/g, '')}.${ext}`;
+  const res = await fetch(imageUrl(name), { method: 'POST', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
+  if (!res.ok) throw new Error(res.status === 413 ? 'Файл пустой или больше 8 МБ' : `Не удалось загрузить (${res.status})`);
+  return name;
+}

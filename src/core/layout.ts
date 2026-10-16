@@ -354,14 +354,16 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
       // A centre-pinned torus only occupies its ring, not the ellipsoid that bounds it.
       const r = ringed && n.pinned ? ringOuter(n) : e.r;
       const item: SimItem = { id: n.id, r, yc: y + e.cy, ry: e.ry, gap: 1.5 * k, angle: aim.get(n.id) };
-      const start = n.pinned ?? prev?.local.get(n.id);
+      // Pinned positions are in the group's own units: they scale with the nesting level like node sizes do.
+      const pin = n.pinned ? { x: n.pinned.x * k, z: n.pinned.z * k } : undefined;
+      const start = pin ?? prev?.local.get(n.id);
       if (start) {
         item.x = start.x;
         item.y = start.z;
       }
-      if (n.pinned) {
-        item.fx = n.pinned.x;
-        item.fy = n.pinned.z;
+      if (pin) {
+        item.fx = pin.x;
+        item.fy = pin.z;
       }
       return item;
     });
@@ -416,6 +418,9 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
 
   function placeFree(items: SimItem[], parentId: string | null, k: number) {
     if (items.length === 0) return;
+    // Everything pinned: positions are already final, nothing to simulate (hundreds of pinned
+    // notes would cost seconds in the O(n²) force passes below).
+    if (items.every((it) => it.fx !== undefined)) return;
     // Links between anything inside two different children pull those children together.
     const pairs = new Map<string, { source: string; target: string }>();
     for (const l of space.links) {

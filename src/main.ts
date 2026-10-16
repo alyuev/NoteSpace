@@ -13,8 +13,10 @@ import {
   listSpaces,
   loadSpace,
   onExternalChange,
+  imageUrl,
   restoreBackup,
   saveSpace,
+  uploadImage,
 } from './storage';
 import { Viewer } from './viewer/viewer';
 
@@ -74,6 +76,26 @@ viewer.onSelect = (id) => {
   selectedId = id;
   refresh(false);
 };
+
+// Search field over the scene: pick an object and the camera flies to it.
+const searchHost = document.createElement('div');
+searchHost.className = 'stage-search';
+document.getElementById('stage')!.append(searchHost);
+mountNodeCombo(searchHost, {
+  get space() {
+    return space;
+  },
+  get nodes() {
+    return space.nodes;
+  },
+  placeholder: 'Поиск по названию…',
+  onChange: (id) => {
+    if (!id) return;
+    selectedId = id;
+    refresh(false);
+    viewer.flyTo(id, true); // from search the target can be anywhere: climb out first
+  },
+});
 
 refresh(true);
 
@@ -443,11 +465,13 @@ function renderRight() {
                 .join('')}
               <button id="f-cadd" title="Добавить цветную долю">+ доля</button>
             </div>
+            ${imageRowHtml(n.style.image, 'id="f-img"', 'id="f-imgdel"')}
             <button id="f-saveStyle">Сохранить как новый стиль…</button>`
       }
       <div class="field" title="Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу">Направить на
         <div id="f-aimAt"></div>
       </div>
+      <label class="check" title="Название не рисуется рядом с объектом; карточка с описанием при наведении остаётся"><input id="f-nolabel" type="checkbox" ${n.hideLabel ? 'checked' : ''}>Не показывать название</label>
       <label title="Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается">Вращение (об/мин)
         <input id="f-spin" type="number" step="1" value="${n.spin ?? 0}">
       </label>
@@ -590,6 +614,7 @@ function renderRight() {
   edit('#f-fy', (el) => (n.frame!.fixedSize!.y = Math.max(0.05, num(el, n.frame!.fixedSize!.y))));
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
+  edit('#f-nolabel', (el) => (n.hideLabel = el.checked || undefined), false);
   edit('#f-spin', (el) => (n.spin = num(el, 0) || undefined), false);
   edit('#f-shellOpacity', (el) => (n.frame!.shellOpacity = Number(el.value) / 100), false);
   right.querySelectorAll<HTMLInputElement>('[data-ci]').forEach((el) =>
@@ -617,6 +642,17 @@ function renderRight() {
     space.styles = [...(space.styles ?? []), style];
     n.styleId = style.id;
     refresh(true);
+  });
+  on(right, '#f-img', 'click', () =>
+    void pickImage().then((name) => {
+      if (!name) return;
+      n.style.image = name;
+      refresh(false);
+    }),
+  );
+  on(right, '#f-imgdel', 'click', () => {
+    n.style.image = undefined;
+    refresh(false);
   });
   edit('#f-shape', (el) => (n.style.shape = el.value as Shape), false);
   edit('#f-color', (el) => (n.style.color = el.value), false);
@@ -726,6 +762,7 @@ function renderSpaceSettings() {
               <input type="color" data-scolor="${esc(s.id)}" value="${esc(s.color)}">
               <input type="number" step="0.1" min="0.3" data-ssize="${esc(s.id)}" value="${s.size}" title="Размер">
             </div>
+            ${imageRowHtml(s.image, `data-simg="${esc(s.id)}"`, `data-simgdel="${esc(s.id)}"`)}
           </div>`,
         )
         .join('') || '<div class="muted">нет — создайте здесь или кнопкой «Сохранить как новый стиль» у записи</div>'}
@@ -814,13 +851,28 @@ function renderSpaceSettings() {
   bindStyle('sshape', (s, el) => (s.shape = el.value as Shape), false);
   bindStyle('scolor', (s, el) => (s.color = el.value), false);
   bindStyle('ssize', (s, el) => (s.size = Math.max(0.3, num(el, s.size))), true);
+  right.querySelectorAll<HTMLButtonElement>('[data-simg]').forEach((b) =>
+    b.addEventListener('click', () =>
+      void pickImage().then((name) => {
+        if (!name) return;
+        styleById(b.dataset.simg!).image = name;
+        refresh(false);
+      }),
+    ),
+  );
+  right.querySelectorAll<HTMLButtonElement>('[data-simgdel]').forEach((b) =>
+    b.addEventListener('click', () => {
+      styleById(b.dataset.simgdel!).image = undefined;
+      refresh(false);
+    }),
+  );
   right.querySelectorAll<HTMLButtonElement>('[data-sdel]').forEach((b) =>
     b.addEventListener('click', () => {
       const s = styleById(b.dataset.sdel!);
       const users = space.nodes.filter((n) => n.styleId === s.id);
       if (users.length && !confirm(`Стиль «${s.name}» используют ${users.length} узлов. Удалить? Они сохранят его вид как собственный.`)) return;
       for (const n of users) {
-        n.style = { color: s.color, shape: s.shape, size: s.size };
+        n.style = { color: s.color, shape: s.shape, size: s.size, ...(s.colors ? { colors: s.colors } : {}), ...(s.image ? { image: s.image } : {}) };
         n.styleId = undefined;
       }
       space.styles = space.styles!.filter((x) => x.id !== s.id);
@@ -955,6 +1007,34 @@ function bindBackups() {
 }
 
 /** Short non-blocking message at the bottom of the scene. */
+/** Lets the user pick a picture file, uploads it and returns its stored name (null: cancelled or failed). */
+function pickImage(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (!file) return resolve(null);
+      uploadImage(file).then(resolve, (e: unknown) => {
+        flash(e instanceof Error ? e.message : String(e));
+        resolve(null);
+      });
+    });
+    input.click();
+  });
+}
+
+/** Markup of a "Картинка" row; `upload` / `remove` are the attributes (id or data-*) that bind its two buttons. */
+function imageRowHtml(image: string | undefined, upload: string, remove: string): string {
+  return `<div class="row">
+    <span class="muted">Картинка:</span>
+    ${image ? `<img class="style-thumb" src="${esc(imageUrl(image))}" alt="">` : '<span class="muted">нет</span>'}
+    <button ${upload} title="Показывать элемент этой картинкой вместо фигуры (png, jpg, gif, webp, svg)">Загрузить…</button>
+    ${image ? `<button ${remove} title="Убрать картинку">×</button>` : ''}
+  </div>`;
+}
+
 function flash(text: string) {
   const el = document.createElement('div');
   el.className = 'flash';

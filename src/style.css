@@ -656,3 +656,35 @@ legend {
   text-align: center;
   flex: none;
 }
+
+.style-thumb {
+  height: 28px;
+  max-width: 56px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.stage-search {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: min(320px, 55%);
+  z-index: 30;
+}
+
+.stage-search input {
+  background: rgba(31, 32, 48, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.pick-list li.is-more {
+  color: var(--muted);
+  font-style: italic;
+  cursor: default;
+}
+
+.pick-list li.is-more:hover {
+  background: transparent;
+}

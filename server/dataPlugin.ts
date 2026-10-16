@@ -10,6 +10,7 @@ import type { Plugin, ViteDevServer } from 'vite';
  *   data/index.json              { activeId }
  *   data/spaces/<id>.json        one space per file (pretty-printed for readable diffs)
  *   data/backups/<id>/<stamp>--<reason>.json
+ *   data/images/<name>           pictures for node styles (png, jpg, gif, webp, svg)
  *
  * API (JSON):
  *   GET    /api/spaces                    → [{ id, title, rev }]
@@ -19,6 +20,8 @@ import type { Plugin, ViteDevServer } from 'vite';
  *   GET    /api/index | PUT /api/index    → { activeId }
  *   GET    /api/spaces/:id/backups        → [{ name, reason, time }]
  *   POST   /api/spaces/:id/backups        body={ reason } → { name }
+ *   GET    /api/images/:name              → the image file
+ *   POST   /api/images/:name      body=raw bytes  → { name }   (max 8 MB)
  *   POST   /api/spaces/:id/restore        body={ name }   → { space, rev }   (backs up current first)
  *
  * File changes on disk are pushed to the page as the HMR custom event `notespace:changed` { id, rev }.
@@ -27,6 +30,17 @@ import type { Plugin, ViteDevServer } from 'vite';
 export function notespaceData(dataDir = process.env.NOTESPACE_DATA_DIR ?? path.resolve('data')): Plugin {
   const spacesDir = path.join(dataDir, 'spaces');
   const backupsDir = path.join(dataDir, 'backups');
+  const imagesDir = path.join(dataDir, 'images');
+  const IMAGE_NAME = /^[A-Za-z0-9_-]{1,80}\.(png|jpe?g|gif|webp|svg)$/;
+  const IMAGE_TYPES: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
+  };
+  const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
   const indexFile = path.join(dataDir, 'index.json');
   const ID = /^[A-Za-z0-9_-]{1,80}$/;
 
@@ -58,6 +72,17 @@ export function notespaceData(dataDir = process.env.NOTESPACE_DATA_DIR ?? path.r
     return chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {};
   }
 
+  async function rawBody(req: IncomingMessage, limit: number): Promise<Buffer | null> {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    for await (const c of req) {
+      size += (c as Buffer).length;
+      if (size > limit) return null;
+      chunks.push(c as Buffer);
+    }
+    return Buffer.concat(chunks);
+  }
+
   function send(res: ServerResponse, status: number, data: unknown) {
     res.statusCode = status;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -73,6 +98,27 @@ export function notespaceData(dataDir = process.env.NOTESPACE_DATA_DIR ?? path.r
     if (parts[1] === 'index' && parts.length === 2) {
       if (method === 'GET') return send(res, 200, fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, 'utf8')) : {}), true;
       if (method === 'PUT') return writeAtomic(indexFile, await body(req)), send(res, 200, {}), true;
+    }
+
+    if (parts[1] === 'images' && parts.length === 3) {
+      const name = parts[2];
+      if (!IMAGE_NAME.test(name)) return send(res, 400, { error: 'bad image name' }), true;
+      const file = path.join(imagesDir, name);
+      if (method === 'GET') {
+        if (!fs.existsSync(file)) return send(res, 404, { error: 'not found' }), true;
+        res.statusCode = 200;
+        res.setHeader('Content-Type', IMAGE_TYPES[name.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.end(fs.readFileSync(file));
+        return true;
+      }
+      if (method === 'POST') {
+        const data = await rawBody(req, MAX_IMAGE_BYTES);
+        if (!data || !data.length) return send(res, 413, { error: 'empty or too large' }), true;
+        fs.mkdirSync(imagesDir, { recursive: true });
+        fs.writeFileSync(file, data);
+        return send(res, 200, { name }), true;
+      }
     }
 
     if (parts[1] !== 'spaces') return false;

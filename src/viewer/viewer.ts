@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { imageUrl } from '../storage';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { matchesFilter, type TagFilter } from '../core/filter';
@@ -16,6 +17,14 @@ const GEOMETRY: Record<Shape, THREE.BufferGeometry> = {
 const SHELL_GEOMETRY = new THREE.SphereGeometry(1, 40, 24);
 const ARROW_GEOMETRY = new THREE.ConeGeometry(0.5, 1.6, 12);
 const SHARED = new Set<THREE.BufferGeometry>([...Object.values(GEOMETRY), SHELL_GEOMETRY, ARROW_GEOMETRY]);
+
+/** Height of a picture node relative to the radius of a solid shape. */
+const SPRITE_HEIGHT_K = 2.4;
+
+/** Share of the remaining distance covered per frame when the camera flies to an object (smaller = slower). */
+const FLY_EASE = 0.025;
+/** A flight to an object first climbs out to the overview when the camera is closer than this share of the overview distance. */
+const FLY_VIA_CENTRE_BELOW = 0.6;
 
 const DIM = 0.1;
 /** Hover time before an object's description card appears. */
@@ -112,6 +121,10 @@ export class Viewer {
   private layout: Layout | null = null;
   /** Camera position to glide to together with `focusGoal` (fly-to). */
   private cameraGoal: THREE.Vector3 | null = null;
+  /** Stages of a flight still to go after the current one (see `flyTo`). */
+  private flyQueue: { focus: THREE.Vector3; camera: THREE.Vector3 }[] = [];
+  /** Group whose description card appears when the current flight gets close to it. */
+  private arrival: { id: string; dist: number } | null = null;
   private linkOpacity = DEFAULT_LINK_OPACITY;
   /** Draw each group's zero-level ring (its frame of reference). Takes effect on the next render. */
   showFrames = true;
@@ -152,10 +165,7 @@ export class Viewer {
     // Wheel zoom is our own (see `bindSmoothZoom`): OrbitControls applies each wheel step at once.
     this.controls.enableZoom = false;
     this.controls.target.set(0, 15, 0);
-    this.controls.addEventListener('start', () => {
-      this.focusGoal = null;
-      this.cameraGoal = null;
-    });
+    this.controls.addEventListener('start', () => this.cancelFlight());
 
     this.bindPicking();
     this.bindSmoothZoom();
@@ -172,7 +182,15 @@ export class Viewer {
    * Glides the camera to a node: its centre becomes the pivot of rotation, panning and zoom, and
    * the distance matches its size, so navigation speed suits the object instead of the whole space.
    */
-  flyTo(id: string) {
+  private cancelFlight() {
+    this.focusGoal = null;
+    this.cameraGoal = null;
+    this.flyQueue.length = 0;
+    this.arrival = null;
+  }
+
+  /** `viaCentre`: when deep inside something, climb out to the overview first (for jumps to far-away objects, e.g. from search). */
+  flyTo(id: string, viaCentre = false) {
     const layout = this.layout;
     const p = layout?.placed.get(id);
     if (!layout || !p) return;
@@ -181,9 +199,24 @@ export class Viewer {
     const size = shell ? Math.max(shell.radii.x, shell.radii.y) : Math.max(p.meshRadius * 6, 2);
     const fov = THREE.MathUtils.degToRad(this.camera.fov);
     const dist = (size / Math.sin(Math.min(fov, fov * this.camera.aspect) / 2)) * 1.1;
-    const dir = this.camera.position.clone().sub(this.controls.target).normalize();
-    this.focusGoal = new THREE.Vector3(c.x, c.y, c.z);
-    this.cameraGoal = this.focusGoal.clone().addScaledVector(dir, dist);
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    const dir = offset.clone().normalize();
+    const finalFocus = new THREE.Vector3(c.x, c.y, c.z);
+    const finalCamera = finalFocus.clone().addScaledVector(dir, dist);
+    this.flyQueue.length = 0;
+    this.arrival = shell ? { id, dist } : null; // a group: show its description on approach
+    this.removeCard(); // the previous object's card must not hang around during the flight
+    if (viaCentre && offset.length() < this.overviewDist * FLY_VIA_CENTRE_BELOW) {
+      // Deep inside something: first climb out to the overview of the whole space (looking at its
+      // centre), then dive to the target, instead of cutting straight through everything.
+      const centre = new THREE.Vector3(0, 0, 0);
+      this.focusGoal = centre;
+      this.cameraGoal = centre.clone().addScaledVector(dir, this.overviewDist);
+      this.flyQueue.push({ focus: finalFocus, camera: finalCamera });
+    } else {
+      this.focusGoal = finalFocus;
+      this.cameraGoal = finalCamera;
+    }
   }
 
   /** Re-fit the camera on the next render (e.g. after switching spaces). */
@@ -217,7 +250,7 @@ export class Viewer {
     this.controls.target.copy(sphere.center);
     this.camera.position.copy(sphere.center).addScaledVector(dir, dist);
     this.overviewDist = dist;
-    this.focusGoal = null;
+    this.cancelFlight();
   }
 
   render(space: Space, layout: Layout, view: ViewState) {
@@ -261,34 +294,38 @@ export class Viewer {
             0.12 * a, // auxiliary guide: keep it faint
           );
         }
-        const label = this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
-        // Caption height follows the group's size on screen.
-        // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius.
-        label.userData.worldSize =
-          (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
-          // Nested groups are often nearly as big as their parents: shrink captions per level too.
-          Math.pow(this.labelShrink, p.depth);
-        if (!shell.torus) {
-          label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
-          label.userData.groupCenter = new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z);
-        }
-        // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
-        if (shell.torus) {
-          // Angles of the objects on the ring: the caption goes into a gap between them.
-          const members = (idx.children.get(n.id) ?? [])
-            .map((c) => layout.placed.get(c.id)!)
-            .filter((c) => c.visible && Math.hypot(c.world.x - shell.center.x, c.world.z - shell.center.z) > shell.torus!.major * 0.5)
-            .map((c) => Math.atan2(c.world.z - shell.center.z, c.world.x - shell.center.x))
-            .sort((a, b) => a - b);
-          label.userData.ring = { x: shell.center.x, z: shell.center.z, ...shell.torus, members };
-          this.addArcText(label, n.title, mainColor(style));
+        if (!n.hideLabel) {
+          const label = this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
+          // Caption height follows the group's size on screen.
+          // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius.
+          label.userData.worldSize =
+            (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
+            // Nested groups are often nearly as big as their parents: shrink captions per level too.
+            Math.pow(this.labelShrink, p.depth);
+          if (!shell.torus) {
+            label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
+            label.userData.groupCenter = new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z);
+          }
+          // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
+          if (shell.torus) {
+            // Angles of the objects on the ring: the caption goes into a gap between them.
+            const members = (idx.children.get(n.id) ?? [])
+              .map((c) => layout.placed.get(c.id)!)
+              .filter((c) => c.visible && Math.hypot(c.world.x - shell.center.x, c.world.z - shell.center.z) > shell.torus!.major * 0.5)
+              .map((c) => Math.atan2(c.world.z - shell.center.z, c.world.x - shell.center.x))
+              .sort((a, b) => a - b);
+            label.userData.ring = { x: shell.center.x, z: shell.center.z, ...shell.torus, members };
+            this.addArcText(label, n.title, mainColor(style));
+          }
         }
         continue;
       }
 
       const hidden = n.kind === 'group' ? countDescendants(idx, n.id) : 0;
       const multi = style.colors && style.colors.length > 1;
-      const mesh = new THREE.Mesh(
+      const mesh: THREE.Object3D = style.image
+        ? this.makeSprite(style.image, a)
+        : new THREE.Mesh(
         multi ? sectorGeometry(style.shape, style.colors!) : GEOMETRY[style.shape],
         new THREE.MeshStandardMaterial({
           // Multi-coloured: vertex colours carry the sectors; the glow is their blend.
@@ -302,18 +339,24 @@ export class Viewer {
         }),
       );
       const scale = p.meshRadius * (selected ? 1.3 : 1);
-      mesh.scale.setScalar(scale);
+      if (mesh instanceof THREE.Sprite) {
+        // A picture: a bit larger than the solid shapes, whose radius is `scale`.
+        const height = scale * SPRITE_HEIGHT_K;
+        mesh.scale.set(height * (mesh.userData.aspect as number), height, 1);
+      } else mesh.scale.setScalar(scale);
       mesh.position.set(p.world.x, p.world.y, p.world.z);
       mesh.userData.id = n.id;
       if (n.spin) mesh.userData.spin = (n.spin * Math.PI * 2) / 60;
       this.content.add(mesh);
       this.pickNodes.push(mesh);
-      const title = hidden ? `${n.title} (+${hidden})` : n.title;
-      const label = this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
-      // Caption height follows the object's size on screen.
-      // Notes already get smaller with nesting, so their captions just follow their size (the extra
-      // per-level shrink is for groups, whose nested shells can be almost as big as their parents).
-      label.userData.worldSize = p.meshRadius * NOTE_LABEL_K;
+      if (!n.hideLabel) {
+        const title = hidden ? `${n.title} (+${hidden})` : n.title;
+        const label = this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
+        // Caption height follows the object's size on screen.
+        // Notes already get smaller with nesting, so their captions just follow their size (the extra
+        // per-level shrink is for groups, whose nested shells can be almost as big as their parents).
+        label.userData.worldSize = p.meshRadius * NOTE_LABEL_K;
+      }
 
       if (p.tethered) {
         const parent = idx.parentOf(n.id)!;
@@ -565,6 +608,36 @@ export class Viewer {
     if (dashed) line.computeLineDistances();
     this.content.add(line);
     return line;
+  }
+
+  /** Textures of style pictures by file name; shared by all nodes using them. */
+  private readonly pictures = new Map<string, { texture: THREE.Texture; aspect: number; ready: boolean; waiting: THREE.Sprite[] }>();
+
+  /** A node drawn as a picture that always faces the viewer. Its width follows the picture once loaded. */
+  private makeSprite(image: string, opacity: number): THREE.Sprite {
+    let pic = this.pictures.get(image);
+    if (!pic) {
+      const entry: { texture: THREE.Texture; aspect: number; ready: boolean; waiting: THREE.Sprite[] } = {
+        texture: new THREE.Texture(),
+        aspect: 1,
+        ready: false,
+        waiting: [],
+      };
+      entry.texture = new THREE.TextureLoader().load(imageUrl(image), (t) => {
+        const { width, height } = t.image as { width: number; height: number };
+        if (width > 0 && height > 0) entry.aspect = width / height;
+        entry.ready = true;
+        for (const sp of entry.waiting) sp.scale.x = sp.scale.y * entry.aspect;
+        entry.waiting.length = 0;
+      });
+      entry.texture.colorSpace = THREE.SRGBColorSpace;
+      this.pictures.set(image, entry);
+      pic = entry;
+    }
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: pic.texture, transparent: true, opacity }));
+    sprite.userData.aspect = pic.aspect;
+    if (!pic.ready) pic.waiting.push(sprite);
+    return sprite;
   }
 
   private addArrow(p1: Vec3, p2: Vec3, color: string, opacity: number) {
@@ -963,8 +1036,10 @@ export class Viewer {
       const mesh = obj as THREE.Mesh;
       if (obj.userData.id === id && this.pickNodes.includes(obj)) {
         const m = mesh.material as THREE.MeshStandardMaterial;
-        obj.userData.baseEmissive ??= m.emissiveIntensity;
-        m.emissiveIntensity = on ? Math.max(0.8, obj.userData.baseEmissive + 0.5) : obj.userData.baseEmissive;
+        if ('emissiveIntensity' in m) {
+          obj.userData.baseEmissive ??= m.emissiveIntensity;
+          m.emissiveIntensity = on ? Math.max(0.8, obj.userData.baseEmissive + 0.5) : obj.userData.baseEmissive;
+        }
         obj.scale.multiplyScalar(on ? 1.15 : 1 / 1.15);
       } else if (obj.userData.id === id || obj.userData.outlineOf === id) {
         const m = mesh.material as THREE.Material;
@@ -1013,8 +1088,7 @@ export class Viewer {
       'wheel',
       (e) => {
         e.preventDefault();
-        this.focusGoal = null;
-        this.cameraGoal = null;
+        this.cancelFlight();
         // Normalise wheel units (lines / pages / pixels); one notch ≈ 100 px ≈ 15 % closer or farther.
         const px = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1);
         this.zoomPending += THREE.MathUtils.clamp(px, -400, 400) * 0.0015;
@@ -1059,12 +1133,24 @@ export class Viewer {
     for (const obj of this.pickNodes) if (obj.userData.spin) obj.rotation.y += obj.userData.spin * dt;
     this.stepZoom();
     if (this.focusGoal) {
-      const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(0.12);
+      const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(FLY_EASE);
       this.controls.target.add(delta);
       if (this.cameraGoal) {
-        const cd = this.cameraGoal.clone().sub(this.camera.position).multiplyScalar(0.12);
+        const cd = this.cameraGoal.clone().sub(this.camera.position).multiplyScalar(FLY_EASE);
         this.camera.position.add(cd);
-        if (delta.length() < 0.01 && cd.length() < 0.01) this.focusGoal = this.cameraGoal = null;
+        // A waypoint stage hands over a bit early, so the flight does not crawl to a halt in the middle.
+        if (this.arrival && !this.flyQueue.length && this.cameraGoal.distanceTo(this.camera.position) < this.arrival.dist * 0.6) {
+          this.showCard(this.arrival.id);
+          this.arrival = null;
+        }
+        const reached = this.flyQueue.length
+          ? this.focusGoal.distanceTo(this.controls.target) < this.overviewDist * 0.08 && this.cameraGoal.distanceTo(this.camera.position) < this.overviewDist * 0.08
+          : delta.length() < 0.01 && cd.length() < 0.01;
+        if (reached) {
+          const next = this.flyQueue.shift();
+          this.focusGoal = next?.focus ?? null;
+          this.cameraGoal = next?.camera ?? null;
+        }
       } else {
         this.camera.position.add(delta);
         if (delta.length() < 0.01) this.focusGoal = null;

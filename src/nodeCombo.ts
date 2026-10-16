@@ -12,8 +12,12 @@ export interface NodeComboOptions {
   nodes: SpaceNode[];
   /** Currently chosen node id (null/undefined: none). */
   value?: string | null;
+  /** Placeholder of the field (default: the "none" label, or "Название…"). */
+  placeholder?: string;
   /** Label of the "none" entry (also the placeholder); without it the choice cannot be cleared. */
   emptyLabel?: string;
+  /** Show at most this many matches (then a "… ещё N" line); default 300. */
+  limit?: number;
   onChange: (id: string | null) => void;
 }
 
@@ -21,12 +25,19 @@ const ICON_GROUP = '▣';
 const ICON_NOTE = '●';
 const ICON_NONE = '⌂';
 
+function moreItem(rest: number): HTMLLIElement {
+  const li = document.createElement('li');
+  li.className = 'is-more';
+  li.textContent = `… ещё ${rest}: уточните запрос`;
+  return li;
+}
+
 /** Builds the picker inside `host` (replacing its content). */
 export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
   host.classList.add('combo');
   const input = document.createElement('input');
   input.autocomplete = 'off';
-  input.placeholder = o.emptyLabel ?? 'Название…';
+  input.placeholder = o.placeholder ?? o.emptyLabel ?? 'Название…';
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'combo-btn';
@@ -49,9 +60,11 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
       ...(o.emptyLabel ? [{ id: '', title: o.emptyLabel, group: false, color: '' }] : []),
       ...o.nodes.map((x) => ({ id: x.id, title: x.title, group: x.kind === 'group', color: mainColor(styleOf(o.space, x)) })),
     ];
+    const matches = items.filter((it) => !it.id || words.every((w) => it.title.toLowerCase().includes(w)));
+    const limit = o.limit ?? 300;
+    const shown = matches.slice(0, limit);
     list.replaceChildren(
-      ...items
-        .filter((it) => !it.id || words.every((w) => it.title.toLowerCase().includes(w)))
+      ...shown
         .map((it) => {
           const li = document.createElement('li');
           li.dataset.id = it.id;
@@ -65,6 +78,7 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
           li.append(icon, name);
           return li;
         }),
+      ...(matches.length > limit ? [moreItem(matches.length - limit)] : []),
     );
     list.hidden = false;
   };
@@ -84,7 +98,7 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
     else if (e.key === 'Enter' && !list.hidden) {
-      const first = list.querySelector<HTMLElement>('li:not(.is-root)') ?? list.querySelector<HTMLElement>('li');
+      const first = list.querySelector<HTMLElement>('li:not(.is-root):not(.is-more)') ?? list.querySelector<HTMLElement>('li:not(.is-more)');
       if (first) choose(first.dataset.id ?? '');
     }
   });
@@ -92,7 +106,7 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
   list.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
   list.addEventListener('click', (e) => {
     const li = (e.target as HTMLElement).closest('li');
-    if (li) choose(li.dataset.id ?? '');
+    if (li && !li.classList.contains('is-more')) choose(li.dataset.id ?? '');
   });
   host.addEventListener('focusout', (e) => {
     if (!(e.relatedTarget instanceof Node && host.contains(e.relatedTarget))) setTimeout(close, 120);

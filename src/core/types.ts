@@ -20,6 +20,11 @@ export interface NodeStyle {
    * both the Father and the Son). When set, `color` is only a fallback.
    */
   colors?: string[];
+  /**
+   * Picture file name (in `data/images/`). When set, the node is drawn as this picture, always
+   * facing the viewer, instead of the shape.
+   */
+  image?: string;
 }
 
 /** Local coordinate frame a group provides to its children. */
@@ -72,7 +77,10 @@ export interface SpaceNode {
   tags: string[];
   levelMode: LevelMode;
   level: number;
-  /** Manually fixed horizontal position inside the parent frame ({0,0} = centre of the group). */
+  /**
+   * Manually fixed horizontal position inside the parent frame ({0,0} = centre of the group), in
+   * the group's own units: it shrinks with the nesting level together with the sizes of nodes.
+   */
   pinned?: { x: number; z: number };
   /** Take the size of another node (a group's size depends on its contents). */
   sizeAs?: string;
@@ -83,6 +91,8 @@ export interface SpaceNode {
   aimAt?: string;
   /** Named style of the space; when set it replaces `style`. */
   styleId?: string;
+  /** Do not draw the title next to the object (the description card still appears on hover). */
+  hideLabel?: boolean;
   /** Spins about the vertical axis, revolutions per minute (0 or absent: still). */
   spin?: number;
   /** Excluded from publishing/export. */
