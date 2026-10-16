@@ -571,54 +571,54 @@ export function urantiaSpace(): Space {
 
   ];
 
-  const ascent = (from: string, to: string, label?: string): Link =>
-    link(from, to, { directed: true, color: C.path, ...(label ? { label } : {}) });
+  const ascent = (from: string, to: string): Link =>
+    link(from, to, { color: C.path });
 
   const links: Link[] = [
     // Deities
-    link('father', 'son', { directed: true, color: C.deity }),
-    link('father', 'spirit', { directed: true, color: C.deity }),
-    link('son', 'spirit', { directed: true, color: C.deity }),
-    link('trinity', 'upperParadise', { label: 'обитель' }),
-    link('trinity', 'masterSpirits', { directed: true }),
-    link('trinity', 'ancients', { directed: true, label: 'происхождение' }),
-    link('havona', 'paradise', { label: 'вращается вокруг' }),
+    link('father', 'son', { color: C.deity }),
+    link('father', 'spirit', { color: C.deity }),
+    link('son', 'spirit', { color: C.deity }),
+    link('trinity', 'upperParadise', {}),
+    link('trinity', 'masterSpirits'),
+    link('trinity', 'ancients', {}),
+    link('havona', 'paradise', {}),
     link('netherParadise', 'darkBodies', { color: '#565f89' }),
 
     // Each Master Spirit comes from the Infinite Spirit and presides over one superuniverse
-    ...MASTER_SPIRIT_TARGETS.map((_, i) => link('spirit', `masterSpirit${i + 1}`, { directed: true, color: '#89ddff' })),
-    ...MASTER_SPIRIT_TARGETS.map((t, i) => link(`masterSpirit${i + 1}`, t, { directed: true, color: '#89ddff' })),
+    ...MASTER_SPIRIT_TARGETS.map((_, i) => link('spirit', `masterSpirit${i + 1}`, { color: '#89ddff' })),
+    ...MASTER_SPIRIT_TARGETS.map((t, i) => link(`masterSpirit${i + 1}`, t, { color: '#89ddff' })),
 
     // Local universe creators
-    link('father', 'michael', { directed: true, color: C.jesus }),
-    link('son', 'michael', { directed: true, color: C.jesus, label: 'Сын-Создатель' }),
-    link('spirit', 'divineMinister', { directed: true, color: '#89ddff', label: 'Мать-Дух' }),
-    link('michael', 'divineMinister', { label: 'сотворцы' }),
-    link('michael', 'gabriel', { directed: true }),
-    link('divineMinister', 'seraphim', { directed: true, color: '#c0caf5' }),
+    link('father', 'michael', { color: C.jesus }),
+    link('son', 'michael', { color: C.jesus }),
+    link('spirit', 'divineMinister', { color: '#89ddff' }),
+    link('michael', 'divineMinister', {}),
+    link('michael', 'gabriel'),
+    link('divineMinister', 'seraphim', { color: '#c0caf5' }),
     link('seraphim', 'guardians', { color: '#c0caf5' }),
-    link('guardians', 'humanity', { directed: true, color: '#c0caf5' }),
-    link('trinity', 'trinityTeachers', { directed: true, color: C.deity }),
+    link('guardians', 'humanity', { color: '#c0caf5' }),
+    link('trinity', 'trinityTeachers', { color: C.deity }),
 
     // Bestowal and spirit gifts
-    link('michael', 'jesus', { directed: true, color: C.jesus, label: 'пришествие' }),
-    link('michael', 'spiritOfTruth', { directed: true, color: C.jesus }),
-    link('melchizedek', 'jesus', { directed: true, label: 'подготовил' }),
-    link('father', 'adjuster', { directed: true, color: C.deity, label: 'фрагмент Отца' }),
+    link('michael', 'jesus', { color: C.jesus }),
+    link('michael', 'spiritOfTruth', { color: C.jesus }),
+    link('melchizedek', 'jesus', {}),
+    link('father', 'adjuster', { color: C.deity }),
     link('divinington', 'adjuster', { color: C.deity }),
-    link('masterSpirits', 'spiritSpheres', { color: '#89ddff', label: 'штаб-квартиры' }),
+    link('masterSpirits', 'spiritSpheres', { color: '#89ddff' }),
     link('ascendington', 'periphParadise', { color: C.path }),
-    link('adjuster', 'humanity', { directed: true, color: C.deity }),
-    link('spiritOfTruth', 'humanity', { directed: true, color: C.jesus }),
-    link('divineMinister', 'humanity', { directed: true, color: '#89ddff', label: 'служение разума' }),
+    link('adjuster', 'humanity', { color: C.deity }),
+    link('spiritOfTruth', 'humanity', { color: C.jesus }),
+    link('divineMinister', 'humanity', { color: '#89ddff' }),
 
     // Lucifer rebellion
-    link('lucifer', 'caligastia', { directed: true, color: C.rebel, label: 'восстание' }),
-    link('lanaforge', 'lucifer', { directed: true, color: C.rebel, label: 'сменил' }),
-    link('caligastia', 'adamEve', { color: C.rebel, label: 'срыв миссии' }),
+    link('lucifer', 'caligastia', { color: C.rebel }),
+    link('lanaforge', 'lucifer', { color: C.rebel }),
+    link('caligastia', 'adamEve', { color: C.rebel }),
 
     // Mortal ascension career
-    ascent('humanity', 'mansionWorlds', 'путь восхождения'),
+    ascent('humanity', 'mansionWorlds'),
     ascent('mansionWorlds', 'jerusem'),
     ascent('jerusem', 'edentia'),
     ascent('edentia', 'salvington'),

@@ -2,7 +2,7 @@ import './style.css';
 import type { TagFilter } from './core/filter';
 import { computeLayout, SpaceIndex, type Layout } from './core/layout';
 import { createFromTemplate, TEMPLATES, templateOf, updateFromTemplate } from './core/templates';
-import { newId, type ShellCenter, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
+import { mainColor, newId, styleOf, type ShellCenter, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
 import { loadSettings, saveSettings } from './settings';
 import {
   backupSpace,
@@ -293,6 +293,16 @@ function targetHint(): string {
   return p ? `Будет создано в группе «${space.nodes.find((n) => n.id === p)!.title}»` : 'Будет создано в корне';
 }
 
+/** Whether the "belongs to group" list offers every element, not only groups (picking a note turns it into a group). */
+let showAllParents = false;
+
+/** Turns a note into an (expanded) group in place; id, links and everything else stay. */
+function makeGroup(n: SpaceNode) {
+  if (n.kind === 'group') return;
+  n.kind = 'group';
+  n.frame = { offset: 0, levelStep: 5, collapsed: false };
+}
+
 function addNode(kind: SpaceNode['kind']) {
   const node: SpaceNode = {
     id: newId(),
@@ -320,19 +330,22 @@ function renderRight() {
     return;
   }
   const idx = new SpaceIndex(space);
-  const parentOptions = space.nodes.filter((g) => g.kind === 'group' && !idx.wouldCreateCycle(n.id, g.id));
+  const parentOptions = space.nodes.filter((g) => g.id !== n.id && (showAllParents || g.kind === 'group') && !idx.wouldCreateCycle(n.id, g.id));
   const links = space.links.filter((l) => l.from === n.id || l.to === n.id);
   const title = (id: string) => space.nodes.find((x) => x.id === id)?.title ?? '?';
 
   right.innerHTML = `
     <h2>${n.kind === 'group' ? 'Группа' : 'Запись'}</h2>
     <label>Название<input id="f-title" value="${esc(n.title)}"></label>
-    <label>Родитель
-      <select id="f-parent">
-        <option value="">— корень —</option>
-        ${parentOptions.map((g) => `<option value="${esc(g.id)}" ${idx.parentOf(n.id) === g.id ? 'selected' : ''}>${esc(g.title)}</option>`).join('')}
-      </select>
-    </label>
+    <fieldset class="parent-pick">
+      <legend>Принадлежит группе</legend>
+      <div class="combo">
+        <input id="f-parent-q" autocomplete="off" placeholder="— корень —">
+        <button type="button" id="f-parent-toggle" class="combo-btn" tabindex="-1" title="Открыть список">▾</button>
+        <ul id="f-parent-list" class="pick-list" hidden></ul>
+      </div>
+      <label class="check"><input id="f-parent-all" type="checkbox" ${showAllParents ? 'checked' : ''}>Показать все элементы (выбранный станет группой)</label>
+    </fieldset>
 
     <fieldset>
       <legend>Уровень <span class="hint" tabindex="0" title="${esc(LEVEL_HINT)}">?</span></legend>
@@ -443,6 +456,9 @@ function renderRight() {
             .join('')}
         </select>
       </label>
+      <label title="Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается">Вращение (об/мин)
+        <input id="f-spin" type="number" step="1" value="${n.spin ?? 0}">
+      </label>
       <label>Размер как
         <select id="f-sizeAs">
           <option value="">— собственный —</option>
@@ -491,6 +507,7 @@ function renderRight() {
       </div>
     </fieldset>
 
+    ${n.kind === 'group' ? '' : '<button id="make-group">Сделать группой</button>'}
     <button id="delete" class="danger">Удалить ${n.kind === 'group' ? 'группу (содержимое поднимется выше)' : 'запись'}</button>
   `;
 
@@ -501,9 +518,76 @@ function renderRight() {
     });
 
   edit('#f-title', (el) => (n.title = el.value.trim() || n.title));
-  edit('#f-parent', (el) => {
-    n.parentId = el.value || null;
+  on(right, '#f-parent-all', 'change', (e) => {
+    showAllParents = (e.target as HTMLInputElement).checked;
+    renderRight();
+  });
+  on(right, '#make-group', 'click', () => {
+    makeGroup(n);
+    refresh(true);
+  });
+  const pickList = right.querySelector('#f-parent-list') as HTMLElement;
+  const pickQuery = right.querySelector('#f-parent-q') as HTMLInputElement;
+  const currentParent = idx.parentOf(n.id);
+  pickQuery.value = currentParent ? title(currentParent) : '';
+  /** Fills the dropdown; with `filter`, keeps only titles containing every space-separated word, anywhere. */
+  const fillPickList = (filter: boolean) => {
+    const words = filter ? pickQuery.value.toLowerCase().split(/\s+/).filter(Boolean) : [];
+    const items: { id: string; title: string; group: boolean; color: string }[] = [
+      { id: '', title: '— корень —', group: false, color: '' },
+      ...parentOptions.map((g) => ({ id: g.id, title: g.title, group: g.kind === 'group', color: mainColor(styleOf(space, g)) })),
+    ];
+    pickList.replaceChildren(
+      ...items
+        .filter((it) => !it.id || words.every((w) => it.title.toLowerCase().includes(w)))
+        .map((it) => {
+          const li = document.createElement('li');
+          li.dataset.id = it.id;
+          li.className = `${it.id === (currentParent ?? '') ? 'current ' : ''}${it.id ? (it.group ? 'is-group' : 'is-note') : 'is-root'}`;
+          const icon = document.createElement('span');
+          icon.className = 'pick-icon';
+          icon.textContent = it.id ? (it.group ? '▣' : '●') : '⌂';
+          if (it.color) icon.style.color = it.color;
+          const name = document.createElement('span');
+          name.textContent = it.title;
+          li.append(icon, name);
+          return li;
+        }),
+    );
+    pickList.hidden = false;
+  };
+  const closePick = () => {
+    pickList.hidden = true;
+    pickQuery.value = currentParent ? title(currentParent) : '';
+  };
+  const choose = (id: string) => {
+    n.parentId = id || null;
     n.pinned = undefined;
+    const parent = n.parentId ? space.nodes.find((x) => x.id === n.parentId) : undefined;
+    if (parent) makeGroup(parent);
+    refresh(true);
+  };
+  pickQuery.addEventListener('focus', () => pickQuery.select());
+  pickQuery.addEventListener('input', () => fillPickList(true));
+  pickQuery.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePick();
+    else if (e.key === 'Enter') {
+      const first = pickList.querySelector<HTMLElement>('li:not(.is-root)') ?? pickList.querySelector<HTMLElement>('li');
+      if (!pickList.hidden && first) choose(first.dataset.id ?? '');
+    }
+  });
+  right.querySelector('#f-parent-toggle')!.addEventListener('click', () => {
+    if (pickList.hidden) fillPickList(false);
+    else closePick();
+  });
+  pickList.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
+  pickList.addEventListener('click', (e) => {
+    const li = (e.target as HTMLElement).closest('li');
+    if (li) choose(li.dataset.id ?? '');
+  });
+  const combo = right.querySelector('.combo') as HTMLElement;
+  combo.addEventListener('focusout', (e) => {
+    if (!(e.relatedTarget instanceof Node && combo.contains(e.relatedTarget))) setTimeout(closePick, 120);
   });
   edit('#f-mode', (el) => (n.levelMode = el.value as SpaceNode['levelMode']));
   edit('#f-level', (el) => (n.level = num(el, n.level)));
@@ -545,6 +629,7 @@ function renderRight() {
   edit('#f-fy', (el) => (n.frame!.fixedSize!.y = Math.max(0.05, num(el, n.frame!.fixedSize!.y))));
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
+  edit('#f-spin', (el) => (n.spin = num(el, 0) || undefined), false);
   edit('#f-sizeAs', (el) => (n.sizeAs = el.value || undefined));
   edit('#f-aimAt', (el) => (n.aimAt = el.value || undefined));
   edit('#f-shellOpacity', (el) => (n.frame!.shellOpacity = Number(el.value) / 100), false);

@@ -580,3 +580,78 @@ legend {
 .arc-label.hovered {
   filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 8px currentColor) brightness(1.35);
 }
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--panel);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.pick-list[hidden] {
+  display: none;
+}
+
+.combo {
+  position: relative;
+  display: flex;
+}
+
+.combo input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 26px;
+}
+
+.combo-btn {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.pick-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pick-list li:hover {
+  background: var(--line);
+}
+
+.pick-list li.current {
+  outline: 1px solid var(--accent);
+}
+
+.pick-list li.is-group {
+  font-weight: 600;
+}
+
+.pick-list li.is-note {
+  color: var(--muted);
+}
+
+.pick-list .pick-icon {
+  width: 1.2em;
+  text-align: center;
+  flex: none;
+}

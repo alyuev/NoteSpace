@@ -83,6 +83,8 @@ export interface SpaceNode {
   aimAt?: string;
   /** Named style of the space; when set it replaces `style`. */
   styleId?: string;
+  /** Spins about the vertical axis, revolutions per minute (0 or absent: still). */
+  spin?: number;
   /** Excluded from publishing/export. */
   private?: boolean;
   style: NodeStyle;

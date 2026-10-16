@@ -51,6 +51,11 @@ const MAX_LABEL_PX = 28;
 /** Object caption height relative to the object's radius (notes) or shell radius (groups). */
 const NOTE_LABEL_K = 1.0;
 const GROUP_LABEL_K = 0.16;
+/** On-screen radius (px) of a group from which its caption starts to rise, and the extra px over which it reaches full lift. */
+const GROUP_LIFT_FROM_PX = 60;
+const GROUP_LIFT_RAMP_PX = 200;
+/** A group's caption sits above the far edge of its shell by this many caption heights (on screen). */
+const GROUP_LABEL_LIFT = 0.5;
 /** Ring (torus) caption height relative to the tube's thickness. */
 const RING_LABEL_K = 0.9;
 /** Link caption height relative to the smaller caption of the two linked objects. */
@@ -259,6 +264,7 @@ export class Viewer {
           (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
           // Nested groups are often nearly as big as their parents: shrink captions per level too.
           Math.pow(this.labelShrink, p.depth);
+        if (!shell.torus) label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
         // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
         if (shell.torus) {
           // Angles of the objects on the ring: the caption goes into a gap between them.
@@ -292,6 +298,7 @@ export class Viewer {
       mesh.scale.setScalar(scale);
       mesh.position.set(p.world.x, p.world.y, p.world.z);
       mesh.userData.id = n.id;
+      if (n.spin) mesh.userData.spin = (n.spin * Math.PI * 2) / 60;
       this.content.add(mesh);
       this.pickNodes.push(mesh);
       const title = hidden ? `${n.title} (+${hidden})` : n.title;
@@ -340,6 +347,14 @@ export class Viewer {
         [new THREE.Vector3(0, minY - 6, 0), new THREE.Vector3(0, maxY + 10, 0), '#9ece6a'],
         [new THREE.Vector3(0, 0, -h), new THREE.Vector3(0, 0, h), '#7aa2f7'],
       ];
+      // Paradise's long (north–south) axis is Z: north on −Z (left in the default view), east on +X.
+      const compass: [string, Vec3, string][] = [
+        ['Север', { x: 0, y: 0, z: -h }, '#7aa2f7'],
+        ['Юг', { x: 0, y: 0, z: h }, '#7aa2f7'],
+        ['Запад', { x: -h, y: 0, z: 0 }, '#f7768e'],
+        ['Восток', { x: h, y: 0, z: 0 }, '#f7768e'],
+      ];
+      for (const [text, at, color] of compass) this.addLabel(text, at, color, 1, 'group');
       for (const [from, to, color] of axes) {
         this.content.add(
           new THREE.Line(
@@ -812,6 +827,63 @@ export class Viewer {
     return own * Math.pow(this.labelShrink, p.depth);
   }
 
+  /** Screen pixels to raise a group's caption so it stands just above the far edge of the group's shell. */
+  private groupLabelLift(obj: THREE.Object3D, radius: number, px: number, r: DOMRect, view: DOMRect): number {
+    const at = obj.position;
+    const cam = this.camera.position;
+    const dir = new THREE.Vector3(at.x - cam.x, 0, at.z - cam.z);
+    if (dir.lengthSq() < 1e-8) dir.set(0, 0, -1);
+    dir.normalize().multiplyScalar(radius);
+    const screenY = (v: THREE.Vector3) => view.top + ((1 - v.clone().project(this.camera).y) / 2) * view.height;
+    const far = screenY(at.clone().add(dir));
+    let lift = Math.max(0, screenY(at) - far) + px * GROUP_LABEL_LIFT;
+    lift = Math.min(lift, r.top - view.top - 4); // never above the top of the view
+    // Only when zooming in: a group that is small on screen keeps its caption where it was.
+    const size = this.screenRadius(obj, radius);
+    const k = THREE.MathUtils.clamp((size - GROUP_LIFT_FROM_PX) / GROUP_LIFT_RAMP_PX, 0, 1);
+    return Math.max(0, lift) * k;
+  }
+
+  /**
+   * Keeps object captions from overlapping on screen: larger captions (parents) stay put, a smaller one that
+   * would cover an already placed caption is moved just below it. Runs every frame after the label
+   * renderer, which resets the position of each caption.
+   */
+  private separateLabels() {
+    const items: { el: HTMLElement; px: number; lift: number; r: DOMRect }[] = [];
+    const view = this.renderer.domElement.getBoundingClientRect();
+    for (const obj of this.labelObjs) {
+      if (obj.userData.link || obj.userData.ring) continue; // link and ring captions have their own placement
+      const el = obj.element;
+      if (el.style.display === 'none' || parseFloat(el.style.opacity || '1') < 0.05) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const px = parseFloat(el.style.fontSize) || r.height;
+      // A group's caption rides on the far (upper on screen) edge of its shell, clear of the contents;
+      // when that edge is off screen it stays at the top of the view.
+      let lift = 0;
+      const radius = obj.userData.groupRadius as number | undefined;
+      if (radius) lift = this.groupLabelLift(obj, radius, px, r, view);
+      items.push({ el, px, lift, r: new DOMRect(r.left, r.top - lift, r.width, r.height) });
+    }
+    items.sort((a, b) => b.px - a.px);
+    const placed: { left: number; right: number; top: number; bottom: number }[] = [];
+    const GAP = 2;
+    for (const it of items) {
+      const box = { left: it.r.left, right: it.r.right, top: it.r.top, bottom: it.r.bottom };
+      for (let pass = 0; pass < 12; pass++) {
+        const hit = placed.find((q) => box.left < q.right && box.right > q.left && box.top < q.bottom && box.bottom > q.top);
+        if (!hit) break;
+        const dy = hit.bottom + GAP - box.top;
+        box.top += dy;
+        box.bottom += dy;
+      }
+      const shift = box.top - it.r.top - it.lift;
+      if (shift) it.el.style.transform += ` translateY(${shift}px)`;
+      placed.push(box);
+    }
+  }
+
   /** Puts each torus caption on its ring, at the point nearest to the viewer (every frame). */
   private placeRingLabels() {
     const cam = this.camera.position;
@@ -943,7 +1015,13 @@ export class Viewer {
     this.controls.target.copy(newTarget);
   }
 
+  private lastFrame = performance.now();
+
   private frame() {
+    const now = performance.now();
+    const dt = Math.min((now - this.lastFrame) / 1000, 0.1);
+    this.lastFrame = now;
+    for (const obj of this.pickNodes) if (obj.userData.spin) obj.rotation.y += obj.userData.spin * dt;
     this.stepZoom();
     if (this.focusGoal) {
       const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(0.12);
@@ -979,6 +1057,7 @@ export class Viewer {
     this.layoutArcTexts();
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
     this.labels.render(this.scene, this.camera);
+    this.separateLabels();
     // The label renderer orders elements by depth; the card must stay above every caption.
     if (this.cardObj) {
       this.placeCard();
