@@ -267,6 +267,11 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
         ? { r: Math.max(ext.r, re.r), ry: Math.max(ext.ry, re.ry), cy: ext.cy }
         : { r: re.r, ry: re.r, cy: 0 };
     }
+    // Sphere: the vertical radius equals the horizontal one (the shell grows to enclose the contents).
+    if (isExpandedGroup(n) && n.frame?.shell === 'sphere') {
+      const big = Math.max(ext.r, ext.ry);
+      ext = { ...ext, r: big, ry: big };
+    }
     effective.set(n.id, ext);
     return ext;
   };
@@ -311,8 +316,10 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     fitH.set(group.id, h);
     fitV.set(group.id, v);
     layoutGroupBody(groupId);
-    const ext = { r: Math.max(rx, rz), ry, cy: 0 };
-    fixedRadii.set(group.id, { x: rx, y: ry, z: rz });
+    const sphere = group.frame?.shell === 'sphere';
+    const big = Math.max(rx, ry, rz);
+    const ext = sphere ? { r: big, ry: big, cy: 0 } : { r: Math.max(rx, rz), ry, cy: 0 };
+    fixedRadii.set(group.id, sphere ? { x: big, y: big, z: big } : { x: rx, y: ry, z: rz });
     natural.set(group.id, ext);
     return ext;
   }

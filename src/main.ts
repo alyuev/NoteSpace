@@ -377,7 +377,8 @@ function renderRight() {
             </label>
             <label>Форма оболочки
               <select id="f-shell">
-                <option value="ellipsoid" ${n.frame!.shell !== 'torus' ? 'selected' : ''}>эллипсоид</option>
+                <option value="ellipsoid" ${n.frame!.shell !== 'torus' && n.frame!.shell !== 'sphere' ? 'selected' : ''}>эллипсоид</option>
+                <option value="sphere" ${n.frame!.shell === 'sphere' ? 'selected' : ''}>шар</option>
                 <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
               </select>
             </label>
@@ -555,7 +556,7 @@ function renderRight() {
   edit('#f-step', (el) => (n.frame!.levelStep = Math.max(0.5, num(el, n.frame!.levelStep))));
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
-  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' ? 'torus' : undefined));
+  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' ? el.value : undefined));
   edit('#f-centerMode', (el) => {
     n.frame!.center = el.value === 'content' ? undefined : (el.value as ShellCenter);
     n.frame!.centerOnLevel = undefined; // replaced by `center`

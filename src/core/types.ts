@@ -55,7 +55,7 @@ export interface GroupFrame {
   shellOpacity?: number;
 }
 
-export type ShellShape = 'ellipsoid' | 'torus';
+export type ShellShape = 'ellipsoid' | 'sphere' | 'torus';
 
 export type ShellCenter = 'content' | 'shift' | 'zero';
 

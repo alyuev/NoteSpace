@@ -431,6 +431,23 @@ export class Viewer {
       const fitsX = sx < 0 ? px - CARD_OFFSET_PX - w >= 0 : px + CARD_OFFSET_PX + w <= rect.width;
       const fitsY = sy > 0 ? py - CARD_OFFSET_PX - h >= 0 : py + CARD_OFFSET_PX + h <= rect.height;
       if (!chosen) chosen = { q, point }; // fallback: the default side
+      if (q === CARD_QUADRANTS[0][0] && !(fitsX && fitsY) && shell) {
+        // A group much bigger than the card whose up-left edge is too close to (or past) the view
+        // border: keep the preferred side and point the leader at a spot inside the group, at the
+        // top-left of the view, rather than jumping to another side.
+        const margin = 8;
+        const cx = THREE.MathUtils.clamp(px, CARD_OFFSET_PX + w + margin, Math.max(rect.width - margin, CARD_OFFSET_PX + w + margin));
+        const cy = THREE.MathUtils.clamp(py, CARD_OFFSET_PX + h + margin, Math.max(rect.height - margin, CARD_OFFSET_PX + h + margin));
+        const sc = new THREE.Vector3(center.x, center.y, center.z).project(this.camera);
+        const scx = ((sc.x + 1) / 2) * rect.width;
+        const scy = ((1 - sc.y) / 2) * rect.height;
+        const unit = rect.height / (2 * this.camera.position.distanceTo(toV(center)) * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
+        const radiusPx = Math.max(shell.radii.x, shell.radii.z) * unit;
+        if (radiusPx > Math.max(w, h) && Math.hypot(cx - scx, cy - scy) <= radiusPx * 0.95) {
+          chosen = { q, point: new THREE.Vector3((cx / rect.width) * 2 - 1, 1 - (cy / rect.height) * 2, s.z).unproject(this.camera) };
+          break;
+        }
+      }
       if (fitsX && fitsY) {
         chosen = { q, point };
         break;
