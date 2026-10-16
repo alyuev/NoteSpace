@@ -53,6 +53,10 @@ const NOTE_LABEL_K = 1.0;
 const GROUP_LABEL_K = 0.16;
 /** On-screen radius (px) of a group from which its caption starts to rise, and the extra px over which it reaches full lift. */
 const GROUP_LIFT_FROM_PX = 60;
+/** A group that fills the view keeps its caption readable: from this on-screen radius (px) the caption has a minimum size, reached at the second value. */
+const GROUP_MIN_LABEL_FROM_PX = 100;
+const GROUP_MIN_LABEL_FULL_PX = 300;
+const GROUP_MIN_LABEL_PX = 14;
 const GROUP_LIFT_RAMP_PX = 200;
 /** A group's caption sits above the far edge of its shell by this many caption heights (on screen). */
 const GROUP_LABEL_LIFT = 0.5;
@@ -264,7 +268,10 @@ export class Viewer {
           (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
           // Nested groups are often nearly as big as their parents: shrink captions per level too.
           Math.pow(this.labelShrink, p.depth);
-        if (!shell.torus) label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
+        if (!shell.torus) {
+          label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
+          label.userData.groupCenter = new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z);
+        }
         // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
         if (shell.torus) {
           // Angles of the objects on the ring: the caption goes into a gap between them.
@@ -612,6 +619,16 @@ export class Viewer {
       const t = THREE.MathUtils.clamp((d - dist * 0.6) / dist, 0, 1); // 0 = near, 1 = far
       fade = 1 - this.labelDepthFade * 0.95 * t;
     }
+    // A group that fills the view: its caption must stay readable however deeply it is nested.
+    let floorK = 0;
+    const gc = obj.userData.groupCenter as THREE.Vector3 | undefined;
+    if (gc) {
+      const dc = Math.max(this.camera.position.distanceTo(gc), 1e-3);
+      const radiusPx =
+        ((obj.userData.groupRadius as number) * this.renderer.domElement.clientHeight) / (2 * dc * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
+      floorK = THREE.MathUtils.clamp((radiusPx - GROUP_MIN_LABEL_FROM_PX) / (GROUP_MIN_LABEL_FULL_PX - GROUP_MIN_LABEL_FROM_PX), 0, 1);
+      fade += (1 - fade) * floorK; // the caption sits on the far edge, but the group is right here
+    }
     const hovered = obj.element.classList.contains('hovered');
     let opacity = hovered ? 1 : (obj.userData.baseOpacity as number) * fade;
     let px: number;
@@ -621,6 +638,7 @@ export class Viewer {
       // squeezed) objects are small and grow together with them when the camera comes closer.
       const pxPerUnit = this.renderer.domElement.clientHeight / (2 * d * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
       px = Math.min(MAX_LABEL_PX * this.labelScale, worldSize * pxPerUnit * this.labelScale);
+      px = Math.max(px, GROUP_MIN_LABEL_PX * floorK * this.labelScale);
       // Too small to read: fade out instead of piling up into an unreadable blot.
       if (!hovered) opacity *= THREE.MathUtils.clamp((px - LABEL_HIDE_PX) / (LABEL_FULL_PX - LABEL_HIDE_PX), 0, 1);
       px = Math.max(px, LABEL_HIDE_PX);

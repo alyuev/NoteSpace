@@ -63,7 +63,7 @@
     },
     {
       "kind": "group",
-      "parentId": "masterSpirits",
+      "parentId": "paradise",
       "contentHtml": "<p>Союз трёх Божеств — Отца, Сына и Духа.</p><p class=\"ref\">Документ 10</p>",
       "tags": [
         "deity"
@@ -139,87 +139,6 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 1.3
-      }
-    },
-    {
-      "kind": "note",
-      "parentId": "paradise",
-      "contentHtml": "<p>Сфера присутствия Божеств и личностной деятельности.</p><p class=\"ref\">Документ 11</p>",
-      "tags": [
-        "place"
-      ],
-      "levelMode": "local",
-      "level": 1,
-      "id": "upperParadise",
-      "title": "Верхний Рай",
-      "style": {
-        "color": "#f6c177",
-        "shape": "cylinder",
-        "size": 1
-      }
-    },
-    {
-      "kind": "note",
-      "parentId": "paradise",
-      "contentHtml": "<p>Внешние области Острова: места прибытия и отправления, зоны деятельности Главных Духов.</p><p class=\"ref\">Документ 11</p>",
-      "tags": [
-        "place",
-        "ascension"
-      ],
-      "levelMode": "local",
-      "level": 0,
-      "id": "periphParadise",
-      "title": "Периферийный Рай",
-      "style": {
-        "color": "#f6c177",
-        "shape": "torus",
-        "size": 1
-      }
-    },
-    {
-      "kind": "note",
-      "parentId": "paradise",
-      "contentHtml": "<p>Связан с силой и энергией: отсюда исходят контуры физической гравитации.</p><p class=\"ref\">Документ 11</p>",
-      "tags": [
-        "place"
-      ],
-      "levelMode": "local",
-      "level": -1,
-      "id": "netherParadise",
-      "title": "Нижний Рай",
-      "style": {
-        "color": "#a08060",
-        "shape": "cylinder",
-        "size": 1
-      }
-    },
-    {
-      "kind": "group",
-      "parentId": "paradise",
-      "contentHtml": "<p>Личности, выражающие семь возможных сочетаний природы Отца, Сына и Духа. Каждый курирует одну сверхвселенную и стоит на линии от центра Рая к ней.</p><p class=\"ref\">Документ 16</p>",
-      "tags": [
-        "person",
-        "admin"
-      ],
-      "levelMode": "local",
-      "level": 0,
-      "id": "masterSpirits",
-      "title": "Семь Главных Духов",
-      "style": {
-        "color": "#89ddff",
-        "shape": "torus",
-        "size": 1
-      },
-      "pinned": {
-        "x": 0,
-        "z": 0
-      },
-      "frame": {
-        "offset": 0,
-        "levelStep": 3,
-        "collapsed": false,
-        "shell": "torus",
-        "shellOpacity": 0.3
       }
     },
     {
@@ -542,7 +461,7 @@
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 1.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -556,10 +475,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 2.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -573,10 +497,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 3.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -590,10 +519,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 4.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -607,10 +541,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 5.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -624,10 +563,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 6.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -641,10 +585,15 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "spiritSpheres",
       "contentHtml": "<p>Административный мир Бесконечного Духа — штаб-квартира Главного Духа № 7.</p><p class=\"ref\">Документ 13</p>",
       "tags": [
@@ -658,6 +607,11 @@
         "color": "#89ddff",
         "shape": "sphere",
         "size": 0.9
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false
       }
     },
     {
@@ -905,7 +859,7 @@
       "title": "Уверса",
       "style": {
         "color": "#e0af68",
-        "shape": "box",
+        "shape": "sphere",
         "size": 1
       }
     },
@@ -963,8 +917,8 @@
       "id": "umajor",
       "title": "Умажор Пятый",
       "style": {
-        "color": "#e0af68",
-        "shape": "box",
+        "color": "#2ed9e5",
+        "shape": "sphere",
         "size": 0.9
       }
     },
@@ -1004,8 +958,8 @@
       "id": "minor",
       "title": "Минор Третий",
       "style": {
-        "color": "#e0af68",
-        "shape": "box",
+        "color": "#4ae3e0",
+        "shape": "sphere",
         "size": 0.9
       }
     },
@@ -1045,8 +999,8 @@
       "id": "salvington",
       "title": "Салвингтон",
       "style": {
-        "color": "#e0af68",
-        "shape": "box",
+        "color": "#53eae0",
+        "shape": "sphere",
         "size": 0.9
       }
     },
@@ -1178,7 +1132,7 @@
       "title": "Эдентия",
       "style": {
         "color": "#e0af68",
-        "shape": "box",
+        "shape": "sphere",
         "size": 0.9
       }
     },
@@ -1238,7 +1192,7 @@
       "title": "Иерусем",
       "style": {
         "color": "#e0af68",
-        "shape": "box",
+        "shape": "sphere",
         "size": 0.9
       }
     },
@@ -1305,7 +1259,7 @@
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
+      "level": -10,
       "id": "urantia",
       "title": "Урантия (Земля)",
       "style": {
@@ -1316,7 +1270,10 @@
       "frame": {
         "offset": 0,
         "levelStep": 4,
-        "collapsed": false
+        "collapsed": false,
+        "shellOpacity": 0.9,
+        "arrange": "free",
+        "shell": "sphere"
       }
     },
     {
@@ -1464,7 +1421,7 @@
     {
       "id": "masterSpirit1",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld1",
       "title": "Первый Главный Дух",
       "contentHtml": "<p>Выражает только Всеобщего Отца.</p><p>Курирует сверхвселенную 1.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1483,7 +1440,7 @@
     {
       "id": "masterSpirit2",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld2",
       "title": "Второй Главный Дух",
       "contentHtml": "<p>Выражает только Вечного Сына.</p><p>Курирует сверхвселенную 2.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1502,7 +1459,7 @@
     {
       "id": "masterSpirit3",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld3",
       "title": "Третий Главный Дух",
       "contentHtml": "<p>Выражает только Бесконечного Духа.</p><p>Курирует сверхвселенную 3.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1521,7 +1478,7 @@
     {
       "id": "masterSpirit4",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld4",
       "title": "Четвёртый Главный Дух",
       "contentHtml": "<p>Выражает совместную природу Отца и Сына.</p><p>Курирует сверхвселенную 4.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1539,12 +1496,13 @@
           "#ffffff"
         ]
       },
-      "aimAt": "su4"
+      "aimAt": "su4",
+      "spin": 20
     },
     {
       "id": "masterSpirit5",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld5",
       "title": "Пятый Главный Дух",
       "contentHtml": "<p>Выражает совместную природу Отца и Духа.</p><p>Курирует сверхвселенную 5.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1562,12 +1520,13 @@
           "#89ddff"
         ]
       },
-      "aimAt": "su5"
+      "aimAt": "su5",
+      "spin": 20
     },
     {
       "id": "masterSpirit6",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld6",
       "title": "Шестой Главный Дух",
       "contentHtml": "<p>Выражает совместную природу Сына и Духа.</p><p>Курирует сверхвселенную 6.</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1585,12 +1544,13 @@
           "#89ddff"
         ]
       },
-      "aimAt": "su6"
+      "aimAt": "su6",
+      "spin": 20
     },
     {
       "id": "masterSpirit7",
       "kind": "note",
-      "parentId": "masterSpirits",
+      "parentId": "spiritWorld7",
       "title": "Седьмой Главный Дух",
       "contentHtml": "<p>Выражает объединённую природу всех трёх Личностей — Отца, Сына и Духа.</p><p>Курирует Орвонтон (сверхвселенную 7).</p><p class=\"ref\">Документ 16</p>",
       "tags": [
@@ -1609,7 +1569,8 @@
           "#89ddff"
         ]
       },
-      "aimAt": "orvonton"
+      "aimAt": "orvonton",
+      "spin": 20
     }
   ],
   "links": [
@@ -1617,94 +1578,62 @@
       "id": "father-son",
       "from": "father",
       "to": "son",
-      "directed": true,
       "color": "#ffd866"
     },
     {
       "id": "father-spirit",
       "from": "father",
       "to": "spirit",
-      "directed": true,
       "color": "#ffd866"
     },
     {
       "id": "son-spirit",
       "from": "son",
       "to": "spirit",
-      "directed": true,
       "color": "#ffd866"
-    },
-    {
-      "id": "trinity-upperParadise",
-      "from": "trinity",
-      "to": "upperParadise",
-      "label": "обитель"
-    },
-    {
-      "id": "trinity-masterSpirits",
-      "from": "trinity",
-      "to": "masterSpirits",
-      "directed": true
     },
     {
       "id": "trinity-ancients",
       "from": "trinity",
-      "to": "ancients",
-      "directed": true,
-      "label": "происхождение"
+      "to": "ancients"
     },
     {
       "id": "havona-paradise",
       "from": "havona",
-      "to": "paradise",
-      "label": "вращается вокруг"
-    },
-    {
-      "id": "netherParadise-darkBodies",
-      "from": "netherParadise",
-      "to": "darkBodies",
-      "color": "#565f89"
+      "to": "paradise"
     },
     {
       "id": "father-michael",
       "from": "father",
       "to": "michael",
-      "directed": true,
       "color": "#ff9e64"
     },
     {
       "id": "son-michael",
       "from": "son",
       "to": "michael",
-      "directed": true,
-      "color": "#ff9e64",
-      "label": "Сын-Создатель"
+      "color": "#ff9e64"
     },
     {
       "id": "spirit-divineMinister",
       "from": "spirit",
       "to": "divineMinister",
-      "directed": true,
-      "color": "#89ddff",
-      "label": "Мать-Дух"
+      "color": "#89ddff"
     },
     {
       "id": "michael-divineMinister",
       "from": "michael",
-      "to": "divineMinister",
-      "label": "сотворцы"
+      "to": "divineMinister"
     },
     {
       "id": "michael-gabriel",
       "from": "michael",
-      "to": "gabriel",
-      "directed": true
+      "to": "gabriel"
     },
     {
       "id": "divineMinister-seraphim",
       "from": "divineMinister",
       "to": "seraphim",
-      "directed": true,
       "color": "#c0caf5"
     },
     {
@@ -1717,45 +1646,36 @@
       "id": "guardians-humanity",
       "from": "guardians",
       "to": "humanity",
-      "directed": true,
       "color": "#c0caf5"
     },
     {
       "id": "trinity-trinityTeachers",
       "from": "trinity",
       "to": "trinityTeachers",
-      "directed": true,
       "color": "#ffd866"
     },
     {
       "id": "michael-jesus",
       "from": "michael",
       "to": "jesus",
-      "directed": true,
-      "color": "#ff9e64",
-      "label": "пришествие"
+      "color": "#ff9e64"
     },
     {
       "id": "michael-spiritOfTruth",
       "from": "michael",
       "to": "spiritOfTruth",
-      "directed": true,
       "color": "#ff9e64"
     },
     {
       "id": "melchizedek-jesus",
       "from": "melchizedek",
-      "to": "jesus",
-      "directed": true,
-      "label": "подготовил"
+      "to": "jesus"
     },
     {
       "id": "father-adjuster",
       "from": "father",
       "to": "adjuster",
-      "directed": true,
-      "color": "#ffd866",
-      "label": "фрагмент Отца"
+      "color": "#ffd866"
     },
     {
       "id": "divinington-adjuster",
@@ -1764,223 +1684,171 @@
       "color": "#ffd866"
     },
     {
-      "id": "masterSpirits-spiritSpheres",
-      "from": "masterSpirits",
-      "to": "spiritSpheres",
-      "color": "#89ddff",
-      "label": "штаб-квартиры"
-    },
-    {
-      "id": "ascendington-periphParadise",
-      "from": "ascendington",
-      "to": "periphParadise",
-      "color": "#73daca"
-    },
-    {
       "id": "adjuster-humanity",
       "from": "adjuster",
       "to": "humanity",
-      "directed": true,
       "color": "#ffd866"
     },
     {
       "id": "spiritOfTruth-humanity",
       "from": "spiritOfTruth",
       "to": "humanity",
-      "directed": true,
       "color": "#ff9e64"
     },
     {
       "id": "divineMinister-humanity",
       "from": "divineMinister",
       "to": "humanity",
-      "directed": true,
-      "color": "#89ddff",
-      "label": "служение разума"
+      "color": "#89ddff"
     },
     {
       "id": "lucifer-caligastia",
       "from": "lucifer",
       "to": "caligastia",
-      "directed": true,
-      "color": "#f7768e",
-      "label": "восстание"
+      "color": "#f7768e"
     },
     {
       "id": "lanaforge-lucifer",
       "from": "lanaforge",
       "to": "lucifer",
-      "directed": true,
-      "color": "#f7768e",
-      "label": "сменил"
+      "color": "#f7768e"
     },
     {
       "id": "caligastia-adamEve",
       "from": "caligastia",
       "to": "adamEve",
-      "color": "#f7768e",
-      "label": "срыв миссии"
+      "color": "#f7768e"
     },
     {
       "id": "humanity-mansionWorlds",
       "from": "humanity",
       "to": "mansionWorlds",
-      "directed": true,
-      "color": "#73daca",
-      "label": "путь восхождения"
+      "color": "#73daca"
     },
     {
       "id": "mansionWorlds-jerusem",
       "from": "mansionWorlds",
       "to": "jerusem",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "jerusem-edentia",
       "from": "jerusem",
       "to": "edentia",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "edentia-salvington",
       "from": "edentia",
       "to": "salvington",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "salvington-minor",
       "from": "salvington",
       "to": "minor",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "minor-umajor",
       "from": "minor",
       "to": "umajor",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "umajor-uversa",
       "from": "umajor",
       "to": "uversa",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "uversa-havonaCircuits",
       "from": "uversa",
       "to": "havonaCircuits",
-      "directed": true,
-      "color": "#73daca"
-    },
-    {
-      "id": "havonaCircuits-periphParadise",
-      "from": "havonaCircuits",
-      "to": "periphParadise",
-      "directed": true,
       "color": "#73daca"
     },
     {
       "id": "spirit-masterSpirit1",
       "from": "spirit",
       "to": "masterSpirit1",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit1-su1",
       "from": "masterSpirit1",
       "to": "su1",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit2",
       "from": "spirit",
       "to": "masterSpirit2",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit2-su2",
       "from": "masterSpirit2",
       "to": "su2",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit3",
       "from": "spirit",
       "to": "masterSpirit3",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit3-su3",
       "from": "masterSpirit3",
       "to": "su3",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit4",
       "from": "spirit",
       "to": "masterSpirit4",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit4-su4",
       "from": "masterSpirit4",
       "to": "su4",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit5",
       "from": "spirit",
       "to": "masterSpirit5",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit5-su5",
       "from": "masterSpirit5",
       "to": "su5",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit6",
       "from": "spirit",
       "to": "masterSpirit6",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit6-su6",
       "from": "masterSpirit6",
       "to": "su6",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "spirit-masterSpirit7",
       "from": "spirit",
       "to": "masterSpirit7",
-      "directed": true,
       "color": "#89ddff"
     },
     {
       "id": "masterSpirit7-orvonton",
       "from": "masterSpirit7",
       "to": "orvonton",
-      "directed": true,
       "color": "#89ddff"
     }
   ],
@@ -2057,5 +1925,6 @@
     }
   ],
   "templateId": "urantia",
-  "frontNodeId": "orvonton"
+  "frontNodeId": "orvonton",
+  "originNodeId": "paradise"
 }
