@@ -161,7 +161,8 @@ h2 {
   min-width: 0;
 }
 
-label {
+label,
+.field {
   display: flex;
   flex-direction: column;
   gap: 3px;

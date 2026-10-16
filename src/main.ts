@@ -1,8 +1,9 @@
 import './style.css';
 import type { TagFilter } from './core/filter';
+import { mountNodeCombo } from './nodeCombo';
 import { computeLayout, SpaceIndex, type Layout } from './core/layout';
 import { createFromTemplate, TEMPLATES, templateOf, updateFromTemplate } from './core/templates';
-import { mainColor, newId, styleOf, type ShellCenter, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
+import { newId, type ShellCenter, type Arrange, type NamedStyle, type Shape, type Space, type SpaceNode } from './core/types';
 import { loadSettings, saveSettings } from './settings';
 import {
   backupSpace,
@@ -339,11 +340,7 @@ function renderRight() {
     <label>Название<input id="f-title" value="${esc(n.title)}"></label>
     <fieldset class="parent-pick">
       <legend>Принадлежит группе</legend>
-      <div class="combo">
-        <input id="f-parent-q" autocomplete="off" placeholder="— корень —">
-        <button type="button" id="f-parent-toggle" class="combo-btn" tabindex="-1" title="Открыть список">▾</button>
-        <ul id="f-parent-list" class="pick-list" hidden></ul>
-      </div>
+      <div id="f-parent"></div>
       <label class="check"><input id="f-parent-all" type="checkbox" ${showAllParents ? 'checked' : ''}>Показать все элементы (выбранный станет группой)</label>
     </fieldset>
 
@@ -447,27 +444,15 @@ function renderRight() {
             </div>
             <button id="f-saveStyle">Сохранить как новый стиль…</button>`
       }
-      <label title="Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу">Направить на
-        <select id="f-aimAt">
-          <option value="">— по порядку —</option>
-          ${space.nodes
-            .filter((x) => x.id !== n.id)
-            .map((x) => `<option value="${esc(x.id)}" ${n.aimAt === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`)
-            .join('')}
-        </select>
-      </label>
+      <div class="field" title="Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу">Направить на
+        <div id="f-aimAt"></div>
+      </div>
       <label title="Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается">Вращение (об/мин)
         <input id="f-spin" type="number" step="1" value="${n.spin ?? 0}">
       </label>
-      <label>Размер как
-        <select id="f-sizeAs">
-          <option value="">— собственный —</option>
-          ${space.nodes
-            .filter((x) => x.id !== n.id)
-            .map((x) => `<option value="${esc(x.id)}" ${n.sizeAs === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`)
-            .join('')}
-        </select>
-      </label>
+      <div class="field">Размер как
+        <div id="f-sizeAs"></div>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -495,10 +480,7 @@ function renderRight() {
           .join('') || '<li class="muted">нет</li>'}
       </ul>
       <div class="row">
-        <select id="l-target">${space.nodes
-          .filter((x) => x.id !== n.id)
-          .map((x) => `<option value="${esc(x.id)}">${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`)
-          .join('')}</select>
+        <div id="l-target"></div>
       </div>
       <div class="row">
         <input id="l-label" placeholder="подпись">
@@ -526,68 +508,46 @@ function renderRight() {
     makeGroup(n);
     refresh(true);
   });
-  const pickList = right.querySelector('#f-parent-list') as HTMLElement;
-  const pickQuery = right.querySelector('#f-parent-q') as HTMLInputElement;
-  const currentParent = idx.parentOf(n.id);
-  pickQuery.value = currentParent ? title(currentParent) : '';
-  /** Fills the dropdown; with `filter`, keeps only titles containing every space-separated word, anywhere. */
-  const fillPickList = (filter: boolean) => {
-    const words = filter ? pickQuery.value.toLowerCase().split(/\s+/).filter(Boolean) : [];
-    const items: { id: string; title: string; group: boolean; color: string }[] = [
-      { id: '', title: '— корень —', group: false, color: '' },
-      ...parentOptions.map((g) => ({ id: g.id, title: g.title, group: g.kind === 'group', color: mainColor(styleOf(space, g)) })),
-    ];
-    pickList.replaceChildren(
-      ...items
-        .filter((it) => !it.id || words.every((w) => it.title.toLowerCase().includes(w)))
-        .map((it) => {
-          const li = document.createElement('li');
-          li.dataset.id = it.id;
-          li.className = `${it.id === (currentParent ?? '') ? 'current ' : ''}${it.id ? (it.group ? 'is-group' : 'is-note') : 'is-root'}`;
-          const icon = document.createElement('span');
-          icon.className = 'pick-icon';
-          icon.textContent = it.id ? (it.group ? '▣' : '●') : '⌂';
-          if (it.color) icon.style.color = it.color;
-          const name = document.createElement('span');
-          name.textContent = it.title;
-          li.append(icon, name);
-          return li;
-        }),
-    );
-    pickList.hidden = false;
-  };
-  const closePick = () => {
-    pickList.hidden = true;
-    pickQuery.value = currentParent ? title(currentParent) : '';
-  };
-  const choose = (id: string) => {
-    n.parentId = id || null;
-    n.pinned = undefined;
-    const parent = n.parentId ? space.nodes.find((x) => x.id === n.parentId) : undefined;
-    if (parent) makeGroup(parent);
-    refresh(true);
-  };
-  pickQuery.addEventListener('focus', () => pickQuery.select());
-  pickQuery.addEventListener('input', () => fillPickList(true));
-  pickQuery.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closePick();
-    else if (e.key === 'Enter') {
-      const first = pickList.querySelector<HTMLElement>('li:not(.is-root)') ?? pickList.querySelector<HTMLElement>('li');
-      if (!pickList.hidden && first) choose(first.dataset.id ?? '');
-    }
+  mountNodeCombo(right.querySelector('#f-parent') as HTMLElement, {
+    space,
+    nodes: parentOptions,
+    value: idx.parentOf(n.id),
+    emptyLabel: '— корень —',
+    onChange: (id) => {
+      n.parentId = id;
+      n.pinned = undefined;
+      const parent = id ? space.nodes.find((x) => x.id === id) : undefined;
+      if (parent) makeGroup(parent);
+      refresh(true);
+    },
   });
-  right.querySelector('#f-parent-toggle')!.addEventListener('click', () => {
-    if (pickList.hidden) fillPickList(false);
-    else closePick();
+  const others = space.nodes.filter((x) => x.id !== n.id);
+  mountNodeCombo(right.querySelector('#f-aimAt') as HTMLElement, {
+    space,
+    nodes: others,
+    value: n.aimAt,
+    emptyLabel: '— по порядку —',
+    onChange: (id) => {
+      n.aimAt = id ?? undefined;
+      refresh(true);
+    },
   });
-  pickList.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
-  pickList.addEventListener('click', (e) => {
-    const li = (e.target as HTMLElement).closest('li');
-    if (li) choose(li.dataset.id ?? '');
+  mountNodeCombo(right.querySelector('#f-sizeAs') as HTMLElement, {
+    space,
+    nodes: others,
+    value: n.sizeAs,
+    emptyLabel: '— собственный —',
+    onChange: (id) => {
+      n.sizeAs = id ?? undefined;
+      refresh(true);
+    },
   });
-  const combo = right.querySelector('.combo') as HTMLElement;
-  combo.addEventListener('focusout', (e) => {
-    if (!(e.relatedTarget instanceof Node && combo.contains(e.relatedTarget))) setTimeout(closePick, 120);
+  let linkTarget: string | null = null;
+  mountNodeCombo(right.querySelector('#l-target') as HTMLElement, {
+    space,
+    nodes: others,
+    value: null,
+    onChange: (id) => (linkTarget = id),
   });
   edit('#f-mode', (el) => (n.levelMode = el.value as SpaceNode['levelMode']));
   edit('#f-level', (el) => (n.level = num(el, n.level)));
@@ -630,8 +590,6 @@ function renderRight() {
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
   edit('#f-spin', (el) => (n.spin = num(el, 0) || undefined), false);
-  edit('#f-sizeAs', (el) => (n.sizeAs = el.value || undefined));
-  edit('#f-aimAt', (el) => (n.aimAt = el.value || undefined));
   edit('#f-shellOpacity', (el) => (n.frame!.shellOpacity = Number(el.value) / 100), false);
   right.querySelectorAll<HTMLInputElement>('[data-ci]').forEach((el) =>
     el.addEventListener('change', () => {
@@ -677,7 +635,7 @@ function renderRight() {
     }),
   );
   on(right, '#l-add', 'click', () => {
-    const to = (right.querySelector('#l-target') as HTMLSelectElement).value;
+    const to = linkTarget;
     const label = (right.querySelector('#l-label') as HTMLInputElement).value.trim();
     const directed = (right.querySelector('#l-directed') as HTMLInputElement).checked;
     if (!to) return;
@@ -704,18 +662,12 @@ function renderSpaceSettings() {
     <label>Название<input id="s-title" value="${esc(space.title)}"></label>
     <label>Шаг глобального уровня<input id="s-step" type="number" step="1" min="1" value="${space.globalStep}"></label>
 
-    <label>Ближе к зрителю при открытии
-      <select id="s-front">
-        <option value="">— авто —</option>
-        ${space.nodes.map((x) => `<option value="${esc(x.id)}" ${space.frontNodeId === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`).join('')}
-      </select>
-    </label>
-    <label>Начало координат
-      <select id="s-origin">
-        <option value="">— по уровням —</option>
-        ${space.nodes.map((x) => `<option value="${esc(x.id)}" ${space.originNodeId === x.id ? 'selected' : ''}>${x.kind === 'group' ? '▣ ' : ''}${esc(x.title)}</option>`).join('')}
-      </select>
-    </label>
+    <div class="field">Ближе к зрителю при открытии
+      <div id="s-front"></div>
+    </div>
+    <div class="field">Начало координат
+      <div id="s-origin"></div>
+    </div>
 
     <fieldset>
       <legend>Шаблон</legend>
@@ -796,15 +748,27 @@ function renderSpaceSettings() {
       flash(`Обновлено из шаблона. Резервная копия сохранена${keptNodes ? `, ваших записей сохранено: ${keptNodes}` : ''}.`);
     });
   });
-  on(right, '#s-origin', 'change', (e) => {
-    space.originNodeId = (e.target as HTMLSelectElement).value || undefined;
-    viewer.resetView();
-    refresh(false);
+  mountNodeCombo(right.querySelector('#s-origin') as HTMLElement, {
+    space,
+    nodes: space.nodes,
+    value: space.originNodeId,
+    emptyLabel: '— по уровням —',
+    onChange: (id) => {
+      space.originNodeId = id ?? undefined;
+      viewer.resetView();
+      refresh(false);
+    },
   });
-  on(right, '#s-front', 'change', (e) => {
-    space.frontNodeId = (e.target as HTMLSelectElement).value || undefined;
-    viewer.resetView();
-    refresh(false);
+  mountNodeCombo(right.querySelector('#s-front') as HTMLElement, {
+    space,
+    nodes: space.nodes,
+    value: space.frontNodeId,
+    emptyLabel: '— авто —',
+    onChange: (id) => {
+      space.frontNodeId = id ?? undefined;
+      viewer.resetView();
+      refresh(false);
+    },
   });
   on(right, '#s-title', 'change', (e) => {
     space.title = (e.target as HTMLInputElement).value.trim() || space.title;
