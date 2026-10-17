@@ -29,6 +29,10 @@ const FLY_VIA_CENTRE_BELOW = 0.6;
 const DIM = 0.1;
 /** Hover time before an object's description card appears. */
 const CARD_DELAY_MS = 500;
+/** After any change (input, data, resize) full frames keep coming this long: damping, card timers. */
+const ACTIVE_GRACE_MS = 1200;
+/** Spinning objects smaller than this on screen (pixels across) are not animated. */
+const MIN_SPIN_PX = 6;
 /**
  * Picking by apparent size: objects smaller than this on screen (radius, px) are not targets, so
  * from afar the pointer catches a group as a whole rather than the tiny things inside it.
@@ -71,6 +75,8 @@ const GROUP_LIFT_RAMP_PX = 200;
 const GROUP_LABEL_LIFT = 0.5;
 /** Ring (torus) caption height relative to the tube's thickness. */
 const RING_LABEL_K = 0.9;
+/** Share of the distance to the nearest concentric ring that a ring's caption may take. */
+const RING_ROOM_K = 0.55;
 /** Link caption height relative to the smaller caption of the two linked objects. */
 const LINK_LABEL_K = 0.8;
 /** Object captions fade out between these on-screen heights (px) instead of shrinking unreadably. */
@@ -98,7 +104,7 @@ export class Viewer {
 
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
-  private readonly renderer = new THREE.WebGLRenderer({ antialias: true });
+  private readonly renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
   private readonly labels = new CSS2DRenderer();
   private readonly controls: OrbitControls;
   private readonly content = new THREE.Group();
@@ -152,6 +158,18 @@ export class Viewer {
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
     container.append(this.renderer.domElement);
+    for (const [text, x, z, color] of [
+      ['С', 0, -1, '#7aa2f7'],
+      ['Ю', 0, 1, '#7aa2f7'],
+      ['З', -1, 0, '#f7768e'],
+      ['В', 1, 0, '#f7768e'],
+    ] as [string, number, number, string][]) {
+      const el = document.createElement('div');
+      el.textContent = text;
+      el.style.cssText = `position:absolute;left:0;top:0;display:none;pointer-events:none;z-index:5;font:700 18px sans-serif;color:${color};text-shadow:0 0 4px #000,0 0 2px #000;transform:translate(-50%,-50%)`;
+      container.append(el);
+      this.edgeCompass.push({ el, dir: new THREE.Vector3(x, 0, z) });
+    }
     this.labels.domElement.className = 'labels';
     container.append(this.labels.domElement);
     // Curved captions of rings (text along the projected ring), drawn under the regular labels.
@@ -166,12 +184,21 @@ export class Viewer {
     this.controls.enableZoom = false;
     this.controls.target.set(0, 15, 0);
     this.controls.addEventListener('start', () => this.cancelFlight());
+    // Frames are drawn on demand: any input or camera movement wakes the loop for a while.
+    this.controls.addEventListener('change', () => this.invalidate());
+    for (const type of ['pointermove', 'pointerdown', 'pointerup', 'wheel', 'keydown', 'input', 'change', 'click'])
+      window.addEventListener(type, () => this.invalidate(), { capture: true, passive: true });
 
     this.bindPicking();
     this.bindSmoothZoom();
     new ResizeObserver(() => this.resize()).observe(container);
     this.resize();
     this.renderer.setAnimationLoop(() => this.frame());
+  }
+
+  /** Draw full frames (scene and labels) for a while: something visible may have changed. */
+  invalidate(ms = ACTIVE_GRACE_MS) {
+    this.activeUntil = Math.max(this.activeUntil, performance.now() + ms);
   }
 
   focus(p: Vec3) {
@@ -254,6 +281,7 @@ export class Viewer {
   }
 
   render(space: Space, layout: Layout, view: ViewState) {
+    this.invalidate();
     this.layout = layout;
     this.space = space;
     this.clear();
@@ -289,19 +317,21 @@ export class Viewer {
         if (this.showFrames) {
           this.addRing(
             { x: p.world.x, y: shell.zeroY, z: p.world.z },
-            Math.min(shell.radii.x, shell.radii.z) * 0.8,
+            shell.radii.x * 0.8,
             mainColor(style),
             0.12 * a, // auxiliary guide: keep it faint
+            shell.radii.z / shell.radii.x,
           );
         }
         if (!n.hideLabel) {
           const label = this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
           // Caption height follows the group's size on screen.
-          // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius.
-          label.userData.worldSize =
-            (shell.torus ? Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K : Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K) *
-            // Nested groups are often nearly as big as their parents: shrink captions per level too.
-            Math.pow(this.labelShrink, p.depth);
+          // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius,
+          // but may take the free room up to the neighbouring concentric rings.
+          label.userData.worldSize = (n.labelScale ?? 1) * (shell.torus
+            ? Math.max(Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K * Math.pow(this.labelShrink, p.depth), ringRoom(layout, idx, n.id) * RING_ROOM_K)
+            : // Nested groups are often nearly as big as their parents: shrink captions per level too.
+              Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K * Math.pow(this.labelShrink, p.depth));
           if (!shell.torus) {
             label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
             label.userData.groupCenter = new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z);
@@ -355,7 +385,7 @@ export class Viewer {
         // Caption height follows the object's size on screen.
         // Notes already get smaller with nesting, so their captions just follow their size (the extra
         // per-level shrink is for groups, whose nested shells can be almost as big as their parents).
-        label.userData.worldSize = p.meshRadius * NOTE_LABEL_K;
+        label.userData.worldSize = p.meshRadius * NOTE_LABEL_K * (n.labelScale ?? 1);
       }
 
       if (p.tethered) {
@@ -386,12 +416,14 @@ export class Viewer {
     }
 
     const gridSize = Math.max(600, Math.ceil((extent * 2.5) / 100) * 100);
-    const grid = new THREE.GridHelper(gridSize, gridSize / 10, '#2a2e42', '#20222f');
+    const grid = new THREE.GridHelper(gridSize, Math.min(gridSize / 10, 400), '#2a2e42', '#20222f');
     grid.position.y = minY - 6;
 
     // Axes through the origin of the space (the origin node's centre when one is set).
+    this.axisLen = 0;
     if (this.showAxis) {
       const h = extent * 1.2;
+      this.axisLen = h;
       const axes: [THREE.Vector3, THREE.Vector3, string][] = [
         [new THREE.Vector3(-h, 0, 0), new THREE.Vector3(h, 0, 0), '#f7768e'],
         [new THREE.Vector3(0, minY - 6, 0), new THREE.Vector3(0, maxY + 10, 0), '#9ece6a'],
@@ -456,25 +488,10 @@ export class Viewer {
     const h = card.offsetHeight;
     const shell = this.layout.shells.get(id);
     const center = attachPoint(this.layout, id);
-    const camRight = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0);
-    const camUp = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1);
-
     let chosen: { q: string; point: THREE.Vector3 } | null = null;
     for (const [q, sx, sy] of CARD_QUADRANTS) {
       const point = new THREE.Vector3(center.x, center.y, center.z);
-      if (shell) {
-        // Point of the shell in the chosen screen direction.
-        const v = camRight.clone().multiplyScalar(sx).addScaledVector(camUp, sy).normalize();
-        const r = shell.radii;
-        const t = 1 / Math.sqrt((v.x / r.x) ** 2 + (v.y / r.y) ** 2 + (v.z / r.z) ** 2);
-        if (shell.torus) {
-          // A ring: point at the ring on that side, not at the shared centre of concentric rings.
-          const hdir = new THREE.Vector3(v.x, 0, v.z);
-          if (hdir.lengthSq() < 1e-6) hdir.set(camRight.x, 0, camRight.z);
-          hdir.normalize();
-          point.set(center.x, shell.torus.y, center.z).addScaledVector(hdir, shell.torus.major + shell.torus.tube * 0.9);
-        } else point.addScaledVector(v, t * 0.97);
-      }
+      if (shell) point.copy(this.shellEdgeToward(shell, sx, sy, rect));
       const s = point.clone().project(this.camera);
       const px = ((s.x + 1) / 2) * rect.width;
       const py = ((1 - s.y) / 2) * rect.height;
@@ -509,6 +526,38 @@ export class Viewer {
       obj.element.classList.add(`q-${chosen!.q}`);
       obj.userData.q = chosen!.q;
     }
+  }
+
+  /**
+   * Point of a shell's outline that lies furthest in a screen direction (sx right, sy up), found on
+   * screen: a 3D direction would pass through the thin axis of a flat shell and land near its centre.
+   * A ring uses its outer edge; an ellipsoid its horizontal outline and its top and bottom.
+   */
+  private shellEdgeToward(shell: Shell, sx: number, sy: number, rect: DOMRect): THREE.Vector3 {
+    const { center: c, radii: r, torus } = shell;
+    const pts: THREE.Vector3[] = [];
+    const n = 48;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      if (torus) {
+        const R = torus.major + torus.tube * 0.9;
+        pts.push(new THREE.Vector3(c.x + Math.cos(a) * R, torus.y, c.z + Math.sin(a) * R * (torus.aspect ?? 1)));
+      } else pts.push(new THREE.Vector3(c.x + Math.cos(a) * r.x * 0.97, c.y, c.z + Math.sin(a) * r.z * 0.97));
+    }
+    if (!torus) pts.push(new THREE.Vector3(c.x, c.y + r.y * 0.97, c.z), new THREE.Vector3(c.x, c.y - r.y * 0.97, c.z));
+    let best = pts[0];
+    let bestScore = -Infinity;
+    const p = new THREE.Vector3();
+    for (const pt of pts) {
+      p.copy(pt).project(this.camera);
+      if (p.z > 1) continue; // behind the camera
+      const score = sx * p.x * rect.width + sy * p.y * rect.height;
+      if (score > bestScore) {
+        bestScore = score;
+        best = pt;
+      }
+    }
+    return best.clone();
   }
 
   private removeCard() {
@@ -550,7 +599,7 @@ export class Viewer {
     if (torus) {
       // Lying flat: the geometry's z axis becomes vertical; stretch the tube to its height.
       mesh.rotation.x = Math.PI / 2;
-      mesh.scale.set(1, 1, torus.tubeY / torus.tube);
+      mesh.scale.set(1, torus.aspect ?? 1, torus.tubeY / torus.tube);
       mesh.position.set(c.x, torus.y, c.z);
     } else {
       mesh.scale.set(r.x, r.y, r.z);
@@ -571,7 +620,7 @@ export class Viewer {
       // Smooth outer and inner edge of the ring (polygon edges of a torus read as a jagged mesh).
       const circle = (radius: number) =>
         new THREE.BufferGeometry().setFromPoints(
-          new THREE.EllipseCurve(0, 0, radius, radius).getPoints(96).map((p) => new THREE.Vector3(p.x, 0, p.y)),
+          new THREE.EllipseCurve(0, 0, radius, radius * (torus.aspect ?? 1)).getPoints(96).map((p) => new THREE.Vector3(p.x, 0, p.y)),
         );
       const outer = new THREE.LineLoop(circle(torus.major + torus.tube), material);
       outline = new THREE.LineLoop(circle(Math.max(torus.major - torus.tube, 0.1)), material);
@@ -588,8 +637,8 @@ export class Viewer {
     this.content.add(outline);
   }
 
-  private addRing(c: Vec3, radius: number, color: string, opacity: number) {
-    const pts = new THREE.EllipseCurve(0, 0, radius, radius).getPoints(64).map((v) => new THREE.Vector3(v.x, 0, v.y));
+  private addRing(c: Vec3, radius: number, color: string, opacity: number, aspect = 1) {
+    const pts = new THREE.EllipseCurve(0, 0, radius, radius * aspect).getPoints(64).map((v) => new THREE.Vector3(v.x, 0, v.y));
     const line = new THREE.LineLoop(
       new THREE.BufferGeometry().setFromPoints(pts),
       new THREE.LineDashedMaterial({ color, dashSize: 1.2, gapSize: 0.8, transparent: true, opacity }),
@@ -629,6 +678,7 @@ export class Viewer {
         entry.ready = true;
         for (const sp of entry.waiting) sp.scale.x = sp.scale.y * entry.aspect;
         entry.waiting.length = 0;
+        this.invalidate();
       });
       entry.texture.colorSpace = THREE.SRGBColorSpace;
       this.pictures.set(image, entry);
@@ -900,14 +950,14 @@ export class Viewer {
     const cam = this.camera.position;
     const p = new THREE.Vector3();
     for (const { label, path, text } of this.arcTexts) {
-      const ring = label.userData.ring as { x: number; z: number; y: number; major: number; tubeY: number; members: number[] };
+      const ring = label.userData.ring as { x: number; z: number; y: number; major: number; tubeY: number; aspect?: number; members: number[] };
       const front = gapCentre(Math.atan2(cam.z - ring.z, cam.x - ring.x), ring.members);
       const pts: [number, number][] = [];
       let behind = false;
       // Front arc of ±80°, slightly above the tube so the text sits on the ring.
       for (let i = -16; i <= 16; i++) {
         const a = front + (i / 16) * ((80 * Math.PI) / 180);
-        p.set(ring.x + Math.cos(a) * ring.major, ring.y + ring.tubeY, ring.z + Math.sin(a) * ring.major).project(this.camera);
+        p.set(ring.x + Math.cos(a) * ring.major, ring.y + ring.tubeY, ring.z + Math.sin(a) * ring.major * (ring.aspect ?? 1)).project(this.camera);
         if (p.z > 1) behind = true;
         pts.push([((p.x + 1) / 2) * rect.width, ((1 - p.y) / 2) * rect.height]);
       }
@@ -996,7 +1046,7 @@ export class Viewer {
   private placeRingLabels() {
     const cam = this.camera.position;
     for (const obj of this.labelObjs) {
-      const ring = obj.userData.ring as { x: number; z: number; y: number; major: number; tube: number; tubeY: number } | undefined;
+      const ring = obj.userData.ring as { x: number; z: number; y: number; major: number; tube: number; tubeY: number; aspect?: number } | undefined;
       if (!ring) continue;
       let dx = cam.x - ring.x;
       let dz = cam.z - ring.z;
@@ -1008,7 +1058,7 @@ export class Viewer {
         dx /= len;
         dz /= len;
       }
-      obj.position.set(ring.x + dx * ring.major, ring.y + ring.tubeY, ring.z + dz * ring.major);
+      obj.position.set(ring.x + dx * ring.major, ring.y + ring.tubeY, ring.z + dz * ring.major * (ring.aspect ?? 1));
     }
   }
 
@@ -1025,6 +1075,7 @@ export class Viewer {
     if (id && id !== this.cardId && !this.cameraInside(id)) {
       this.cardShowTimer = window.setTimeout(() => {
         if (this.hoverId === id) this.showCard(id);
+        this.invalidate();
       }, CARD_DELAY_MS);
     }
   }
@@ -1076,6 +1127,7 @@ export class Viewer {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
     this.labels.setSize(w, h);
+    this.invalidate();
   }
 
   /**
@@ -1125,12 +1177,109 @@ export class Viewer {
   }
 
   private lastFrame = performance.now();
+  /** Length of the drawn axes (0 when they are off). */
+  private axisLen = 0;
+  /** Cardinal-direction letters at the screen edge where an axis leaves the view. */
+  private readonly edgeCompass: { el: HTMLElement; dir: THREE.Vector3 }[] = [];
+  private readonly edgeTmp = new THREE.Vector3();
+  private activeUntil = 0;
+  private readonly frustum = new THREE.Frustum();
+  private readonly projScreen = new THREE.Matrix4();
+  private readonly tmpSphere = new THREE.Sphere();
+
+  /** Spinning objects that are in view and big enough on screen to see them turn. */
+  private visibleSpinners(): THREE.Object3D[] {
+    const spinning = this.pickNodes.filter((o) => o.userData.spin);
+    if (!spinning.length) return spinning;
+    this.camera.updateMatrixWorld();
+    this.projScreen.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.projScreen);
+    const pxPerUnitAt1 = this.container.clientHeight / 2 / Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+    return spinning.filter((o) => {
+      o.getWorldPosition(this.tmpSphere.center);
+      this.tmpSphere.radius = o.scale.x;
+      if (!this.frustum.intersectsSphere(this.tmpSphere)) return false;
+      const dist = Math.max(this.camera.position.distanceTo(this.tmpSphere.center), 1e-6);
+      return ((2 * o.scale.x) / dist) * pxPerUnitAt1 >= MIN_SPIN_PX;
+    });
+  }
+
+  /**
+   * Near and far planes follow the camera's distance to its focus: the scene can span from tiny
+   * worlds to rings millions of light years across.
+   */
+  private fitClipping() {
+    const dist = this.camera.position.distanceTo(this.controls.target);
+    const near = Math.max(dist / 5000, 1e-4);
+    const far = Math.max(dist * 40, this.overviewDist * 6, 5000);
+    if (Math.abs(near - this.camera.near) > near * 0.01 || Math.abs(far - this.camera.far) > far * 0.01) {
+      this.camera.near = near;
+      this.camera.far = far;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
+  /** Whether a world point is on screen (in front of the camera, inside the view inset by `m` NDC). */
+  private onScreen(v: THREE.Vector3, m: number): boolean {
+    const p = this.edgeTmp.copy(v).project(this.camera);
+    return p.z < 1 && Math.abs(p.x) <= 1 - m && Math.abs(p.y) <= 1 - m;
+  }
+
+  /**
+   * Where an axis leaves the view (its end is out of sight), put the letter of that side of the
+   * world (С, Ю, З, В) at the screen edge, so the directions stay readable when zoomed in.
+   */
+  private updateEdgeCompass() {
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    const L = this.axisLen;
+    const margin = 18 / Math.max(Math.min(w, h), 1);
+    const o = new THREE.Vector3();
+    const q = new THREE.Vector3();
+    for (const { el, dir } of this.edgeCompass) {
+      let shown = false;
+      // The axis line starts at the origin (origin of the space); its far end is at L.
+      if (L > 0 && w > 0 && h > 0 && !this.onScreen(q.copy(dir).multiplyScalar(L), 0)) {
+        // Walk along the axis in steps, find the last point that is on screen, refine by bisection.
+        let lo = -1;
+        const steps = 80;
+        for (let i = 0; i <= steps; i++) {
+          const t = (i / steps) * L;
+          if (this.onScreen(o.copy(dir).multiplyScalar(t), margin)) lo = t;
+        }
+        if (lo >= 0) {
+          let a = lo;
+          let b = Math.min(L, lo + L / steps);
+          for (let i = 0; i < 20; i++) {
+            const m = (a + b) / 2;
+            if (this.onScreen(o.copy(dir).multiplyScalar(m), margin)) a = m;
+            else b = m;
+          }
+          const p = this.edgeTmp.copy(dir).multiplyScalar(a).project(this.camera);
+          el.style.left = `${((p.x + 1) / 2) * w}px`;
+          el.style.top = `${((1 - p.y) / 2) * h}px`;
+          shown = true;
+        }
+      }
+      el.style.display = shown ? '' : 'none';
+    }
+  }
 
   private frame() {
     const now = performance.now();
     const dt = Math.min((now - this.lastFrame) / 1000, 0.1);
     this.lastFrame = now;
-    for (const obj of this.pickNodes) if (obj.userData.spin) obj.rotation.y += obj.userData.spin * dt;
+    const active = now < this.activeUntil || this.focusGoal !== null || this.zoomPending !== 0;
+    if (!active) {
+      // Idle: only small spinning objects in view keep turning, and only the 3D scene is redrawn
+      // (labels do not move). Nothing to animate: no frame at all.
+      const spinners = this.visibleSpinners();
+      if (!spinners.length) return;
+      for (const obj of spinners) obj.rotation.y += obj.userData.spin * dt;
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+    for (const obj of this.visibleSpinners()) obj.rotation.y += obj.userData.spin * dt;
     this.stepZoom();
     if (this.focusGoal) {
       const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(FLY_EASE);
@@ -1157,6 +1306,7 @@ export class Viewer {
       }
     }
     this.controls.update();
+    this.fitClipping();
     // Fog follows the zoom, so objects dissolve relative to the point the camera looks at:
     // with full strength fading starts a bit in front of it and ends not far behind it.
     const fog = this.scene.fog as THREE.Fog;
@@ -1178,6 +1328,7 @@ export class Viewer {
     this.layoutArcTexts();
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
     this.labels.render(this.scene, this.camera);
+    this.updateEdgeCompass();
     this.separateLabels();
     // The label renderer orders elements by depth; the card must stay above every caption.
     if (this.cardObj) {
@@ -1185,6 +1336,22 @@ export class Viewer {
       this.cardObj.element.style.zIndex = '1000000';
     }
   }
+}
+
+/** Distance from a ring to the nearest other ring sharing its centre and parent (0 if none). */
+function ringRoom(layout: Layout, idx: SpaceIndex, id: string): number {
+  const own = layout.shells.get(id)?.torus;
+  const me = layout.shells.get(id)?.center;
+  const parent = idx.parentOf(id);
+  if (!own || !me) return 0;
+  let room = Infinity;
+  for (const sib of idx.children.get(parent) ?? []) {
+    if (sib.id === id) continue;
+    const sh = layout.shells.get(sib.id);
+    if (!sh?.torus || Math.hypot(sh.center.x - me.x, sh.center.z - me.z) > 1e-6) continue;
+    room = Math.min(room, Math.abs(sh.torus.major - own.major));
+  }
+  return Number.isFinite(room) ? room : 0;
 }
 
 /**

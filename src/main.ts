@@ -404,6 +404,15 @@ function renderRight() {
                 <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
               </select>
             </label>
+            <label title="Ширина полосы кольца в процентах от того, что оно окружает (внутреннего радиуса). 0 — по размеру содержимого." ${n.frame!.shell === 'torus' ? '' : 'hidden'}>Ширина кольца, % от внутреннего радиуса
+              <input id="f-ringWidth" type="number" min="0" step="1" value="${Math.round((n.frame!.ringWidth ?? 0) * 100)}">
+            </label>
+            <label title="Толщина кольца в процентах от его ширины: 100 — круглое сечение, меньше — приплюснутое. Действует, когда задана ширина." ${n.frame!.shell === 'torus' && n.frame!.ringWidth ? '' : 'hidden'}>Толщина кольца, % от ширины
+              <input id="f-ringThickness" type="number" min="1" max="100" step="1" value="${Math.round((n.frame!.ringThickness ?? 0.24) * 100)}">
+            </label>
+            <label title="Отношение размера север–юг к размеру восток–запад для колец и групп с расположением по кругу: 1 — круг, 7/6 — как Остров Рай. Можно ввести дробь." ${n.frame!.shell === 'torus' || n.frame!.arrange === 'ring' ? '' : 'hidden'}>Вытянутость север–юг
+              <input id="f-ringAspect" type="text" value="${n.frame!.ringAspect ? +n.frame!.ringAspect.toFixed(4) : 1}">
+            </label>
             ${
               n.frame!.fixedSize
                 ? '<div class="muted">Центр оболочки — на нулевом уровне: у фиксированного размера он всегда там. Чтобы выбрать другой, переключите «Размер оболочки» на «по содержимому».</div>'
@@ -472,6 +481,9 @@ function renderRight() {
         <div id="f-aimAt"></div>
       </div>
       <label class="check" title="Название не рисуется рядом с объектом; карточка с описанием при наведении остаётся"><input id="f-nolabel" type="checkbox" ${n.hideLabel ? 'checked' : ''}>Не показывать название</label>
+      <label title="Во сколько раз название этого объекта крупнее обычного (1 — как у всех)">Размер названия, ×
+        <input id="f-labelScale" type="number" min="0.2" max="20" step="0.1" value="${n.labelScale ?? 1}">
+      </label>
       <label title="Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается">Вращение (об/мин)
         <input id="f-spin" type="number" step="1" value="${n.spin ?? 0}">
       </label>
@@ -581,6 +593,19 @@ function renderRight() {
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
   edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' ? el.value : undefined));
+  edit('#f-ringWidth', (el) => {
+    const v = Math.max(0, num(el, 0)) / 100;
+    n.frame!.ringWidth = v > 0 ? v : undefined;
+  });
+  edit('#f-ringAspect', (el) => {
+    const [a, b] = el.value.replace(',', '.').split('/').map(Number);
+    const v = b ? a / b : a;
+    n.frame!.ringAspect = Number.isFinite(v) && v > 0 && Math.abs(v - 1) > 1e-6 ? v : undefined;
+  });
+  edit('#f-ringThickness', (el) => {
+    const v = Math.min(100, Math.max(1, num(el, 24))) / 100;
+    n.frame!.ringThickness = v === 0.24 ? undefined : v;
+  });
   edit('#f-centerMode', (el) => {
     n.frame!.center = el.value === 'content' ? undefined : (el.value as ShellCenter);
     n.frame!.centerOnLevel = undefined; // replaced by `center`
@@ -615,6 +640,10 @@ function renderRight() {
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
   edit('#f-nolabel', (el) => (n.hideLabel = el.checked || undefined), false);
+  edit('#f-labelScale', (el) => {
+    const v = num(el, 1);
+    n.labelScale = v > 0 && Math.abs(v - 1) > 1e-6 ? v : undefined;
+  }, false);
   edit('#f-spin', (el) => (n.spin = num(el, 0) || undefined), false);
   edit('#f-shellOpacity', (el) => (n.frame!.shellOpacity = Number(el.value) / 100), false);
   right.querySelectorAll<HTMLInputElement>('[data-ci]').forEach((el) =>

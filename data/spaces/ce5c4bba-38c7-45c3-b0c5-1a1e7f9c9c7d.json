@@ -24,7 +24,196 @@
         "offset": 0,
         "levelStep": 10,
         "collapsed": false,
-        "arrange": "ring"
+        "arrange": "ring",
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Центральная часть мироздания: Хавона и семь сверхвселенных, вращающихся вокруг неё; около 7 триллионов обитаемых планет. Сейчас это единственная организованная и населённая часть творения.</p><p class=\"ref\">Документ 12, 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "grand",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Большая вселенная",
+      "style": {
+        "color": "#7aa2f7",
+        "shape": "octahedron",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 10,
+        "collapsed": false,
+        "arrange": "ring",
+        "shellOpacity": 0.5,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Пространственная зона относительного покоя глубиной в среднем 400 тыс. световых лет (в масштабе) между энергетическими контурами семи сверхвселенных и первым уровнем внешнего пространства. Свободна от звёздной пыли.</p><p class=\"ref\">Документ 12:1.14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "restZone",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Зона относительного покоя",
+      "style": {
+        "color": "#a9b1d6",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.6,
+        "ringWidthLy": 400000,
+        "ringGapLy": 0,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Первый уровень внешнего пространства. Здесь формируются вселенные будущего; они пока не населены.</p><p>На схеме: в масштабе: начало ≈ 500 тыс. св. лет от края Большой вселенной, ширина 25 млн св. лет (Документ 12:1.14). Ширина по схеме «The Plane of Creation» (Д. Эмен): 50 млн св. лет.</p><p>Зодчих Мироздания на этом уровне: 70.</p><p class=\"ref\">Документ 12, 31</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "outer1",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Первый уровень внешнего пространства",
+      "style": {
+        "color": "#3d59a1",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringThickness": 0.3,
+        "ringWidthLy": 25000000,
+        "ringGapLy": 100000,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Второй уровень внешнего пространства. Здесь формируются вселенные будущего; они пока не населены.</p><p>На схеме: начало в масштабе: более 50 млн св. лет за первым уровнем (Документ 12:1.15); ширина условная. Ширина по схеме «The Plane of Creation» (Д. Эмен): 5 млрд св. лет.</p><p>Зодчих Мироздания на этом уровне: 490.</p><p class=\"ref\">Документ 12, 31</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "outer2",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Второй уровень внешнего пространства",
+      "style": {
+        "color": "#3d59a1",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringThickness": 0.3,
+        "ringWidthLy": 50000000,
+        "ringGapLy": 50000000,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Третий уровень внешнего пространства. Здесь формируются вселенные будущего; они пока не населены.</p><p>На схеме: размеры условные: в книге их нет. Ширина по схеме «The Plane of Creation» (Д. Эмен): 500 млрд св. лет.</p><p>Зодчих Мироздания на этом уровне: 3430.</p><p class=\"ref\">Документ 12, 31</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "outer3",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Третий уровень внешнего пространства",
+      "style": {
+        "color": "#3d59a1",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringThickness": 0.3,
+        "ringWidthLy": 100000000,
+        "ringGapLy": 50000000,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "master",
+      "contentHtml": "<p>Четвёртый уровень внешнего пространства. Здесь формируются вселенные будущего; они пока не населены.</p><p>На схеме: размеры условные: в книге их нет. Ширина по схеме «The Plane of Creation» (Д. Эмен): 5 трлн (со знаком «?») св. лет.</p><p>Зодчих Мироздания на этом уровне: 24010. Внешний край этого уровня — граница созданного пространства и времени.</p><p class=\"ref\">Документ 12, 31</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "outer4",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Четвёртый уровень внешнего пространства",
+      "style": {
+        "color": "#3d59a1",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringThickness": 0.3,
+        "ringWidthLy": 200000000,
+        "ringGapLy": 50000000,
+        "ringAspect": 1.1666666666666667
       }
     },
     {
@@ -59,7 +248,8 @@
         },
         "shellOpacity": 1,
         "fill": 0.4
-      }
+      },
+      "labelScale": 4
     },
     {
       "kind": "group",
@@ -165,7 +355,8 @@
         "offset": 0,
         "levelStep": 3,
         "collapsed": false,
-        "shell": "torus"
+        "shell": "torus",
+        "ringAspect": 1.1666666666666667
       }
     },
     {
@@ -311,7 +502,8 @@
         "offset": 0,
         "levelStep": 3,
         "collapsed": false,
-        "shell": "torus"
+        "shell": "torus",
+        "ringAspect": 1.1666666666666667
       }
     },
     {
@@ -457,7 +649,8 @@
         "offset": 0,
         "levelStep": 3,
         "collapsed": false,
-        "shell": "torus"
+        "shell": "torus",
+        "ringAspect": 1.1666666666666667
       }
     },
     {
@@ -616,7 +809,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Центральная, совершенная и вечная вселенная вокруг Рая — миллиард миров в семи контурах.</p><p class=\"ref\">Документ 14</p>",
       "tags": [
         "place"
@@ -639,47 +832,2961 @@
         "levelStep": 4,
         "collapsed": false,
         "arrange": "ring",
-        "shell": "torus"
+        "shell": "torus",
+        "ringAspect": 1.1666666666666667
       }
     },
     {
-      "kind": "note",
+      "kind": "group",
       "parentId": "havona",
-      "contentHtml": "<p>Последние ступени восхождения перед достижением Рая.</p><p class=\"ref\">Документ 14, 26</p>",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
       "tags": [
         "place",
         "ascension"
       ],
       "levelMode": "local",
       "level": 0,
-      "id": "havonaCircuits",
-      "title": "Семь контуров Хавоны",
+      "id": "havonaCircuit1",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 1",
       "style": {
         "color": "#c4a7e7",
         "shape": "torus",
         "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
       }
     },
     {
       "kind": "note",
-      "parentId": "havona",
-      "contentHtml": "<p>Два кольца тёмных тел, окружающих Хавону и отделяющих её от сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
       "tags": [
-        "place"
+        "place",
+        "ascension"
       ],
       "levelMode": "local",
-      "level": -1,
-      "id": "darkBodies",
-      "title": "Тёмные гравитационные тела",
+      "level": 0,
+      "id": "havonaCircuit1m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
       "style": {
-        "color": "#565f89",
-        "shape": "torus",
-        "size": 1
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit1m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit1m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit1m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit1m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit1",
+      "contentHtml": "<p>Первый, внутренний контур Хавоны: около 35 млн миров. Последняя ступень перед Раем. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit1m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
       }
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "havona",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 2",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit2",
+      "contentHtml": "<p>2-й контур Хавоны: около 70 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit2m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 3",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m9",
+      "title": "Мир Хавоны 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit3",
+      "contentHtml": "<p>3-й контур Хавоны: около 105 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit3m10",
+      "title": "Мир Хавоны 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 4",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m9",
+      "title": "Мир Хавоны 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m10",
+      "title": "Мир Хавоны 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m11",
+      "title": "Мир Хавоны 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit4",
+      "contentHtml": "<p>4-й контур Хавоны: около 140 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit4m12",
+      "title": "Мир Хавоны 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 5",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m9",
+      "title": "Мир Хавоны 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m10",
+      "title": "Мир Хавоны 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m11",
+      "title": "Мир Хавоны 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m12",
+      "title": "Мир Хавоны 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m13",
+      "title": "Мир Хавоны 13",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit5",
+      "contentHtml": "<p>5-й контур Хавоны: около 175 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit5m14",
+      "title": "Мир Хавоны 14",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 6",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m9",
+      "title": "Мир Хавоны 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m10",
+      "title": "Мир Хавоны 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m11",
+      "title": "Мир Хавоны 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m12",
+      "title": "Мир Хавоны 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m13",
+      "title": "Мир Хавоны 13",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m14",
+      "title": "Мир Хавоны 14",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m15",
+      "title": "Мир Хавоны 15",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit6",
+      "contentHtml": "<p>6-й контур Хавоны: около 210 млн миров.  Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit6m16",
+      "title": "Мир Хавоны 16",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Контур Хавоны 7",
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m1",
+      "title": "Мир Хавоны 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m2",
+      "title": "Мир Хавоны 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m3",
+      "title": "Мир Хавоны 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m4",
+      "title": "Мир Хавоны 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m5",
+      "title": "Мир Хавоны 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m6",
+      "title": "Мир Хавоны 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m7",
+      "title": "Мир Хавоны 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m8",
+      "title": "Мир Хавоны 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m9",
+      "title": "Мир Хавоны 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m10",
+      "title": "Мир Хавоны 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m11",
+      "title": "Мир Хавоны 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m12",
+      "title": "Мир Хавоны 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m13",
+      "title": "Мир Хавоны 13",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m14",
+      "title": "Мир Хавоны 14",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m15",
+      "title": "Мир Хавоны 15",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m16",
+      "title": "Мир Хавоны 16",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m17",
+      "title": "Мир Хавоны 17",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "havonaCircuit7",
+      "contentHtml": "<p>Седьмой, внешний контур Хавоны: около 245 млн миров. Отсюда восходящие начинают путь по Хавоне. Все семь контуров движутся вокруг Рая в одну сторону.</p><p class=\"ref\">Документ 14, 26</p>",
+      "tags": [
+        "place",
+        "ascension"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "havonaCircuit7m18",
+      "title": "Мир Хавоны 18",
+      "hideLabel": true,
+      "style": {
+        "color": "#c4a7e7",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Пространственная зона относительного покоя между седьмым контуром Хавоны и внутренним поясом тёмных тел.</p><p class=\"ref\">Документ 11, 12</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "quietZone1",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "1-я зона относительного покоя",
+      "style": {
+        "color": "#a9b1d6",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.6,
+        "ringWidth": 0.06,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Внутренний пояс тёмных тел, кольцо 1",
+      "style": {
+        "color": "#414868",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m1",
+      "title": "Тёмное тело 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m2",
+      "title": "Тёмное тело 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m3",
+      "title": "Тёмное тело 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m4",
+      "title": "Тёмное тело 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m5",
+      "title": "Тёмное тело 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m6",
+      "title": "Тёмное тело 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m7",
+      "title": "Тёмное тело 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m8",
+      "title": "Тёмное тело 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m9",
+      "title": "Тёмное тело 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m10",
+      "title": "Тёмное тело 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m11",
+      "title": "Тёмное тело 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner1",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner1m12",
+      "title": "Тёмное тело 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Внутренний пояс тёмных тел, кольцо 2",
+      "style": {
+        "color": "#414868",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m1",
+      "title": "Тёмное тело 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m2",
+      "title": "Тёмное тело 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m3",
+      "title": "Тёмное тело 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m4",
+      "title": "Тёмное тело 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m5",
+      "title": "Тёмное тело 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m6",
+      "title": "Тёмное тело 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m7",
+      "title": "Тёмное тело 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m8",
+      "title": "Тёмное тело 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m9",
+      "title": "Тёмное тело 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m10",
+      "title": "Тёмное тело 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m11",
+      "title": "Тёмное тело 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner2",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner2m12",
+      "title": "Тёмное тело 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Внутренний пояс тёмных тел, кольцо 3",
+      "style": {
+        "color": "#414868",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m1",
+      "title": "Тёмное тело 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m2",
+      "title": "Тёмное тело 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m3",
+      "title": "Тёмное тело 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m4",
+      "title": "Тёмное тело 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m5",
+      "title": "Тёмное тело 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m6",
+      "title": "Тёмное тело 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m7",
+      "title": "Тёмное тело 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m8",
+      "title": "Тёмное тело 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m9",
+      "title": "Тёмное тело 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m10",
+      "title": "Тёмное тело 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m11",
+      "title": "Тёмное тело 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkInner3",
+      "contentHtml": "<p>Одно из трёх колец внутреннего пояса тёмных гравитационных тел. Внутренний пояс движется навстречу внешнему. Тела не отражают и не поглощают свет; их тяготение уравновешивает Хавону.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkInner3m12",
+      "title": "Тёмное тело 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Уникальная пространственная зона между внутренним и внешним поясами тёмных тел.</p><p class=\"ref\">Документ 11, 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "quietZone2",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "2-я (уникальная) зона покоя",
+      "style": {
+        "color": "#a9b1d6",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.6,
+        "ringWidth": 0.06,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuter",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "Внешний пояс тёмных тел",
+      "style": {
+        "color": "#414868",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 1,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm1",
+      "title": "Тёмное тело 1",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm2",
+      "title": "Тёмное тело 2",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm3",
+      "title": "Тёмное тело 3",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm4",
+      "title": "Тёмное тело 4",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm5",
+      "title": "Тёмное тело 5",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm6",
+      "title": "Тёмное тело 6",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm7",
+      "title": "Тёмное тело 7",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm8",
+      "title": "Тёмное тело 8",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm9",
+      "title": "Тёмное тело 9",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm10",
+      "title": "Тёмное тело 10",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm11",
+      "title": "Тёмное тело 11",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm12",
+      "title": "Тёмное тело 12",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm13",
+      "title": "Тёмное тело 13",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm14",
+      "title": "Тёмное тело 14",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm15",
+      "title": "Тёмное тело 15",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "parentId": "darkOuter",
+      "contentHtml": "<p>Внешний пояс тёмных гравитационных тел; движется навстречу внутреннему. Отделяет Хавону от уровня сверхвселенных.</p><p class=\"ref\">Документ 14</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "darkOuterm16",
+      "title": "Тёмное тело 16",
+      "hideLabel": true,
+      "style": {
+        "color": "#414868",
+        "shape": "sphere",
+        "size": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "havona",
+      "contentHtml": "<p>Зона относительного покоя за внешним поясом тёмных тел; за ней — уровень семи сверхвселенных.</p><p class=\"ref\">Документ 11, 12</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "quietZone3",
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "title": "3-я зона относительного покоя",
+      "style": {
+        "color": "#a9b1d6",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 3,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.6,
+        "ringWidth": 0.06,
+        "ringAspect": 1.1666666666666667
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -703,7 +3810,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -727,7 +3834,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -751,7 +3858,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -775,7 +3882,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -799,7 +3906,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Одна из семи сверхвселенных. Как у каждой — столица и трое Ветхих Днями.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -823,7 +3930,7 @@
     },
     {
       "kind": "group",
-      "parentId": "master",
+      "parentId": "grand",
       "contentHtml": "<p>Седьмая сверхвселенная, наша. 10 больших секторов → 1000 малых → 100 000 локальных вселенных.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
@@ -908,7 +4015,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -34.5
       }
     },
@@ -928,8 +4035,8 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
-        "z": -36.0
+        "x": 0,
+        "z": -36
       }
     },
     {
@@ -948,7 +4055,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -37.5
       }
     },
@@ -968,8 +4075,8 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
-        "z": -39.0
+        "x": 0,
+        "z": -39
       }
     },
     {
@@ -988,7 +4095,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -40.5
       }
     },
@@ -1608,7 +4715,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -25.5
       }
     },
@@ -1628,8 +4735,8 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
-        "z": -24.0
+        "x": 0,
+        "z": -24
       }
     },
     {
@@ -1648,7 +4755,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -22.5
       }
     },
@@ -1668,8 +4775,8 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
-        "z": -21.0
+        "x": 0,
+        "z": -21
       }
     },
     {
@@ -1688,7 +4795,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -19.5
       }
     },
@@ -10877,8 +13984,8 @@
         "size": 0.6
       },
       "pinned": {
-        "x": 58.0,
-        "z": 0.0
+        "x": 58,
+        "z": 0
       },
       "hideLabel": true
     },
@@ -10898,7 +14005,7 @@
       },
       "pinned": {
         "x": 61.2,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -10958,7 +14065,7 @@
       },
       "pinned": {
         "x": 54.8,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -11917,7 +15024,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 44.0,
+        "x": 44,
         "z": 35.393
       },
       "hideLabel": true
@@ -12358,7 +15465,7 @@
       },
       "pinned": {
         "x": 32.142,
-        "z": 27.0
+        "z": 27
       },
       "hideLabel": true
     },
@@ -14897,7 +18004,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": -44.0,
+        "x": -44,
         "z": 35.393
       },
       "hideLabel": true
@@ -15438,7 +18545,7 @@
       },
       "pinned": {
         "x": -32.142,
-        "z": 27.0
+        "z": 27
       },
       "hideLabel": true
     },
@@ -15777,8 +18884,8 @@
         "size": 0.6
       },
       "pinned": {
-        "x": -58.0,
-        "z": 0.0
+        "x": -58,
+        "z": 0
       },
       "hideLabel": true
     },
@@ -15798,7 +18905,7 @@
       },
       "pinned": {
         "x": -61.2,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -15858,7 +18965,7 @@
       },
       "pinned": {
         "x": -54.8,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -16817,7 +19924,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": -44.0,
+        "x": -44,
         "z": -35.393
       },
       "hideLabel": true
@@ -17258,7 +20365,7 @@
       },
       "pinned": {
         "x": -32.142,
-        "z": -27.0
+        "z": -27
       },
       "hideLabel": true
     },
@@ -19797,7 +22904,7 @@
         "size": 0.25
       },
       "pinned": {
-        "x": 44.0,
+        "x": 44,
         "z": -35.393
       },
       "hideLabel": true
@@ -20338,7 +23445,7 @@
       },
       "pinned": {
         "x": 32.142,
-        "z": -27.0
+        "z": -27
       },
       "hideLabel": true
     },
@@ -20838,8 +23945,8 @@
         "size": 0.6
       },
       "pinned": {
-        "x": 58.0,
-        "z": 0.0
+        "x": 58,
+        "z": 0
       },
       "hideLabel": true
     },
@@ -20859,7 +23966,7 @@
       },
       "pinned": {
         "x": 61.2,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -20959,7 +24066,7 @@
       },
       "pinned": {
         "x": 54.8,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -23159,7 +26266,7 @@
       },
       "pinned": {
         "x": 32.142,
-        "z": 27.0
+        "z": 27
       },
       "hideLabel": true
     },
@@ -27999,7 +31106,7 @@
       },
       "pinned": {
         "x": -32.142,
-        "z": 27.0
+        "z": 27
       },
       "hideLabel": true
     },
@@ -28538,8 +31645,8 @@
         "size": 0.6
       },
       "pinned": {
-        "x": -58.0,
-        "z": 0.0
+        "x": -58,
+        "z": 0
       },
       "hideLabel": true
     },
@@ -28559,7 +31666,7 @@
       },
       "pinned": {
         "x": -61.2,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -28659,7 +31766,7 @@
       },
       "pinned": {
         "x": -54.8,
-        "z": 0.0
+        "z": 0
       },
       "hideLabel": true
     },
@@ -30859,7 +33966,7 @@
       },
       "pinned": {
         "x": -32.142,
-        "z": -27.0
+        "z": -27
       },
       "hideLabel": true
     },
@@ -35699,7 +38806,7 @@
       },
       "pinned": {
         "x": 32.142,
-        "z": -27.0
+        "z": -27
       },
       "hideLabel": true
     },
@@ -36327,8 +39434,8 @@
         "size": 1.1
       },
       "pinned": {
-        "x": 0.0,
-        "z": -24.0
+        "x": 0,
+        "z": -24
       },
       "hideLabel": true
     },
@@ -36347,7 +39454,7 @@
         "size": 0.4
       },
       "pinned": {
-        "x": 0.0,
+        "x": 0,
         "z": -30.5
       },
       "hideLabel": true
@@ -37998,12 +41105,6 @@
       "color": "#73daca"
     },
     {
-      "id": "uversa-havonaCircuits",
-      "from": "uversa",
-      "to": "havonaCircuits",
-      "color": "#73daca"
-    },
-    {
       "id": "spirit-masterSpirit1",
       "from": "spirit",
       "to": "masterSpirit1",
@@ -38086,6 +41187,48 @@
       "from": "masterSpirit7",
       "to": "orvonton",
       "color": "#89ddff"
+    },
+    {
+      "id": "uversa-havonaCircuit7",
+      "from": "uversa",
+      "to": "havonaCircuit7",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit7-havonaCircuit6",
+      "from": "havonaCircuit7",
+      "to": "havonaCircuit6",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit6-havonaCircuit5",
+      "from": "havonaCircuit6",
+      "to": "havonaCircuit5",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit5-havonaCircuit4",
+      "from": "havonaCircuit5",
+      "to": "havonaCircuit4",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit4-havonaCircuit3",
+      "from": "havonaCircuit4",
+      "to": "havonaCircuit3",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit3-havonaCircuit2",
+      "from": "havonaCircuit3",
+      "to": "havonaCircuit2",
+      "color": "#73daca"
+    },
+    {
+      "id": "havonaCircuit2-havonaCircuit1",
+      "from": "havonaCircuit2",
+      "to": "havonaCircuit1",
+      "color": "#73daca"
     }
   ],
   "styles": [
@@ -38162,5 +41305,6 @@
   ],
   "templateId": "urantia",
   "frontNodeId": "orvonton",
-  "originNodeId": "paradise"
+  "originNodeId": "paradise",
+  "lightYearsPerUnit": 6700
 }

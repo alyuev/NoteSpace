@@ -32,6 +32,8 @@ export interface TorusShape {
   tube: number;
   tubeY: number;
   y: number;
+  /** North–south (Z) stretch of the ring, 1 = round. */
+  aspect?: number;
 }
 
 export interface Shell {
@@ -55,6 +57,8 @@ export interface Layout {
 export const NOTE_RADIUS = 2.5;
 const SHELL_PADDING = 2.5;
 const RING_GAP = 6;
+/** Default thickness of a ring with a set width, relative to its width. */
+const RING_FLATNESS = 0.24;
 
 export class SpaceIndex {
   readonly byId = new Map<string, SpaceNode>();
@@ -108,6 +112,12 @@ export function nodeRadius(space: Space, n: SpaceNode): number {
 
 export function isExpandedGroup(n: SpaceNode): boolean {
   return n.kind === 'group' && !n.frame?.collapsed;
+}
+
+/** North–south stretch of a ring or ring-arranged group (1 = round). */
+function ringAspectOf(n: SpaceNode): number {
+  const ringed = n.frame?.arrange === 'ring' || n.frame?.shell === 'torus';
+  return ringed && n.frame?.ringAspect && n.frame.ringAspect > 0 ? n.frame.ringAspect : 1;
 }
 
 export function isTethered(idx: SpaceIndex, n: SpaceNode): boolean {
@@ -197,6 +207,8 @@ function computeLayoutRaw(space: Space, prev?: Layout, opts: LayoutOptions = {})
 function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions, aim: Map<string, number>): Layout {
   const idx = new SpaceIndex(space);
   const depthScale = opts.depthScale ?? 1;
+  /** Light years per scene unit, for ring sizes given in light years. */
+  const lyPerUnit = space.lightYearsPerUnit && space.lightYearsPerUnit > 0 ? space.lightYearsPerUnit : undefined;
   const depthOf = (id: string) => idx.ancestors(id).length;
   /** Fixed-size groups: horizontal / vertical factor applied to everything inside them. */
   const fitH = new Map<string, number>();
@@ -341,7 +353,10 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
       let hole = 0;
       for (const n of kids) {
         if (!n.pinned || Math.hypot(n.pinned.x, n.pinned.z) > 1e-6) continue;
-        if (isExpandedGroup(n) && n.frame?.shell === 'torus') minRing.set(n.id, hole + RING_GAP * k);
+        if (isExpandedGroup(n) && n.frame?.shell === 'torus') {
+          const gapLy = n.frame.ringGapLy;
+          minRing.set(n.id, hole + (gapLy !== undefined && lyPerUnit ? gapLy / lyPerUnit : RING_GAP * k));
+        }
         hole = Math.max(hole, ringOuter(n));
       }
     }
@@ -371,6 +386,9 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     const isTorus = group?.frame?.shell === 'torus';
     if (ringed) placeOnRing(items, RING_GAP * k, groupId ? (minRing.get(groupId) ?? 0) : 0);
     else placeFree(items, groupId, k);
+    // Elliptic ring: stretch the ring along north–south (Z); pinned ones stay where they are.
+    const aspect = ringed && group?.frame?.ringAspect && group.frame.ringAspect > 0 ? group.frame.ringAspect : 1;
+    if (aspect !== 1) for (const it of items) if (it.fx === undefined) it.y! *= aspect;
     for (const it of items) local.set(it.id, { x: it.x ?? 0, z: it.y ?? 0 });
 
     if (groupId) inProgress.delete(groupId);
@@ -382,7 +400,8 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
       if (isTethered(idx, n)) continue;
       const l = local.get(n.id)!;
       const e = extentOf(n);
-      const c = Math.hypot(l.x, l.z);
+      // Distance in the group's own (unstretched) units: the fitted radius is the east–west one.
+      const c = Math.hypot(l.x, l.z / aspect);
       const y0 = localY(n, group) + e.cy;
       // For each elevation only the point farthest from the group axis matters.
       for (let deg = -90; deg <= 90; deg += 15) {
@@ -397,13 +416,28 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     const ringKids = items.filter((it) => it.fx === undefined && !isTethered(idx, idx.byId.get(it.id)!));
     let torus: TorusShape | undefined;
     if (isTorus && ringKids.length) {
-      const major = ringKids.reduce((s, it) => s + Math.hypot(it.x!, it.y!), 0) / ringKids.length;
+      const major = ringKids.reduce((s, it) => s + Math.hypot(it.x!, it.y! / aspect), 0) / ringKids.length;
       const lo = Math.min(...ringKids.map((it) => it.yc - it.ry));
       const hi = Math.max(...ringKids.map((it) => it.yc + it.ry));
       const pad = SHELL_PADDING * k;
-      const tube = Math.max(...ringKids.map((it) => Math.abs(Math.hypot(it.x!, it.y!) - major) + it.r)) + pad;
-      torus = { major, tube, tubeY: (hi - lo) / 2 + pad * 0.6, y: (hi + lo) / 2 };
+      const tube = Math.max(...ringKids.map((it) => Math.abs(Math.hypot(it.x!, it.y! / aspect) - major) + it.r)) + pad;
+      torus = { major, tube, tubeY: (hi - lo) / 2 + pad * 0.6, y: (hi + lo) / 2, aspect };
       ext = { r: Math.max(ext.r, major + tube), ry: Math.max(ext.ry, torus.tubeY), cy: ext.cy };
+    }
+    // Set width: a flat band from the inner radius outwards; members (if any) go onto its middle line.
+    const width = isTorus ? (group.frame?.ringWidth ?? 0) : 0;
+    const widthLy = isTorus && lyPerUnit ? (group.frame?.ringWidthLy ?? 0) : 0;
+    if (width > 0 || widthLy > 0) {
+      const hole = minRing.get(group.id) ?? 0;
+      const band = widthLy > 0 ? widthLy / lyPerUnit! : width * (hole > 0 ? hole : Math.max(ext.r, NOTE_RADIUS * k));
+      const major = hole + band / 2;
+      for (const it of ringKids) {
+        const d = Math.hypot(it.x!, it.y! / aspect);
+        const a = d > 1e-9 ? Math.atan2(it.y! / aspect, it.x!) : -Math.PI / 2;
+        local.set(it.id, { x: major * Math.cos(a), z: major * Math.sin(a) * aspect });
+      }
+      torus = { major, tube: band / 2, tubeY: Math.max(torus?.tubeY ?? 0, (band / 2) * (group.frame?.ringThickness ?? RING_FLATNESS)), y: torus?.y ?? 0, aspect };
+      ext = { r: Math.max(ext.r, major + band / 2), ry: Math.max(ext.ry, torus.tubeY), cy: ext.cy };
     }
     if (centerMode(group) === 'shift') {
       // Move the contents instead of the shell: its centre lands on the group's own level.
@@ -491,7 +525,7 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
         shells.set(n.id, {
           id: n.id,
           center: { ...world, y: world.y + ext.cy },
-          radii: fixedRadii.get(n.id) ?? { x: ext.r, y: ext.ry, z: ext.r },
+          radii: fixedRadii.get(n.id) ?? { x: ext.r, y: ext.ry, z: ext.r * ringAspectOf(n) },
           zeroY: world.y + offset(n) * innerV(n) + (shift.get(n.id) ?? 0),
           ...(tori.has(n.id) ? { torus: { ...tori.get(n.id)!, y: world.y + tori.get(n.id)!.y } } : {}),
         });

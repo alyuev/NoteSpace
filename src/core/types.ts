@@ -56,6 +56,23 @@ export interface GroupFrame {
   fill?: number;
   /** Shell shape. A torus lies horizontally; children are placed along its ring, pinned ones in the hole. */
   shell?: ShellShape;
+  /**
+   * Torus only: width of the ring band as a share of what it encloses (its inner radius), e.g.
+   * 0.25 = a quarter of it. Absent or 0: the ring just fits its members. Lets a ring be a wide,
+   * flat zone even with nothing on it.
+   */
+  ringWidth?: number;
+  /** With `ringWidth`: thickness of the ring as a share of its width (default 0.24 = flat band, 1 = round section). */
+  ringThickness?: number;
+  /** Torus: width of the ring band in light years (needs `Space.lightYearsPerUnit`); overrides `ringWidth`. */
+  ringWidthLy?: number;
+  /** Torus pinned in a ring group: distance from the previous ring (or what it encloses) in light years. */
+  ringGapLy?: number;
+  /**
+   * Ring and ring-arranged groups: north–south to east–west ratio (e.g. 7/6 like Paradise). Members
+   * on the ring and the shell are stretched along Z (north–south). Absent: round.
+   */
+  ringAspect?: number;
   /** Visibility of the shell, 0..1 (1 = default); contents are not affected. */
   shellOpacity?: number;
 }
@@ -91,6 +108,8 @@ export interface SpaceNode {
   aimAt?: string;
   /** Named style of the space; when set it replaces `style`. */
   styleId?: string;
+  /** Caption size multiplier for this object (1 = default): to make an important object stand out. */
+  labelScale?: number;
   /** Do not draw the title next to the object (the description card still appears on hover). */
   hideLabel?: boolean;
   /** Spins about the vertical axis, revolutions per minute (0 or absent: still). */
@@ -138,6 +157,11 @@ export interface Space {
   frontNodeId?: string;
   /** Node whose centre becomes the world origin; the whole layout is shifted together. */
   originNodeId?: string;
+  /**
+   * Scale for sizes given in light years (`ringWidthLy`, `ringGapLy`): how many light years one
+   * scene unit stands for.
+   */
+  lightYearsPerUnit?: number;
   /** Template the space was created from, for "update from template". */
   templateId?: string;
 }
