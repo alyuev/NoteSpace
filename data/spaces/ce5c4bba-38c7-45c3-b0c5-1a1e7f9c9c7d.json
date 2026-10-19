@@ -3931,7 +3931,7 @@
     {
       "kind": "group",
       "parentId": "grand",
-      "contentHtml": "<p>Седьмая сверхвселенная, наша. 10 больших секторов → 1000 малых → 100 000 локальных вселенных.</p><p class=\"ref\">Документ 15</p>",
+      "contentHtml": "<p>Седьмая сверхвселенная, наша. 10 больших секторов → 1000 малых → 100 000 локальных вселенных.</p><p class=\"ref\">Документ 15</p><p>Размер на схеме: диаметр около 500 тыс. световых лет. Это оценка: Уверса стоит в центре сверхвселенной, а наиболее удалённая система обитаемых миров находится немногим менее чем в 250 тыс. световых лет от центра (Документ 32:2.11). Толщина диска условная.</p>",
       "tags": [
         "place"
       ],
@@ -3948,7 +3948,13 @@
         "offset": 0,
         "levelStep": 5,
         "collapsed": false,
-        "centerOnLevel": true
+        "arrange": "wedges",
+        "fixedSize": {
+          "x": 74.6268656716418,
+          "y": 15,
+          "z": 74.6268656716418
+        },
+        "fill": 0.96
       }
     },
     {
@@ -3974,6 +3980,10 @@
         "levelStep": 5,
         "collapsed": false,
         "shell": "sphere"
+      },
+      "pinned": {
+        "x": 0,
+        "z": 0
       }
     },
     {
@@ -13815,19 +13825,24 @@
         "color": "#bb9af7",
         "shape": "cone",
         "size": 1
+      },
+      "pinned": {
+        "x": 0,
+        "z": 0
       }
     },
     {
+      "id": "sector1",
       "kind": "group",
       "parentId": "orvonton",
-      "contentHtml": "<p>Наш большой сектор: 100 малых секторов.</p><p class=\"ref\">Документ 15</p>",
+      "title": "Большой сектор Орвонтона 1",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
-      "id": "splandon",
-      "title": "Спландон (большой сектор)",
+      "level": 0,
+      "sizeAs": "splandon",
       "style": {
         "color": "#7dcfff",
         "shape": "octahedron",
@@ -13836,7 +13851,238 @@
       "frame": {
         "offset": 0,
         "levelStep": 5,
-        "collapsed": false
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector2",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 2",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector3",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 3",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector4",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 4",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "kind": "group",
+      "parentId": "orvonton",
+      "contentHtml": "<p>Наш большой сектор: 100 малых секторов.</p><p class=\"ref\">Документ 15</p><p>Разделён на 100 малых секторов равной площади (10 колец × 10 долей); показаны только линии сетки, активен лишь третий — Энса.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "id": "splandon",
+      "title": "Спландон (5-й большой сектор)",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "arrange": "cells",
+        "cells": {
+          "rings": 10,
+          "slices": 10
+        },
+        "edgeOpacity": 0.7
+      }
+    },
+    {
+      "id": "sector6",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 6",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector7",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 7",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector8",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 8",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector9",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 9",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
+      }
+    },
+    {
+      "id": "sector10",
+      "kind": "group",
+      "parentId": "orvonton",
+      "title": "Большой сектор Орвонтона 10",
+      "contentHtml": "<p>Один из десяти больших секторов Орвонтона (по 100 малых секторов, 10 000 локальных вселенных). Размер равен остальным: сектора одинаковы.</p><p class=\"ref\">Документ 15</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "sizeAs": "splandon",
+      "style": {
+        "color": "#7dcfff",
+        "shape": "octahedron",
+        "size": 1.1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 5,
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.25
       }
     },
     {
@@ -13856,17 +14102,21 @@
         "color": "#2ed9e5",
         "shape": "sphere",
         "size": 0.9
+      },
+      "pinned": {
+        "x": 0,
+        "z": 0
       }
     },
     {
       "kind": "group",
       "parentId": "splandon",
-      "contentHtml": "<p>Наш малый сектор: 100 локальных вселенных.</p><p class=\"ref\">Документ 15</p>",
+      "contentHtml": "<p>Наш малый сектор: 100 локальных вселенных.</p><p class=\"ref\">Документ 15</p><p>Третий малый сектор Спландона, ячейка 3 из 100 (нумерация от внешнего кольца).</p><p>Разделён на 100 локальных вселенных; показаны только линии сетки, активна лишь Небадон — 84-я.</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
+      "level": 0,
       "id": "ensa",
       "title": "Энса (малый сектор)",
       "style": {
@@ -13877,8 +14127,18 @@
       "frame": {
         "offset": 0,
         "levelStep": 5,
-        "collapsed": false
-      }
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 0.15,
+        "arrange": "cells",
+        "cells": {
+          "rings": 10,
+          "slices": 10,
+          "from": "inner"
+        }
+      },
+      "cell": 3,
+      "labelScale": 4
     },
     {
       "kind": "note",
@@ -13896,18 +14156,18 @@
       "style": {
         "color": "#4ae3e0",
         "shape": "sphere",
-        "size": 0.9
+        "size": 0.225
       }
     },
     {
       "kind": "group",
       "parentId": "ensa",
-      "contentHtml": "<p>Наша локальная вселенная: 100 созвездий, до 10 млн обитаемых миров по завершении.</p><p class=\"ref\">Документ 32–35</p>",
+      "contentHtml": "<p>Наша локальная вселенная: 100 созвездий, до 10 млн обитаемых миров по завершении.</p><p class=\"ref\">Документ 32–35</p><p>Ячейка 84 из 100 в малом секторе Энса (нумерация от центра сектора).</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
+      "level": 0,
       "id": "nebadon",
       "title": "Небадон (локальная вселенная)",
       "style": {
@@ -13918,8 +14178,12 @@
       "frame": {
         "offset": 0,
         "levelStep": 5,
-        "collapsed": false
-      }
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 1
+      },
+      "cell": 84,
+      "labelScale": 4
     },
     {
       "kind": "group",

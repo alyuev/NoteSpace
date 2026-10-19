@@ -33,6 +33,12 @@ const CARD_DELAY_MS = 500;
 const ACTIVE_GRACE_MS = 1200;
 /** Spinning objects smaller than this on screen (pixels across) are not animated. */
 const MIN_SPIN_PX = 6;
+/** Closest the camera may come to its focus point: tiny, so that zooming can go as deep as the data does. */
+const MIN_VIEW_DIST = 1e-12;
+/** Smallest on-screen radius (pixels) at which a slice or cell of a disc can be picked. */
+const WEDGE_PICK_MIN_PX = 3;
+/** Opacity of the grid lines of cells (the dimmest lines in the scene). */
+const CELL_GRID_OPACITY = 0.05;
 /**
  * Picking by apparent size: objects smaller than this on screen (radius, px) are not targets, so
  * from afar the pointer catches a group as a whole rather than the tiny things inside it.
@@ -185,7 +191,10 @@ export class Viewer {
     this.controls.target.set(0, 15, 0);
     this.controls.addEventListener('start', () => this.cancelFlight());
     // Frames are drawn on demand: any input or camera movement wakes the loop for a while.
-    this.controls.addEventListener('change', () => this.invalidate());
+    this.controls.addEventListener('change', () => {
+      this.invalidate();
+      this.saveCameraSoon();
+    });
     for (const type of ['pointermove', 'pointerdown', 'pointerup', 'wheel', 'keydown', 'input', 'change', 'click'])
       window.addEventListener(type, () => this.invalidate(), { capture: true, passive: true });
 
@@ -223,7 +232,7 @@ export class Viewer {
     if (!layout || !p) return;
     const shell = layout.shells.get(id);
     const c = attachPoint(layout, id);
-    const size = shell ? Math.max(shell.radii.x, shell.radii.y) : Math.max(p.meshRadius * 6, 2);
+    const size = shell ? Math.max(shell.radii.x, shell.radii.y) : p.meshRadius * 6;
     const fov = THREE.MathUtils.degToRad(this.camera.fov);
     const dist = (size / Math.sin(Math.min(fov, fov * this.camera.aspect) / 2)) * 1.1;
     const offset = this.camera.position.clone().sub(this.controls.target);
@@ -249,6 +258,50 @@ export class Viewer {
   /** Re-fit the camera on the next render (e.g. after switching spaces). */
   resetView() {
     this.fitted = false;
+    this.ignoreSavedCamera = true;
+  }
+
+  /** The camera is remembered per space, so a reload of the page (or a dropped dev-server connection) keeps the view. */
+  private ignoreSavedCamera = false;
+  private cameraSaveTimer = 0;
+
+  private cameraKey(spaceId: string) {
+    return `notespace.camera.${spaceId}`;
+  }
+
+  private saveCameraSoon() {
+    clearTimeout(this.cameraSaveTimer);
+    this.cameraSaveTimer = window.setTimeout(() => {
+      if (!this.space || !this.fitted) return;
+      const v = (p: THREE.Vector3) => [p.x, p.y, p.z];
+      try {
+        localStorage.setItem(
+          this.cameraKey(this.space.id),
+          JSON.stringify({ p: v(this.camera.position), t: v(this.controls.target), o: this.overviewDist }),
+        );
+      } catch {
+        // storage unavailable (private window, quota): the view just is not remembered
+      }
+    }, 400);
+  }
+
+  /** Puts the camera where it was last left in this space; false when nothing usable is saved. */
+  private restoreCamera(spaceId: string): boolean {
+    try {
+      const raw = localStorage.getItem(this.cameraKey(spaceId));
+      if (!raw) return false;
+      const c = JSON.parse(raw) as { p: number[]; t: number[]; o: number };
+      const ok = (a: unknown): a is number[] => Array.isArray(a) && a.length === 3 && a.every((x) => Number.isFinite(x));
+      if (!ok(c.p) || !ok(c.t) || !Number.isFinite(c.o) || c.o <= 0) return false;
+      this.camera.position.set(c.p[0], c.p[1], c.p[2]);
+      this.controls.target.set(c.t[0], c.t[1], c.t[2]);
+      this.overviewDist = c.o;
+      this.cancelFlight();
+      this.controls.update();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /** Point the camera so that everything visible fits into view. */
@@ -312,7 +365,7 @@ export class Viewer {
         const shell = layout.shells.get(n.id)!;
         minY = Math.min(minY, shell.center.y - shell.radii.y);
         maxY = Math.max(maxY, shell.center.y + shell.radii.y);
-        this.addShell(n.id, mainColor(style), shell, a * (n.frame?.shellOpacity ?? 1), selected);
+        this.addShell(n.id, mainColor(style), shell, a * (n.frame?.shellOpacity ?? 1), selected, n.frame?.edgeOpacity ?? 1);
         // Ring at the group's local zero level: makes its frame of reference visible.
         if (this.showFrames) {
           this.addRing(
@@ -450,8 +503,12 @@ export class Viewer {
 
     if (!this.fitted) {
       this.fitted = true;
-      const front = space.frontNodeId && layout.placed.has(space.frontNodeId) ? attachPoint(layout, space.frontNodeId) : undefined;
-      this.fitAll(layout, front);
+      const useSaved = !this.ignoreSavedCamera;
+      this.ignoreSavedCamera = false;
+      if (!(useSaved && this.restoreCamera(space.id))) {
+        const front = space.frontNodeId && layout.placed.has(space.frontNodeId) ? attachPoint(layout, space.frontNodeId) : undefined;
+        this.fitAll(layout, front);
+      }
     }
 
     // The scene was rebuilt: re-apply the highlight of whatever is under the pointer.
@@ -534,17 +591,24 @@ export class Viewer {
    * A ring uses its outer edge; an ellipsoid its horizontal outline and its top and bottom.
    */
   private shellEdgeToward(shell: Shell, sx: number, sy: number, rect: DOMRect): THREE.Vector3 {
-    const { center: c, radii: r, torus } = shell;
+    const { center: c, radii: r, torus, wedge } = shell;
     const pts: THREE.Vector3[] = [];
     const n = 48;
-    for (let i = 0; i < n; i++) {
+    if (wedge) {
+      // Corners and arcs of the slice at its top face.
+      for (let i = 0; i <= 12; i++) {
+        const a = wedge.a0 + ((wedge.a1 - wedge.a0) * i) / 12;
+        for (const rad of [wedge.r0, wedge.r1]) pts.push(new THREE.Vector3(wedge.cx + Math.cos(a) * rad, c.y, wedge.cz + Math.sin(a) * rad));
+      }
+    }
+    for (let i = 0; i < (wedge ? 0 : n); i++) {
       const a = (i / n) * Math.PI * 2;
       if (torus) {
         const R = torus.major + torus.tube * 0.9;
         pts.push(new THREE.Vector3(c.x + Math.cos(a) * R, torus.y, c.z + Math.sin(a) * R * (torus.aspect ?? 1)));
       } else pts.push(new THREE.Vector3(c.x + Math.cos(a) * r.x * 0.97, c.y, c.z + Math.sin(a) * r.z * 0.97));
     }
-    if (!torus) pts.push(new THREE.Vector3(c.x, c.y + r.y * 0.97, c.z), new THREE.Vector3(c.x, c.y - r.y * 0.97, c.z));
+    if (!torus && !wedge) pts.push(new THREE.Vector3(c.x, c.y + r.y * 0.97, c.z), new THREE.Vector3(c.x, c.y - r.y * 0.97, c.z));
     let best = pts[0];
     let bestScore = -Infinity;
     const p = new THREE.Vector3();
@@ -584,10 +648,13 @@ export class Viewer {
     return ((c.x - o.x) / r.x) ** 2 + ((c.y - o.y) / r.y) ** 2 + ((c.z - o.z) / r.z) ** 2 < 1;
   }
 
-  private addShell(id: string, color: string, shell: Shell, a: number, selected: boolean) {
-    const { center: c, radii: r, torus } = shell;
+  private addShell(id: string, color: string, shell: Shell, a: number, selected: boolean, edge = 1) {
+    const { center: c, radii: r, torus, wedge } = shell;
+    // A slice is built around its own centre (small numbers for the GPU), not around the disc's centre.
+    const wedgeMid = wedge ? wedgeCentre(wedge) : null;
+    const wedgeGeo = wedge ? wedgeGeometry(wedge, r.y * 2, wedgeMid!) : null;
     const mesh = new THREE.Mesh(
-      torus ? new THREE.TorusGeometry(torus.major, torus.tube, 20, 72) : SHELL_GEOMETRY,
+      wedgeGeo ?? (torus ? new THREE.TorusGeometry(torus.major, torus.tube, 20, 72) : SHELL_GEOMETRY),
       new THREE.MeshStandardMaterial({
         color,
         transparent: true,
@@ -596,7 +663,11 @@ export class Viewer {
         side: THREE.DoubleSide,
       }),
     );
-    if (torus) {
+    if (wedge) {
+      // The slice is built flat in XY and extruded along z: lay it down, top at the shell's top.
+      mesh.rotation.x = Math.PI / 2;
+      mesh.position.set(wedge.cx + wedgeMid!.x, c.y + r.y, wedge.cz + wedgeMid!.y);
+    } else if (torus) {
       // Lying flat: the geometry's z axis becomes vertical; stretch the tube to its height.
       mesh.rotation.x = Math.PI / 2;
       mesh.scale.set(1, torus.aspect ?? 1, torus.tubeY / torus.tube);
@@ -609,21 +680,30 @@ export class Viewer {
     // For picking the innermost of nested shells, and for picking by apparent size.
     mesh.userData.size = r.x * r.y * r.z;
     mesh.userData.radius = Math.max(r.x, r.z);
+    // Slices and cells tile their parent: nothing else is under the pointer there, so they may be aimed at when small.
+    if (wedge) {
+      mesh.userData.pickMinPx = WEDGE_PICK_MIN_PX;
+      mesh.userData.pickCenter = new THREE.Vector3(c.x, c.y, c.z);
+    }
     mesh.userData.baseOpacity = (mesh.material as THREE.Material).opacity;
     mesh.renderOrder = -1;
     this.content.add(mesh);
     this.pickShells.push(mesh);
 
-    const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: (selected ? 0.5 : 0.18) * a });
+    const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: (selected ? 0.5 : 0.18) * a * edge });
     let outline: THREE.Object3D;
-    if (torus) {
+    if (wedgeGeo) {
+      outline = new THREE.LineSegments(new THREE.EdgesGeometry(wedgeGeo, 30), material);
+      outline.rotation.copy(mesh.rotation);
+      outline.position.copy(mesh.position);
+    } else if (torus) {
       // Smooth outer and inner edge of the ring (polygon edges of a torus read as a jagged mesh).
       const circle = (radius: number) =>
         new THREE.BufferGeometry().setFromPoints(
           new THREE.EllipseCurve(0, 0, radius, radius * (torus.aspect ?? 1)).getPoints(96).map((p) => new THREE.Vector3(p.x, 0, p.y)),
         );
       const outer = new THREE.LineLoop(circle(torus.major + torus.tube), material);
-      outline = new THREE.LineLoop(circle(Math.max(torus.major - torus.tube, 0.1)), material);
+      outline = new THREE.LineLoop(circle(Math.max(torus.major - torus.tube, torus.major * 0.01)), material);
       outline.add(outer);
       outline.position.set(c.x, torus.y, c.z);
     } else {
@@ -631,10 +711,54 @@ export class Viewer {
       outline.scale.copy(mesh.scale);
       outline.position.copy(mesh.position);
     }
+    if (shell.wedge && shell.cells) this.addCellGrid(shell, color, a);
     outline.userData.outlineOf = id;
     // Both torus circles share this material, so hover highlighting reaches them together.
     outline.userData.baseOpacity = material.opacity;
     this.content.add(outline);
+  }
+
+  /** Grid lines of the cells a slice is divided into (rings, each split into its own number of cells); always very dim. */
+  private addCellGrid(shell: Shell, color: string, a: number) {
+    const w = shell.wedge!;
+    const y = shell.center.y;
+    const mid = wedgeCentre(w);
+    const pts: THREE.Vector3[] = [];
+    // Points relative to the slice's middle (see `wedgeGeometry`); the object is placed there.
+    const at = (r: number, ang: number, h: number) => new THREE.Vector3(Math.cos(ang) * r - mid.x, h, Math.sin(ang) * r - mid.y);
+    const arc = (r: number, h: number, steps: number) => {
+      for (let i = 0; i < steps; i++) pts.push(at(r, w.a0 + ((w.a1 - w.a0) * i) / steps, h), at(r, w.a0 + ((w.a1 - w.a0) * (i + 1)) / steps, h));
+    };
+    const layers = shell.cells!.layers;
+    layers.forEach((layer, l) => {
+      const { bounds, counts } = layer;
+      const steps = Math.max(8, Math.max(...counts) * 3);
+      // Each layer's cells as boxes: rings and dividers on its bottom face, and on the top of the topmost.
+      for (const h of l === layers.length - 1 ? [layer.y - layer.ry, layer.y + layer.ry] : [layer.y - layer.ry]) {
+        for (let j = l === 0 && h === layer.y - layer.ry ? 1 : 0; j < bounds.length; j++) {
+          if ((j === 0 || j === bounds.length - 1) && (l === 0 && h === layer.y - layer.ry)) continue;
+          if ((j === 0 || j === bounds.length - 1) && l === layers.length - 1 && h === layer.y + layer.ry) continue;
+          arc(bounds[j], h, steps);
+        }
+      }
+      counts.forEach((n, j) => {
+        for (let k = 1; k < n; k++) {
+          const ang = w.a0 + ((w.a1 - w.a0) * k) / n;
+          // The divider as a rectangle across the layer's height.
+          const b0 = at(bounds[j], ang, layer.y - layer.ry);
+          const b1 = at(bounds[j + 1], ang, layer.y - layer.ry);
+          const t0 = at(bounds[j], ang, layer.y + layer.ry);
+          const t1 = at(bounds[j + 1], ang, layer.y + layer.ry);
+          pts.push(b0, b1, t0, t1, b0, t0, b1, t1);
+        }
+      });
+    });
+    const grid = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: CELL_GRID_OPACITY * a, depthWrite: false }),
+    );
+    grid.position.set(w.cx + mid.x, y, w.cz + mid.y);
+    this.content.add(grid);
   }
 
   private addRing(c: Vec3, radius: number, color: string, opacity: number, aspect = 1) {
@@ -649,11 +773,13 @@ export class Viewer {
   }
 
   private addLine(p1: Vec3, p2: Vec3, color: string, opacity: number, dashed: boolean) {
-    const geo = new THREE.BufferGeometry().setFromPoints([toV(p1), toV(p2)]);
+    // Relative to the start point: a link between tiny far-away objects keeps full precision.
+    const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), toV(p2).sub(toV(p1))]);
     const mat = dashed
       ? new THREE.LineDashedMaterial({ color, dashSize: 1, gapSize: 1, transparent: true, opacity })
       : new THREE.LineBasicMaterial({ color, transparent: true, opacity });
     const line = new THREE.Line(geo, mat);
+    line.position.copy(toV(p1));
     if (dashed) line.computeLineDistances();
     this.content.add(line);
     return line;
@@ -736,7 +862,7 @@ export class Viewer {
    *  - size = nesting-based size × proximity factor.
    */
   private applyLabelDepth(obj: CSS2DObject, dist = this.camera.position.distanceTo(this.controls.target)) {
-    const d = Math.max(this.camera.position.distanceTo(obj.position), 1e-3);
+    const d = Math.max(this.camera.position.distanceTo(obj.position), MIN_VIEW_DIST);
     let fade = 1;
     if (this.labelDepthFade > 0) {
       const t = THREE.MathUtils.clamp((d - dist * 0.6) / dist, 0, 1); // 0 = near, 1 = far
@@ -746,7 +872,7 @@ export class Viewer {
     let floorK = 0;
     const gc = obj.userData.groupCenter as THREE.Vector3 | undefined;
     if (gc) {
-      const dc = Math.max(this.camera.position.distanceTo(gc), 1e-3);
+      const dc = Math.max(this.camera.position.distanceTo(gc), MIN_VIEW_DIST);
       const radiusPx =
         ((obj.userData.groupRadius as number) * this.renderer.domElement.clientHeight) / (2 * dc * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
       floorK = THREE.MathUtils.clamp((radiusPx - GROUP_MIN_LABEL_FROM_PX) / (GROUP_MIN_LABEL_FULL_PX - GROUP_MIN_LABEL_FROM_PX), 0, 1);
@@ -878,7 +1004,9 @@ export class Viewer {
       // Of several shells under the pointer: the innermost one that looks big enough to aim at;
       // if none does, the outermost (the group you can actually see).
       const shellHits = ray.intersectObjects(this.pickShells).sort((a, b) => a.object.userData.size - b.object.userData.size);
-      const shellHit = shellHits.find((h) => this.screenRadius(h.object, h.object.userData.radius) >= PICK_SHELL_MIN_PX) ?? shellHits.at(-1);
+      const shellHit =
+        shellHits.find((h) => this.screenRadius(h.object, h.object.userData.radius) >= ((h.object.userData.pickMinPx as number | undefined) ?? PICK_SHELL_MIN_PX)) ??
+        shellHits.at(-1);
       // Nodes win over shells, but only once they are big enough on screen to be told apart.
       const nodeHit = ray.intersectObjects(this.pickNodes).find((h) => this.screenRadius(h.object, h.object.scale.x) >= PICK_NODE_MIN_PX);
       const hit = nodeHit ?? this.nearestNode(ndc, rect, 12) ?? shellHit;
@@ -1116,7 +1244,9 @@ export class Viewer {
 
   /** Apparent radius in screen pixels of something of world radius `r` at `obj`'s position. */
   private screenRadius(obj: THREE.Object3D, r: number): number {
-    const d = Math.max(this.camera.position.distanceTo(obj.position), 1e-3);
+    // A slice or cell is positioned at the centre of its disc, far from where it is: it names its own centre.
+    const at = (obj.userData.pickCenter as THREE.Vector3 | undefined) ?? obj.position;
+    const d = Math.max(this.camera.position.distanceTo(at), MIN_VIEW_DIST);
     return (r * this.renderer.domElement.clientHeight) / (2 * d * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
   }
 
@@ -1171,7 +1301,7 @@ export class Viewer {
     // Scale camera and focus about the point under the cursor, so that point stays put on screen.
     const newCam = this.camera.position.clone().sub(p).multiplyScalar(factor).add(p);
     const newTarget = this.controls.target.clone().sub(p).multiplyScalar(factor).add(p);
-    if (newCam.distanceTo(newTarget) < 0.05) return; // do not pass through the focus point
+    if (newCam.distanceTo(newTarget) < MIN_VIEW_DIST) return; // do not pass through the focus point
     this.camera.position.copy(newCam);
     this.controls.target.copy(newTarget);
   }
@@ -1199,7 +1329,7 @@ export class Viewer {
       o.getWorldPosition(this.tmpSphere.center);
       this.tmpSphere.radius = o.scale.x;
       if (!this.frustum.intersectsSphere(this.tmpSphere)) return false;
-      const dist = Math.max(this.camera.position.distanceTo(this.tmpSphere.center), 1e-6);
+      const dist = Math.max(this.camera.position.distanceTo(this.tmpSphere.center), MIN_VIEW_DIST);
       return ((2 * o.scale.x) / dist) * pxPerUnitAt1 >= MIN_SPIN_PX;
     });
   }
@@ -1208,9 +1338,14 @@ export class Viewer {
    * Near and far planes follow the camera's distance to its focus: the scene can span from tiny
    * worlds to rings millions of light years across.
    */
+  /** A flight has arrived when it moves less than this per frame: a tiny share of the viewing distance. */
+  private flightEps() {
+    return Math.max(this.camera.position.distanceTo(this.controls.target) * 1e-4, MIN_VIEW_DIST);
+  }
+
   private fitClipping() {
     const dist = this.camera.position.distanceTo(this.controls.target);
-    const near = Math.max(dist / 5000, 1e-4);
+    const near = Math.max(dist / 5000, MIN_VIEW_DIST / 10);
     const far = Math.max(dist * 40, this.overviewDist * 6, 5000);
     if (Math.abs(near - this.camera.near) > near * 0.01 || Math.abs(far - this.camera.far) > far * 0.01) {
       this.camera.near = near;
@@ -1294,7 +1429,7 @@ export class Viewer {
         }
         const reached = this.flyQueue.length
           ? this.focusGoal.distanceTo(this.controls.target) < this.overviewDist * 0.08 && this.cameraGoal.distanceTo(this.camera.position) < this.overviewDist * 0.08
-          : delta.length() < 0.01 && cd.length() < 0.01;
+          : delta.length() < this.flightEps() && cd.length() < this.flightEps();
         if (reached) {
           const next = this.flyQueue.shift();
           this.focusGoal = next?.focus ?? null;
@@ -1302,7 +1437,7 @@ export class Viewer {
         }
       } else {
         this.camera.position.add(delta);
-        if (delta.length() < 0.01) this.focusGoal = null;
+        if (delta.length() < this.flightEps()) this.focusGoal = null;
       }
     }
     this.controls.update();
@@ -1323,7 +1458,7 @@ export class Viewer {
       if (obj.userData.link) continue; // link captions sit between objects, not on them
       nearest = Math.min(nearest, this.camera.position.distanceTo(obj.position));
     }
-    const ref = Math.min(dist, Math.max(nearest * 3, 1e-3));
+    const ref = Math.min(dist, Math.max(nearest * 3, MIN_VIEW_DIST));
     this.placeRingLabels();
     this.layoutArcTexts();
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
@@ -1336,6 +1471,29 @@ export class Viewer {
       this.cardObj.element.style.zIndex = '1000000';
     }
   }
+}
+
+/** Middle of a slice relative to the centre of its disc (mid radius, mid angle). */
+function wedgeCentre(w: { r0: number; r1: number; a0: number; a1: number }): THREE.Vector2 {
+  const r = (w.r0 + w.r1) / 2;
+  const a = (w.a0 + w.a1) / 2;
+  return new THREE.Vector2(r * Math.cos(a), r * Math.sin(a));
+}
+
+/**
+ * Slice of a disc (annular sector) as a flat solid: built in XY around `mid` (its own middle, so that a
+ * tiny slice far from the disc's centre keeps full precision on the GPU), extruded `height` along z.
+ */
+function wedgeGeometry(w: { r0: number; r1: number; a0: number; a1: number }, height: number, mid: THREE.Vector2): THREE.ExtrudeGeometry {
+  const steps = Math.max(8, Math.ceil(((w.a1 - w.a0) / (Math.PI * 2)) * 96));
+  // r·cos a − mid: the subtraction happens here in double precision, only the small result is stored.
+  const pt = (r: number, a: number) => new THREE.Vector2(r * Math.cos(a) - mid.x, r * Math.sin(a) - mid.y);
+  const pts: THREE.Vector2[] = [];
+  for (let i = 0; i <= steps; i++) pts.push(pt(w.r1, w.a0 + ((w.a1 - w.a0) * i) / steps));
+  if (w.r0 > 0) for (let i = steps; i >= 0; i--) pts.push(pt(w.r0, w.a0 + ((w.a1 - w.a0) * i) / steps));
+  else pts.push(new THREE.Vector2(-mid.x, -mid.y));
+  const shape = new THREE.Shape(pts);
+  return new THREE.ExtrudeGeometry(shape, { depth: Math.max(height, 1e-15), bevelEnabled: false, curveSegments: 1 });
 }
 
 /** Distance from a ring to the nearest other ring sharing its centre and parent (0 if none). */

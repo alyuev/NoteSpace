@@ -73,15 +73,40 @@ export interface GroupFrame {
    * on the ring and the shell are stretched along Z (north–south). Absent: round.
    */
   ringAspect?: number;
+  /** `wedges` with a fixed size: share of the disc radius left empty in the middle (default 0.25). */
+  wedgeInner?: number;
+  /** `cells`: how the slice is divided. */
+  cells?: {
+    /** Number of cells (default 100; older spaces give it as rings × slices). */
+    count?: number;
+    rings?: number;
+    slices?: number;
+    /** Numbering starts at the outer ring (default) or at the inner one. */
+    from?: 'outer' | 'inner';
+  };
+  /** Brightness of the shell's edge lines relative to the default (1 = default, 0.2 = much dimmer). */
+  edgeOpacity?: number;
   /** Visibility of the shell, 0..1 (1 = default); contents are not affected. */
   shellOpacity?: number;
 }
 
-export type ShellShape = 'ellipsoid' | 'sphere' | 'torus';
+export type ShellShape = 'ellipsoid' | 'sphere' | 'torus' | 'wedge';
 
 export type ShellCenter = 'content' | 'shift' | 'zero';
 
-export type Arrange = 'free' | 'ring';
+/**
+ * free   — force layout;
+ * ring   — evenly on a ring, pinned ones in the centre;
+ * wedges — pinned ones in the centre, the rest as equal slices of a disc around them (children with
+ *          the `wedge` shell are drawn as these slices, so together they tile the disc). With a fixed
+ *          size the slices are laid out from it alone (`wedgeInner`), not from their contents;
+ *          each slice gets a fixed size so its contents are scaled to fit it.
+ * cells  — the group is itself a `wedge` slice; it is divided into `cells.count` nearly square cells of
+ *          equal area (rings of equal thickness, more cells per ring towards the edge of the disc). The
+ *          middle cell is kept for children without a cell number (the capital); a child with `cell`
+ *          = n sits in cell n (numbered ring by ring from the outer edge), scaled to fit.
+ */
+export type Arrange = 'free' | 'ring' | 'wedges' | 'cells';
 
 export interface SpaceNode {
   id: string;
@@ -108,6 +133,8 @@ export interface SpaceNode {
   aimAt?: string;
   /** Named style of the space; when set it replaces `style`. */
   styleId?: string;
+  /** In a `cells` group: number (from 1) of the cell this child occupies. */
+  cell?: number;
   /** Caption size multiplier for this object (1 = default): to make an important object stand out. */
   labelScale?: number;
   /** Do not draw the title next to the object (the description card still appears on hover). */

@@ -395,13 +395,16 @@ function renderRight() {
               <select id="f-arrange">
                 <option value="free" ${n.frame!.arrange !== 'ring' ? 'selected' : ''}>свободное</option>
                 <option value="ring" ${n.frame!.arrange === 'ring' ? 'selected' : ''}>по кругу (закреплённые — в центре)</option>
+                <option value="wedges" ${n.frame!.arrange === 'wedges' ? 'selected' : ''}>клинья вокруг центра (закреплённые — в центре)</option>
+                <option value="cells" ${n.frame!.arrange === 'cells' ? 'selected' : ''}>ячейки клина (дети — по номеру ячейки)</option>
               </select>
             </label>
             <label>Форма оболочки
               <select id="f-shell">
-                <option value="ellipsoid" ${n.frame!.shell !== 'torus' && n.frame!.shell !== 'sphere' ? 'selected' : ''}>эллипсоид</option>
+                <option value="ellipsoid" ${n.frame!.shell !== 'torus' && n.frame!.shell !== 'sphere' && n.frame!.shell !== 'wedge' ? 'selected' : ''}>эллипсоид</option>
                 <option value="sphere" ${n.frame!.shell === 'sphere' ? 'selected' : ''}>шар</option>
                 <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
+                <option value="wedge" ${n.frame!.shell === 'wedge' ? 'selected' : ''}>клин (кусок диска; в группе с расположением «клинья»)</option>
               </select>
             </label>
             <label title="Ширина полосы кольца в процентах от того, что оно окружает (внутреннего радиуса). 0 — по размеру содержимого." ${n.frame!.shell === 'torus' ? '' : 'hidden'}>Ширина кольца, % от внутреннего радиуса
@@ -409,6 +412,16 @@ function renderRight() {
             </label>
             <label title="Толщина кольца в процентах от его ширины: 100 — круглое сечение, меньше — приплюснутое. Действует, когда задана ширина." ${n.frame!.shell === 'torus' && n.frame!.ringWidth ? '' : 'hidden'}>Толщина кольца, % от ширины
               <input id="f-ringThickness" type="number" min="1" max="100" step="1" value="${Math.round((n.frame!.ringThickness ?? 0.24) * 100)}">
+            </label>
+            <label title="Яркость линий оболочки относительно обычной: 100 — как у всех, меньше — тусклее" ${n.frame!.shell === 'wedge' || n.frame!.shell === 'torus' || !n.frame!.shell ? '' : 'hidden'}>Яркость линий оболочки, %
+              <input id="f-edgeOpacity" type="number" min="1" max="200" step="5" value="${Math.round((n.frame!.edgeOpacity ?? 1) * 100)}">
+            </label>
+            <label title="Для расположения «ячейки клина»: на сколько ячеек разделён клин. Середина остаётся под столицу (дети без номера ячейки)" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}>Число ячеек
+              <input id="f-cells" type="number" min="1" step="1" value="${n.frame!.cells ? (n.frame!.cells.count ?? (n.frame!.cells.rings ?? 10) * (n.frame!.cells.slices ?? 10)) : 100}">
+            </label>
+            <label class="check" title="По умолчанию ячейки нумеруются от внешнего кольца; с галочкой — от внутреннего (у центра)" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}><input id="f-cellsInner" type="checkbox" ${n.frame!.cells?.from === 'inner' ? 'checked' : ''}>Нумерация ячеек от центра</label>
+            <label title="Для расположения «клинья» с фиксированным размером: какая часть радиуса в середине остаётся пустой" ${n.frame!.arrange === 'wedges' ? '' : 'hidden'}>Пустой центр, % радиуса
+              <input id="f-wedgeInner" type="number" min="0" max="90" step="1" value="${Math.round((n.frame!.wedgeInner ?? 0.25) * 100)}">
             </label>
             <label title="Отношение размера север–юг к размеру восток–запад для колец и групп с расположением по кругу: 1 — круг, 7/6 — как Остров Рай. Можно ввести дробь." ${n.frame!.shell === 'torus' || n.frame!.arrange === 'ring' ? '' : 'hidden'}>Вытянутость север–юг
               <input id="f-ringAspect" type="text" value="${n.frame!.ringAspect ? +n.frame!.ringAspect.toFixed(4) : 1}">
@@ -481,6 +494,9 @@ function renderRight() {
         <div id="f-aimAt"></div>
       </div>
       <label class="check" title="Название не рисуется рядом с объектом; карточка с описанием при наведении остаётся"><input id="f-nolabel" type="checkbox" ${n.hideLabel ? 'checked' : ''}>Не показывать название</label>
+      <label title="Если родитель — группа с расположением «ячейки клина»: номер ячейки, которую занимает этот объект. Нумерация с 1: сначала средний слой, затем слои выше и ниже по очереди; в слое — по кольцам от внешнего края (или от центра, если так задано у родителя), в кольце — по углу. Центральная ячейка среднего слоя отдана столице и не нумеруется.">Номер ячейки
+        <input id="f-cell" type="number" min="0" step="1" value="${n.cell ?? ''}">
+      </label>
       <label title="Во сколько раз название этого объекта крупнее обычного (1 — как у всех)">Размер названия, ×
         <input id="f-labelScale" type="number" min="0.2" max="20" step="0.1" value="${n.labelScale ?? 1}">
       </label>
@@ -592,10 +608,30 @@ function renderRight() {
   edit('#f-step', (el) => (n.frame!.levelStep = Math.max(0.5, num(el, n.frame!.levelStep))));
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
-  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' ? el.value : undefined));
+  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' || el.value === 'wedge' ? el.value : undefined));
   edit('#f-ringWidth', (el) => {
     const v = Math.max(0, num(el, 0)) / 100;
     n.frame!.ringWidth = v > 0 ? v : undefined;
+  });
+  edit('#f-edgeOpacity', (el) => {
+    const v = Math.max(0.01, num(el, 100) / 100);
+    n.frame!.edgeOpacity = Math.abs(v - 1) > 1e-6 ? v : undefined;
+  }, false);
+  edit('#f-cells', (el) => {
+    const count = Math.round(num(el, 100));
+    n.frame!.cells = count >= 1 ? { count, ...(n.frame!.cells?.from ? { from: n.frame!.cells.from } : {}) } : undefined;
+  });
+  edit('#f-cellsInner', (el) => {
+    const c = n.frame!.cells;
+    n.frame!.cells = { count: c?.count ?? (c?.rings ?? 10) * (c?.slices ?? 10), ...(el.checked ? { from: 'inner' as const } : {}) };
+  });
+  edit('#f-wedgeInner', (el) => {
+    const v = Math.min(0.9, Math.max(0, num(el, 25) / 100));
+    n.frame!.wedgeInner = Math.abs(v - 0.25) > 1e-6 ? v : undefined;
+  });
+  edit('#f-cell', (el) => {
+    const v = Math.round(num(el, 0));
+    n.cell = v >= 1 ? v : undefined;
   });
   edit('#f-ringAspect', (el) => {
     const [a, b] = el.value.replace(',', '.').split('/').map(Number);
