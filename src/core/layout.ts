@@ -389,6 +389,8 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
   const wedges = new Map<string, Slot>();
   /** Height of a child inside a layered `cells` group, relative to the group's origin. */
   const cellY = new Map<string, number>();
+  /** Extent of what stands in the middle cell of a `cells` group (before it is scaled to fit the cell). */
+  const capExt = new Map<string, { r: number; ry: number; mid: number }>();
   const slots = new Map<string, Slot | null>();
 
   const step = (g: SpaceNode | undefined) => g?.frame?.levelStep ?? space.globalStep;
@@ -530,6 +532,23 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     const cached = groupId ? natural.get(groupId) : undefined;
     if (cached) return cached;
     const group = groupId ? idx.byId.get(groupId) : undefined;
+    // A divided slice: its cells have their own sizes; what stands in the middle cell (the capital)
+    // is measured, then scaled down to fit that cell, like the contents of a fixed-size group.
+    if (group && isExpandedGroup(group) && group.frame?.arrange === 'cells' && slotOf(group) && !group.frame.fixedSize) {
+      const first = layoutGroupBody(groupId);
+      const cap = capExt.get(group.id);
+      const g = gridOf(group);
+      if (!cap || !g?.reserved) return first;
+      const cell = cellSlot(g, g.reserved[0], g.reserved[1], g.reserved[2]);
+      const h = Math.min(1, (0.85 * cell.rho) / Math.max(cap.r, 1e-15));
+      const v = Math.min(h, (0.85 * cell.ry) / Math.max(cap.ry, 1e-15));
+      if (h >= 1 && v >= 1) return first;
+      forgetInside(group.id);
+      natural.delete(group.id);
+      fitH.set(group.id, h);
+      fitV.set(group.id, v);
+      return layoutGroupBody(groupId);
+    }
     const size = group?.frame?.fixedSize ?? autoSize(group);
     if (!group || !size || !isExpandedGroup(group)) return layoutGroupBody(groupId);
 
@@ -586,7 +605,7 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
       const y = n.levelMode === 'global' ? n.level * space.globalStep - absY(group) : localY(n, group);
       // A centre-pinned torus only occupies its ring, not the ellipsoid that bounds it.
       const r = ringed && n.pinned ? ringOuter(n) : e.r;
-      const item: SimItem = { id: n.id, r, yc: y + e.cy, ry: e.ry, gap: 1.5 * k, angle: aim.get(n.id) };
+      const item: SimItem = { id: n.id, r, yc: y + e.cy, ry: e.ry, gap: 1.5 * k, angle: aim.get(n.id) ?? (n.ringAngle !== undefined ? (n.ringAngle * Math.PI) / 180 : undefined) };
       // Pinned positions are in the group's own units: they scale with the nesting level like node sizes do.
       const pin = n.pinned ? { x: n.pinned.x * k, z: n.pinned.z * k } : undefined;
       const start = pin ?? prev?.local.get(n.id);
@@ -626,14 +645,26 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     } else if (wedged) wedgeR = placeWedges(items, RING_GAP * k, wedges);
     else if (group?.frame?.arrange === 'cells' && slotOf(group)) {
       const g = gridOf(group);
-      // Children without a cell (the capital) stand in the middle cell kept for them.
+      // Children without a cell (the capital and everything around it) share the middle cell kept for
+      // them: laid out among themselves, then moved there (`layoutGroup` scales them to fit it).
       const centre = g?.reserved ? cellSlot(g, g.reserved[0], g.reserved[1], g.reserved[2]) : null;
+      const capital = items.filter((it) => !slotOfItem(it));
+      if (capital.length > 1) placeFree(capital, groupId, k);
+      else for (const it of capital) (it.x = it.fx ?? 0), (it.y = it.fy ?? 0);
+      const levelY = (it: SimItem) => it.yc - extentOf(idx.byId.get(it.id)!).cy;
+      if (capital.length) {
+        const lo = Math.min(...capital.map((it) => it.yc - it.ry));
+        const hi = Math.max(...capital.map((it) => it.yc + it.ry));
+        const r = Math.max(...capital.map((it) => Math.hypot(it.x!, it.y!) + it.r));
+        capExt.set(group.id, { r, ry: (hi - lo) / 2, mid: (lo + hi) / 2 });
+      }
+      const mid = capExt.get(group.id)?.mid ?? 0;
       for (const it of items) {
         const sl = slotOfItem(it);
-        it.x = sl ? sl.mx : (centre?.mx ?? 0);
-        it.y = sl ? sl.mz : (centre?.mz ?? 0);
-        // Height inside the layered volume (instead of the level).
-        cellY.set(it.id, sl ? (sl.my ?? 0) : (centre?.my ?? 0));
+        it.x = sl ? sl.mx : (centre?.mx ?? 0) + it.x!;
+        it.y = sl ? sl.mz : (centre?.mz ?? 0) + it.y!;
+        // Height inside the layered volume (instead of the level); the capital keeps its own levels, centred on its cell.
+        cellY.set(it.id, sl ? (sl.my ?? 0) : (centre?.my ?? 0) + levelY(it) - mid);
         if (sl) wedges.set(it.id, sl);
       }
       const own = slotOf(group)!;
@@ -713,10 +744,12 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     if (items.every((it) => it.fx !== undefined)) return;
     // Links between anything inside two different children pull those children together.
     const pairs = new Map<string, { source: string; target: string }>();
+    const present = new Set(items.map((it) => it.id));
     for (const l of space.links) {
       const a = childUnder(l.from, parentId);
       const b = childUnder(l.to, parentId);
-      if (a && b && a !== b) pairs.set(a < b ? `${a}|${b}` : `${b}|${a}`, { source: a, target: b });
+      // Only between the items being placed (the capital of a divided slice is placed apart from its cells).
+      if (a && b && a !== b && present.has(a) && present.has(b)) pairs.set(a < b ? `${a}|${b}` : `${b}|${a}`, { source: a, target: b });
     }
     // d3 starts unplaced items on a spiral of absolute size (10 units): inside a tiny (scaled) group
     // that is far outside the group and the weak forces never bring them back. Scale it like the group.

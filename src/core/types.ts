@@ -133,6 +133,8 @@ export interface SpaceNode {
   aimAt?: string;
   /** Named style of the space; when set it replaces `style`. */
   styleId?: string;
+  /** In a ring or torus group: fixed angle on the ring, degrees (0 = east, 90 = south); otherwise the next free slot. */
+  ringAngle?: number;
   /** In a `cells` group: number (from 1) of the cell this child occupies. */
   cell?: number;
   /** Caption size multiplier for this object (1 = default): to make an important object stand out. */

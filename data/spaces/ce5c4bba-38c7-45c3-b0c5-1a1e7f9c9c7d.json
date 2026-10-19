@@ -14162,7 +14162,7 @@
     {
       "kind": "group",
       "parentId": "ensa",
-      "contentHtml": "<p>Наша локальная вселенная: 100 созвездий, до 10 млн обитаемых миров по завершении.</p><p class=\"ref\">Документ 32–35</p><p>Ячейка 84 из 100 в малом секторе Энса (нумерация от центра сектора).</p>",
+      "contentHtml": "<p>Наша локальная вселенная: 100 созвездий, до 10 млн обитаемых миров по завершении.</p><p class=\"ref\">Документ 32–35</p><p>Ячейка 84 из 100 в малом секторе Энса (нумерация от центра сектора).</p><p>Разделена на 100 созвездий; в центре — столица Салвингтон. Норлатиадек — 70-е созвездие.</p>",
       "tags": [
         "place"
       ],
@@ -14180,7 +14180,11 @@
         "levelStep": 5,
         "collapsed": false,
         "shell": "wedge",
-        "edgeOpacity": 1
+        "edgeOpacity": 1,
+        "arrange": "cells",
+        "cells": {
+          "count": 100
+        }
       },
       "cell": 84,
       "labelScale": 4
@@ -24127,12 +24131,12 @@
     {
       "kind": "group",
       "parentId": "nebadon",
-      "contentHtml": "<p>Наше созвездие: 100 локальных систем.</p><p class=\"ref\">Документ 43</p>",
+      "contentHtml": "<p>Наше созвездие: 100 локальных систем.</p><p class=\"ref\">Документ 43</p><p>70-е созвездие Небадона; 100 локальных систем, столица Эдентия. Сатания — 24-я система.</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
+      "level": 0,
       "id": "norlatiadek",
       "title": "Норлатиадек (созвездие)",
       "style": {
@@ -24143,8 +24147,16 @@
       "frame": {
         "offset": 0,
         "levelStep": 5,
-        "collapsed": false
-      }
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 1,
+        "arrange": "cells",
+        "cells": {
+          "count": 100
+        }
+      },
+      "cell": 70,
+      "labelScale": 4
     },
     {
       "kind": "group",
@@ -39616,12 +39628,12 @@
     {
       "kind": "group",
       "parentId": "norlatiadek",
-      "contentHtml": "<p>Наша локальная система, более 600 обитаемых миров.</p><p class=\"ref\">Документ 45</p>",
+      "contentHtml": "<p>Наша локальная система, более 600 обитаемых миров.</p><p class=\"ref\">Документ 45</p><p>24-я система созвездия Норлатиадек; рассчитана на 1000 обитаемых миров, из них сейчас обитаемы 619 (ещё более двухсот готовятся), столица Иерусем. Урантия — мир № 606.</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -2,
+      "level": 0,
       "id": "satania",
       "title": "Сатания (система)",
       "style": {
@@ -39632,8 +39644,16 @@
       "frame": {
         "offset": 0,
         "levelStep": 5,
-        "collapsed": false
-      }
+        "collapsed": false,
+        "shell": "wedge",
+        "edgeOpacity": 1,
+        "arrange": "cells",
+        "cells": {
+          "count": 1000
+        }
+      },
+      "cell": 24,
+      "labelScale": 4
     },
     {
       "kind": "group",
@@ -40860,13 +40880,427 @@
     },
     {
       "kind": "group",
+      "id": "d98803dc-460b-42d5-a391-c619f5dca780",
       "parentId": "satania",
-      "contentHtml": "<p>Обитаемый мир № 606 в Сатании. Мир, пострадавший от восстания, и мир пришествия Михаила.</p><p class=\"ref\">Документ 57–119</p>",
+      "title": "Солнечная система (Монматия)",
+      "contentHtml": "<p>Наша солнечная система: Солнце и его планеты. Третья планета — Земля, она же Урантия, мир № 606 системы Сатания.</p><p>Размеры и расстояния условные.</p>",
       "tags": [
         "place"
       ],
       "levelMode": "local",
-      "level": -10,
+      "level": 0,
+      "cell": 606,
+      "labelScale": 4,
+      "style": {
+        "color": "#ffd866",
+        "shape": "sphere",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "wedge",
+        "arrange": "ring",
+        "edgeOpacity": 1
+      }
+    },
+    {
+      "kind": "note",
+      "id": "73cab331-062e-4996-bd4a-aa60c1fe30f3",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Солнце",
+      "contentHtml": "<p>Звезда в центре Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "style": {
+        "color": "#ffb000",
+        "shape": "sphere",
+        "size": 2.2
+      }
+    },
+    {
+      "kind": "group",
+      "id": "71a21458-6192-4a29-8c38-330024360a99",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Меркурий",
+      "contentHtml": "<p>Орбита планеты Меркурий.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#b0a89a",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "04ef5d6f-24d6-4c2e-8354-7e821379ad5d",
+      "parentId": "71a21458-6192-4a29-8c38-330024360a99",
+      "title": "Меркурий",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#b0a89a",
+        "shape": "sphere",
+        "size": 0.45
+      },
+      "ringAngle": 0
+    },
+    {
+      "kind": "group",
+      "id": "ab6dc7df-b248-44e3-a9b5-8f9d390d8e85",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Венера",
+      "contentHtml": "<p>Орбита планеты Венера.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#e3c07a",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "9969c6f4-ca57-4d48-9611-43b53dce2f47",
+      "parentId": "ab6dc7df-b248-44e3-a9b5-8f9d390d8e85",
+      "title": "Венера",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#e3c07a",
+        "shape": "sphere",
+        "size": 0.8
+      },
+      "ringAngle": 138
+    },
+    {
+      "kind": "group",
+      "id": "ba2eb618-ee5a-4f72-a4bc-d8096cf12345",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Земля",
+      "contentHtml": "<p>Орбита планеты Земля.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#2ac3de",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "group",
+      "id": "be657a9b-0318-432d-985a-66a03b06476b",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Марс",
+      "contentHtml": "<p>Орбита планеты Марс.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#d0603a",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "cf1a2bd7-caa4-4402-b64f-0d0433b3c326",
+      "parentId": "be657a9b-0318-432d-985a-66a03b06476b",
+      "title": "Марс",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#d0603a",
+        "shape": "sphere",
+        "size": 0.55
+      },
+      "ringAngle": 53
+    },
+    {
+      "kind": "group",
+      "id": "f5e665e1-85e8-4cd5-ad54-61a1e647561e",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Юпитер",
+      "contentHtml": "<p>Орбита планеты Юпитер.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#d9a066",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "0cc345ce-5d2c-4bbd-8a7e-cfcfa2afeaf8",
+      "parentId": "f5e665e1-85e8-4cd5-ad54-61a1e647561e",
+      "title": "Юпитер",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#d9a066",
+        "shape": "sphere",
+        "size": 1.6
+      },
+      "ringAngle": 190
+    },
+    {
+      "kind": "group",
+      "id": "0b9f7f76-4727-42aa-9330-f6f7b161a20c",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Сатурн",
+      "contentHtml": "<p>Орбита планеты Сатурн.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#e6cf8a",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "58f5925a-cb61-4581-89ad-be82dc1d0926",
+      "parentId": "0b9f7f76-4727-42aa-9330-f6f7b161a20c",
+      "title": "Сатурн",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#e6cf8a",
+        "shape": "sphere",
+        "size": 1.4
+      },
+      "ringAngle": 328
+    },
+    {
+      "kind": "group",
+      "id": "d06fc471-e11b-4ce2-bf98-82daa75e5992",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Уран",
+      "contentHtml": "<p>Орбита планеты Уран.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#8fd3e0",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "a30eccaa-11f4-4116-8d56-c9e2ec0940ec",
+      "parentId": "d06fc471-e11b-4ce2-bf98-82daa75e5992",
+      "title": "Уран",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#8fd3e0",
+        "shape": "sphere",
+        "size": 1.1
+      },
+      "ringAngle": 105
+    },
+    {
+      "kind": "group",
+      "id": "b562e092-b294-40cf-b1f7-6f6b769f61fb",
+      "parentId": "d98803dc-460b-42d5-a391-c619f5dca780",
+      "title": "Орбита: Нептун",
+      "contentHtml": "<p>Орбита планеты Нептун.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "pinned": {
+        "x": 0,
+        "z": 0
+      },
+      "hideLabel": true,
+      "style": {
+        "color": "#4f7bd8",
+        "shape": "torus",
+        "size": 1
+      },
+      "frame": {
+        "offset": 0,
+        "levelStep": 1,
+        "collapsed": false,
+        "shell": "torus",
+        "shellOpacity": 0.35,
+        "edgeOpacity": 0.5
+      }
+    },
+    {
+      "kind": "note",
+      "id": "a18f0d87-ccda-41f6-ac67-765a86945453",
+      "parentId": "b562e092-b294-40cf-b1f7-6f6b769f61fb",
+      "title": "Нептун",
+      "contentHtml": "<p>Планета Солнечной системы.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
+      "style": {
+        "color": "#4f7bd8",
+        "shape": "sphere",
+        "size": 1.1
+      },
+      "ringAngle": 243
+    },
+    {
+      "kind": "group",
+      "parentId": "ba2eb618-ee5a-4f72-a4bc-d8096cf12345",
+      "contentHtml": "<p>Обитаемый мир № 606 в Сатании. Мир, пострадавший от восстания, и мир пришествия Михаила.</p><p class=\"ref\">Документ 57–119</p><p>Третья планета Солнечной системы, мир № 606 системы Сатания.</p>",
+      "tags": [
+        "place"
+      ],
+      "levelMode": "local",
+      "level": 0,
       "id": "urantia",
       "title": "Урантия (Земля)",
       "style": {
@@ -40881,7 +41315,8 @@
         "shellOpacity": 0.9,
         "arrange": "free",
         "shell": "sphere"
-      }
+      },
+      "ringAngle": 275
     },
     {
       "kind": "note",
