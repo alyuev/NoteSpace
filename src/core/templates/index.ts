@@ -40,15 +40,19 @@ export interface TemplateUpdate {
  */
 export function updateFromTemplate(space: Space, tpl: SpaceTemplate): TemplateUpdate {
   const fresh = tpl.create();
-  // Template items have short fixed ids; everything created in the app gets a UUID. Items that
-  // were removed from the template therefore disappear instead of being kept as "the user's".
-  const ownNodes = space.nodes.filter((n) => isUserId(n.id)).map((n) => structuredClone(n));
+  // Template items keep their ids. Everything created in the app gets a UUID, so a UUID that is not
+  // in the template is the user's own and is kept; items removed from the template disappear. (A
+  // template made from a snapshot of a space contains UUIDs too: those count as template items.)
+  const freshIds = new Set(fresh.nodes.map((n) => n.id));
+  const own = (id: string, inTemplate: Set<string>) => isUserId(id) && !inTemplate.has(id);
+  const ownNodes = space.nodes.filter((n) => own(n.id, freshIds)).map((n) => structuredClone(n));
   const nodes = [...fresh.nodes, ...ownNodes];
   const nodeIds = new Set(nodes.map((n) => n.id));
   // A user node whose parent no longer exists moves to the root.
   for (const n of ownNodes) if (n.parentId && !nodeIds.has(n.parentId)) n.parentId = null;
 
-  const ownLinks = space.links.filter((l) => isUserId(l.id) && nodeIds.has(l.from) && nodeIds.has(l.to));
+  const freshLinks = new Set(fresh.links.map((l) => l.id));
+  const ownLinks = space.links.filter((l) => own(l.id, freshLinks) && nodeIds.has(l.from) && nodeIds.has(l.to));
 
   return {
     space: {
@@ -58,10 +62,12 @@ export function updateFromTemplate(space: Space, tpl: SpaceTemplate): TemplateUp
       templateId: tpl.id,
       frontNodeId: space.frontNodeId ?? fresh.frontNodeId,
       originNodeId: space.originNodeId ?? fresh.originNodeId,
+      lightYearsPerUnit: space.lightYearsPerUnit ?? fresh.lightYearsPerUnit,
       nodes,
       links: [...fresh.links, ...ownLinks],
-      tags: [...fresh.tags, ...space.tags.filter((t) => isUserId(t.id))],
-      styles: [...(fresh.styles ?? []), ...(space.styles ?? []).filter((s) => isUserId(s.id))],
+      tags: [...fresh.tags, ...space.tags.filter((t) => own(t.id, new Set(fresh.tags.map((x) => x.id))))],
+      styles: [...(fresh.styles ?? []), ...(space.styles ?? []).filter((x) => own(x.id, new Set((fresh.styles ?? []).map((y) => y.id))))],
+      en: fresh.en ?? space.en,
     },
     keptNodes: ownNodes.length,
   };
