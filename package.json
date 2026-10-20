@@ -8,13 +8,18 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:web": "node scripts/bundle-starter.mjs && tsc --noEmit && vite build --base ./",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
     "d3-force-3d": "^3.0.6",
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.12.3",
     "@types/three": "^0.186.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"

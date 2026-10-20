@@ -163,6 +163,8 @@ export class Viewer {
   showFrames = true;
   /** Draw the vertical axis through the centre of the space. Takes effect on the next render. */
   showAxis = true;
+  /** Draw link lines (and their captions). Takes effect on the next render. */
+  showLinks = false;
   /** Draw the floor grid under the space. Takes effect on the next render. */
   showGrid = false;
   private labelDepthFade = DEFAULT_LABEL_DEPTH_FADE;
@@ -497,7 +499,7 @@ export class Viewer {
       }
     }
 
-    for (const l of space.links) {
+    for (const l of this.showLinks ? space.links : []) {
       const a = layout.placed.get(l.from)?.anchorId;
       const b = layout.placed.get(l.to)?.anchorId;
       if (!a || !b || a === b) continue;

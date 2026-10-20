@@ -9,7 +9,9 @@ import { newId, type ShellCenter, type Arrange, type NamedStyle, type Shape, typ
 import { loadSettings, saveSettings } from './settings';
 import {
   backupSpace,
+  dataFolder,
   deleteSpace,
+  storageKind,
   initStorage,
   listBackups,
   listSpaces,
@@ -75,6 +77,7 @@ viewer.labelScale = settings.labelScale;
 viewer.labelShrink = settings.labelDepthShrink;
 viewer.showFrames = settings.showFrames;
 viewer.showAxis = settings.showAxis;
+viewer.showLinks = settings.showLinks;
 viewer.showGrid = settings.showGrid ?? false;
 viewer.onSelect = (id) => {
   selectedId = id;
@@ -210,6 +213,7 @@ function renderLeft() {
     <div class="muted">${esc(targetHint())}</div>
 
     <h2>${tr('Настройки вида')}</h2>
+    <label class="check" title="${tr('Линии между связанными записями и группами')}"><input id="showLinks" type="checkbox" ${settings.showLinks ? 'checked' : ''}> ${tr('Линии связей')}</label>
     <label>${tr('Яркость связей:')} <span id="linkOpacityValue">${Math.round(settings.linkOpacity * 100)}%</span>
       <input id="linkOpacity" type="range" min="0" max="100" step="1" value="${Math.round(settings.linkOpacity * 100)}">
     </label>
@@ -284,6 +288,12 @@ function renderLeft() {
     viewer.setObjectDepthFade(settings.objectDepthFade);
     left.querySelector('#objectFadeValue')!.textContent = `${Math.round(settings.objectDepthFade * 100)}%`;
     saveSettings(settings);
+  });
+  on(left, '#showLinks', 'change', (e) => {
+    settings.showLinks = (e.target as HTMLInputElement).checked;
+    viewer.showLinks = settings.showLinks;
+    saveSettings(settings);
+    renderScene();
   });
   on(left, '#showAxis', 'change', (e) => {
     settings.showAxis = (e.target as HTMLInputElement).checked;
@@ -835,7 +845,7 @@ function renderSpaceSettings() {
         <button id="b-import" title="${tr('Загрузить пространство из файла .json')}">${tr('Импорт…')}</button>
       </div>
       <ul class="links" id="b-list"><li class="muted">${tr('загрузка…')}</li></ul>
-      <div class="muted">${tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Файлы: data/backups/')}</div>
+      <div class="muted">${esc(backupsHint())}</div>
     </fieldset>
 
     <fieldset>
@@ -1013,6 +1023,9 @@ function setupSidePanels() {
   for (const side of ['left', 'right'] as const) {
     const el = document.getElementById(`${side}-side`)!;
     const state = settings.panels[side];
+    // Nothing on the panels is meant to be dragged: without this, pulling a slider after some text
+    // got selected starts dragging that text (the "no entry" cursor) instead of moving the slider.
+    el.addEventListener('dragstart', (e) => e.preventDefault());
     const apply = () => {
       el.classList.toggle('collapsed', state.collapsed);
       el.style.setProperty('--w', `${state.width}px`);
@@ -1192,6 +1205,17 @@ function setEn(n: SpaceNode, key: 'title' | 'contentHtml', value: string) {
   n.en = Object.keys(en).length ? en : undefined;
 }
 
+
+/** Where backups are kept: depends on where the app stores its data. */
+function backupsHint(): string {
+  const kind = storageKind();
+  if (kind === 'desktop')
+    return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Хранятся в папке данных программы: {path}', {
+      path: `${dataFolder()}\\backups`,
+    });
+  if (kind === 'browser') return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Хранятся в этом браузере — чтобы не потерять работу, делайте «Экспорт».');
+  return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Файлы: data/backups/');
+}
 
 function on(root: HTMLElement, sel: string, type: string, fn: (e: Event) => void) {
   root.querySelector(sel)?.addEventListener(type, fn);

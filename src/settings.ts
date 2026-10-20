@@ -14,6 +14,8 @@ export interface ViewSettings {
   showFrames: boolean;
   /** Show the vertical axis through the centre of the space. */
   showAxis: boolean;
+  /** Draw link lines between nodes (off by default: a calmer first view). */
+  showLinks: boolean;
   showGrid: boolean;
   /** How strongly labels far from the camera fade, 0..1. */
   labelDepthFade: number;
@@ -41,6 +43,7 @@ const DEFAULTS: ViewSettings = {
   linkOpacity: DEFAULT_LINK_OPACITY,
   showFrames: true,
   showAxis: true,
+  showLinks: false,
   showGrid: false,
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,
@@ -48,7 +51,7 @@ const DEFAULTS: ViewSettings = {
   labelDepthShrink: DEFAULT_LABEL_SHRINK,
   depthScale: DEFAULT_DEPTH_SCALE,
   objectDepthFade: DEFAULT_OBJECT_DEPTH_FADE,
-  panels: { left: { width: 250, collapsed: false }, right: { width: 320, collapsed: false } },
+  panels: { left: { width: 250, collapsed: true }, right: { width: 320, collapsed: true } },
 };
 
 export function loadSettings(): ViewSettings {

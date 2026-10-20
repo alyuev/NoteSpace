@@ -703,3 +703,16 @@ legend {
 .pick-list li.is-more:hover {
   background: transparent;
 }
+
+/* Panels: dragging a slider must move it, not start dragging selected text (the "no entry"
+   cursor); captions of controls are not selectable either. Inputs keep normal selection. */
+.side-body label,
+.side-body h2,
+.side-body .muted {
+  user-select: none;
+}
+
+.side-body input,
+.side-body textarea {
+  user-select: text;
+}
