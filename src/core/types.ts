@@ -84,13 +84,24 @@ export interface GroupFrame {
     /** Numbering starts at the outer ring (default) or at the inner one. */
     from?: 'outer' | 'inner';
   };
+  /**
+   * The group is as big as a note of this size would be (e.g. a planet among other planets); its
+   * contents are scaled to fit inside.
+   */
+  noteSize?: number;
+  /**
+   * `drop` shell: a body of revolution starting in a point at the group's position and widening
+   * upwards (or downwards) into a rounded end — e.g. a reservoir of unpervaded space above or below
+   * Paradise. Sizes in scene units: `height` along the axis, `radius` the widest part.
+   */
+  drop?: { dir: 'up' | 'down'; height: number; radius: number };
   /** Brightness of the shell's edge lines relative to the default (1 = default, 0.2 = much dimmer). */
   edgeOpacity?: number;
   /** Visibility of the shell, 0..1 (1 = default); contents are not affected. */
   shellOpacity?: number;
 }
 
-export type ShellShape = 'ellipsoid' | 'sphere' | 'torus' | 'wedge';
+export type ShellShape = 'ellipsoid' | 'sphere' | 'torus' | 'wedge' | 'drop';
 
 export type ShellCenter = 'content' | 'shift' | 'zero';
 
@@ -137,6 +148,23 @@ export interface SpaceNode {
   ringAngle?: number;
   /** In a `cells` group: number (from 1) of the cell this child occupies. */
   cell?: number;
+  /**
+   * Always noticeable (e.g. a final destination deep inside): a dot of fixed screen size marks it
+   * from any distance, it can be pointed at from afar, and its caption stays readable.
+   */
+  beacon?: boolean;
+  /**
+   * The beacon works only on some scales: while the view (camera to focus) is no wider than about the
+   * size of group `beaconTo`, and/or no narrower than the size of group `beaconFrom`.
+   */
+  beaconTo?: string;
+  beaconFrom?: string;
+  /** Does not react to the mouse (no highlight, no card): the pointer goes through to what is around it. */
+  passive?: boolean;
+  /** English title and description (the usual fields hold the Russian ones). */
+  en?: { title?: string; contentHtml?: string };
+  /** Caption brightness multiplier (1 = as usual). */
+  labelOpacity?: number;
   /** Caption size multiplier for this object (1 = default): to make an important object stand out. */
   labelScale?: number;
   /** Do not draw the title next to the object (the description card still appears on hover). */
@@ -163,15 +191,21 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
+  /** English name. */
+  en?: string;
 }
 
 /** Reusable appearance, e.g. "Ангелы" or "Сыны Троицы". */
 export interface NamedStyle extends NodeStyle {
   id: string;
   name: string;
+  /** English name. */
+  en?: string;
 }
 
 export interface Space {
+  /** English title of the space. */
+  en?: { title?: string };
   id: string;
   schemaVersion: number;
   title: string;

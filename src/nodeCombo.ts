@@ -1,4 +1,5 @@
 import { mainColor, styleOf, type Space, type SpaceNode } from './core/types';
+import { nodeTitle, tr } from './i18n';
 
 /**
  * The one node picker used everywhere a node has to be chosen from the space: a text field with a
@@ -19,6 +20,8 @@ export interface NodeComboOptions {
   /** Show at most this many matches (then a "… ещё N" line); default 300. */
   limit?: number;
   onChange: (id: string | null) => void;
+  /** Ids offered as soon as the field is clicked (before anything is typed), in this order. */
+  suggest?: () => string[];
 }
 
 const ICON_GROUP = '▣';
@@ -28,7 +31,7 @@ const ICON_NONE = '⌂';
 function moreItem(rest: number): HTMLLIElement {
   const li = document.createElement('li');
   li.className = 'is-more';
-  li.textContent = `… ещё ${rest}: уточните запрос`;
+  li.textContent = tr('… ещё {n}: уточните запрос', { n: rest });
   return li;
 }
 
@@ -37,28 +40,37 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
   host.classList.add('combo');
   const input = document.createElement('input');
   input.autocomplete = 'off';
-  input.placeholder = o.placeholder ?? o.emptyLabel ?? 'Название…';
+  input.placeholder = o.placeholder ?? o.emptyLabel ?? tr('Название…');
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'combo-btn';
   toggle.tabIndex = -1;
-  toggle.title = 'Открыть список';
+  toggle.title = tr('Открыть список');
   toggle.textContent = '▾';
   const list = document.createElement('ul');
   list.className = 'pick-list';
   list.hidden = true;
   host.replaceChildren(input, toggle, list);
 
-  const titleOf = (id: string | null | undefined) => (id ? (o.nodes.find((x) => x.id === id) ?? o.space.nodes.find((x) => x.id === id))?.title ?? '' : '');
+  const titleOf = (id: string | null | undefined) => {
+    const n = id ? (o.nodes.find((x) => x.id === id) ?? o.space.nodes.find((x) => x.id === id)) : undefined;
+    return n ? nodeTitle(n) : '';
+  };
   const resetInput = () => (input.value = titleOf(o.value));
   resetInput();
 
-  /** Fills the drop-down; with `filter`, keeps only titles that contain every typed word. */
-  const fill = (filter: boolean) => {
+  /**
+   * Fills the drop-down; with `filter`, keeps only titles that contain every typed word; with
+   * `suggested`, shows just the suggested nodes (in their order).
+   */
+  const fill = (filter: boolean, suggested?: string[]) => {
     const words = filter ? input.value.toLowerCase().split(/\s+/).filter(Boolean) : [];
+    const pool = suggested
+      ? suggested.map((id) => o.nodes.find((x) => x.id === id)).filter((x): x is SpaceNode => !!x)
+      : o.nodes;
     const items: { id: string; title: string; group: boolean; color: string }[] = [
-      ...(o.emptyLabel ? [{ id: '', title: o.emptyLabel, group: false, color: '' }] : []),
-      ...o.nodes.map((x) => ({ id: x.id, title: x.title, group: x.kind === 'group', color: mainColor(styleOf(o.space, x)) })),
+      ...(o.emptyLabel && !suggested ? [{ id: '', title: o.emptyLabel, group: false, color: '' }] : []),
+      ...pool.map((x) => ({ id: x.id, title: nodeTitle(x), group: x.kind === 'group', color: mainColor(styleOf(o.space, x)) })),
     ];
     const matches = items.filter((it) => !it.id || words.every((w) => it.title.toLowerCase().includes(w)));
     const limit = o.limit ?? 300;
@@ -93,7 +105,14 @@ export function mountNodeCombo(host: HTMLElement, o: NodeComboOptions): void {
     o.onChange(id || null);
   };
 
-  input.addEventListener('focus', () => input.select());
+  input.addEventListener('focus', () => {
+    input.select();
+    // Suggestions right away (the field is about to be typed over).
+    if (o.suggest) {
+      const ids = o.suggest();
+      if (ids.length) fill(false, ids);
+    }
+  });
   input.addEventListener('input', () => fill(true));
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();

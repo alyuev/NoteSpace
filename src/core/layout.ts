@@ -186,6 +186,8 @@ export interface Shell {
   id: string;
   /** Present for a group with the `wedge` shell inside a `wedges` parent. */
   wedge?: WedgeShape;
+  /** A drop (see `GroupFrame.drop`), with the point it starts from. */
+  drop?: { dir: 'up' | 'down'; height: number; radius: number; base: Vec3 };
   /** The slice is divided into layers of cells: per layer its middle height (relative to the shell's centre), half thickness, ring radii and cells per ring. */
   cells?: { layers: { y: number; ry: number; bounds: number[]; counts: number[] }[] };
   /** Present when the group's shell is a torus (the ellipsoid radii still bound it). */
@@ -477,6 +479,11 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
   /** Size given by the slot a group sits in (not for `cells` groups: their cells fill the slice). */
   const autoSize = (n: SpaceNode | undefined) => {
     if (!n || n.frame?.arrange === 'cells' || n.frame?.fixedSize) return undefined;
+    if (n.frame?.noteSize && n.frame.noteSize > 0) {
+      // Drawn like a note of that size (a note's visible sphere is 0.55 of its extent).
+      const d = 2 * NOTE_RADIUS * n.frame.noteSize * scaleOf(n) * 0.55;
+      return { x: d, y: d, z: d };
+    }
     const sl = slotOf(n);
     return sl ? { x: 2 * sl.rho, y: 2 * sl.ry, z: 2 * sl.rho } : undefined;
   };
@@ -726,6 +733,9 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     // Slices tile a disc of this radius: the group's shell must reach its edge.
     if (wedgeR > 0) ext = { ...ext, r: Math.max(ext.r, wedgeR) };
     if (forced) ext = forced;
+    // A drop: its size is given; it stands on the group's position (its point) and goes up or down.
+    const drop = group.frame?.shell === 'drop' ? group.frame.drop : undefined;
+    if (drop && drop.height > 0 && drop.radius > 0) ext = { r: drop.radius, ry: drop.height / 2, cy: ((drop.dir === 'down' ? -1 : 1) * drop.height) / 2 };
     if (centerMode(group) === 'shift') {
       // Move the contents instead of the shell: its centre lands on the group's own level.
       shift.set(group.id, -ext.cy);
@@ -737,11 +747,34 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
     return ext;
   }
 
+  /**
+   * Force layout of a group's children. d3-force has absolute constants (minimum distance 1, random
+   * nudges of 1e-6), so deep inside tiny groups it would scatter everything: the simulation runs in
+   * the group's own units (sizes divided by `k`) and the result is scaled back.
+   */
   function placeFree(items: SimItem[], parentId: string | null, k: number) {
     if (items.length === 0) return;
     // Everything pinned: positions are already final, nothing to simulate (hundreds of pinned
     // notes would cost seconds in the O(n²) force passes below).
     if (items.every((it) => it.fx !== undefined)) return;
+    if (k > 0 && k !== 1) {
+      const scale = (f: number) => {
+        for (const it of items) {
+          if (it.x !== undefined) it.x *= f;
+          if (it.y !== undefined) it.y *= f;
+          if (it.fx !== undefined) it.fx *= f;
+          if (it.fy !== undefined) it.fy *= f;
+          it.r *= f;
+          it.yc *= f;
+          it.ry *= f;
+          it.gap *= f;
+        }
+      };
+      scale(1 / k);
+      placeFree(items, parentId, 1);
+      scale(k);
+      return;
+    }
     // Links between anything inside two different children pull those children together.
     const pairs = new Map<string, { source: string; target: string }>();
     const present = new Set(items.map((it) => it.id));
@@ -829,6 +862,7 @@ function layoutPass(space: Space, prev: Layout | undefined, opts: LayoutOptions,
           center: { ...world, y: world.y + ext.cy },
           radii: fixedRadii.get(n.id) ?? { x: ext.r, y: ext.ry, z: ext.r * ringAspectOf(n) },
           zeroY: world.y + offset(n) * innerV(n) + (shift.get(n.id) ?? 0),
+          ...(n.frame?.shell === 'drop' && n.frame.drop ? { drop: { ...n.frame.drop, base: { ...world } } } : {}),
           ...(n.frame?.shell === 'wedge' && wedges.has(n.id)
             ? {
                 wedge: {

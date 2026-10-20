@@ -13,7 +13,7 @@ import type { Plugin, ViteDevServer } from 'vite';
  *   data/images/<name>           pictures for node styles (png, jpg, gif, webp, svg)
  *
  * API (JSON):
- *   GET    /api/spaces                    → [{ id, title, rev }]
+ *   GET    /api/spaces                    → [{ id, title, en?, rev }]
  *   GET    /api/spaces/:id                → { space, rev }
  *   PUT    /api/spaces/:id   body=space   → { rev }
  *   DELETE /api/spaces/:id                → {}            (backs up first)
@@ -131,7 +131,7 @@ export function notespaceData(dataDir = process.env.NOTESPACE_DATA_DIR ?? path.r
           const file = path.join(spacesDir, f);
           try {
             const s = JSON.parse(fs.readFileSync(file, 'utf8'));
-            return { id: s.id as string, title: s.title as string, rev: rev(file) };
+            return { id: s.id as string, title: s.title as string, ...(s.en ? { en: s.en } : {}), rev: rev(file) };
           } catch {
             return null; // half-written or broken file: skip
           }

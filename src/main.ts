@@ -1,4 +1,6 @@
 import './style.css';
+import './i18n-en';
+import { lang, nodeTitle, setLang, spaceTitle, styleName, tagName, tr } from './i18n';
 import type { TagFilter } from './core/filter';
 import { mountNodeCombo } from './nodeCombo';
 import { computeLayout, SpaceIndex, type Layout } from './core/layout';
@@ -20,7 +22,7 @@ import {
 } from './storage';
 import { Viewer } from './viewer/viewer';
 
-const LEVEL_HINT = `Уровень — высота узла в пространстве. Больше — выше, меньше — ниже; можно дробные и отрицательные значения (0.5, -2).
+const LEVEL_HINT = tr(`Уровень — высота узла в пространстве. Больше — выше, меньше — ниже; можно дробные и отрицательные значения (0.5, -2).
 
 Локальный (по умолчанию): высота считается внутри родительской группы:
   Y = Y группы + смещение нуля группы + уровень × шаг уровня группы.
@@ -28,16 +30,16 @@ const LEVEL_HINT = `Уровень — высота узла в простран
 
 Глобальный: Y = уровень × «Шаг глобального уровня» пространства — независимо от группы. Удобно, чтобы узлы из разных групп стояли на одном «этаже». Такой узел соединяется с группой пунктиром и не растягивает её оболочку.
 
-Внутри вложенных групп шаг дополнительно уменьшается «Масштабом вложенных групп» (Настройки вида).`;
-const LEVEL_MODE_HINT = `Локальный — высота относительно родительской группы (едет вместе с ней).
-Глобальный — высота от общего нуля пространства, независимо от группы.`;
+Внутри вложенных групп шаг дополнительно уменьшается «Масштабом вложенных групп» (Настройки вида).`);
+const LEVEL_MODE_HINT = tr(`Локальный — высота относительно родительской группы (едет вместе с ней).
+Глобальный — высота от общего нуля пространства, независимо от группы.`);
 
-const CENTER_HINT = `Где центр оболочки группы:
+const CENTER_HINT = tr(`Где центр оболочки группы:
 • по содержимому — посередине между самым нижним и самым верхним содержимым;
 • на уровне группы — содержимое сдвигается, чтобы центр оболочки был ровно на уровне самой группы (нулевой уровень внутри при этом может уйти вниз или вверх);
-• на нулевом уровне — оболочка строится симметрично от нулевого уровня группы: совпадают позиция группы, её пунктирное кольцо и геометрический центр.`;
-const FIXED_HINT = `По содержимому — оболочка растёт, когда внутрь добавляют объекты.
-Фиксированный — размер задаётся тремя диаметрами (восток–запад, север–юг, толщина), а всё содержимое вместе с подписями пропорционально уменьшается, чтобы поместиться. Центр — на нулевом уровне группы.`;
+• на нулевом уровне — оболочка строится симметрично от нулевого уровня группы: совпадают позиция группы, её пунктирное кольцо и геометрический центр.`);
+const FIXED_HINT = tr(`По содержимому — оболочка растёт, когда внутрь добавляют объекты.
+Фиксированный — размер задаётся тремя диаметрами (восток–запад, север–юг, толщина), а всё содержимое вместе с подписями пропорционально уменьшается, чтобы поместиться. Центр — на нулевом уровне группы.`);
 
 /** Shell centre mode of a group, including the old `centerOnLevel` flag. */
 function centerOf(n: SpaceNode): ShellCenter {
@@ -45,14 +47,14 @@ function centerOf(n: SpaceNode): ShellCenter {
 }
 
 const SHAPES: Shape[] = ['sphere', 'box', 'cone', 'octahedron', 'torus', 'cylinder'];
-const SHAPE_NAMES: Record<Shape, string> = {
-  sphere: 'Сфера',
-  box: 'Куб',
-  cone: 'Конус',
-  octahedron: 'Октаэдр',
-  torus: 'Тор',
-  cylinder: 'Цилиндр',
-};
+const SHAPE_NAMES = (): Record<Shape, string> => ({
+  sphere: tr('Сфера'),
+  box: tr('Куб'),
+  cone: tr('Конус'),
+  octahedron: tr('Октаэдр'),
+  torus: tr('Тор'),
+  cylinder: tr('Цилиндр'),
+});
 
 let space: Space = await initStorage();
 let layout: Layout | undefined;
@@ -63,6 +65,7 @@ const left = document.getElementById('left')!;
 const right = document.getElementById('right')!;
 const settings = loadSettings();
 setupSidePanels();
+setupLanguage();
 const viewer = new Viewer(document.getElementById('stage')!);
 viewer.setLinkOpacity(settings.linkOpacity);
 viewer.setLabelDepthFade(settings.labelDepthFade);
@@ -72,10 +75,29 @@ viewer.labelScale = settings.labelScale;
 viewer.labelShrink = settings.labelDepthShrink;
 viewer.showFrames = settings.showFrames;
 viewer.showAxis = settings.showAxis;
+viewer.showGrid = settings.showGrid ?? false;
 viewer.onSelect = (id) => {
   selectedId = id;
   refresh(false);
 };
+
+/** Objects found with the search field, most recent first (per space, in this browser). */
+function recentSearches(): string[] {
+  try {
+    const raw = localStorage.getItem(`notespace.recentSearch.${space.id}`);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+function rememberSearch(id: string) {
+  try {
+    const list = [id, ...recentSearches().filter((x) => x !== id)].slice(0, 12);
+    localStorage.setItem(`notespace.recentSearch.${space.id}`, JSON.stringify(list));
+  } catch {
+    // storage unavailable: just no history
+  }
+}
 
 // Search field over the scene: pick an object and the camera flies to it.
 const searchHost = document.createElement('div');
@@ -88,9 +110,12 @@ mountNodeCombo(searchHost, {
   get nodes() {
     return space.nodes;
   },
-  placeholder: 'Поиск по названию…',
+  placeholder: tr('Поиск по названию…'),
+  // On click: Paradise and Urantia first, then what was searched for before (most recent first).
+  suggest: () => [...new Set(['paradise', 'urantia', ...recentSearches()])].filter((id) => space.nodes.some((n) => n.id === id)),
   onChange: (id) => {
     if (!id) return;
+    rememberSearch(id);
     selectedId = id;
     refresh(false);
     viewer.flyTo(id, true); // from search the target can be anywhere: climb out first
@@ -114,7 +139,7 @@ onExternalChange(async (id, removed) => {
   space = s;
   if (selectedId && !space.nodes.some((n) => n.id === selectedId)) selectedId = null;
   refresh(true);
-  flash('Пространство обновлено с диска');
+  flash(tr('Пространство обновлено с диска'));
 });
 
 // Dev-only handle for inspecting state from the browser console.
@@ -150,69 +175,70 @@ function renderLeft() {
   left.innerHTML = `
     <h1>NoteSpace</h1>
 
-    <h2>Пространство</h2>
+    <h2>${tr('Пространство')}</h2>
     <select id="spaceSelect">
       ${listSpaces()
-        .map((m) => `<option value="${esc(m.id)}" ${m.id === space.id ? 'selected' : ''}>${esc(m.title)}</option>`)
+        .map((m) => `<option value="${esc(m.id)}" ${m.id === space.id ? 'selected' : ''}>${esc((lang === 'en' && m.en?.title) || m.title)}</option>`)
         .join('')}
     </select>
-    <div class="muted">${space.nodes.length} узлов · ${space.links.length} связей</div>
+    <div class="muted">${tr('{n} узлов · {m} связей', { n: space.nodes.length, m: space.links.length })}</div>
     <div class="row">
       <select id="templateSelect">${TEMPLATES.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select>
-      <button id="newSpace">Создать</button>
+      <button id="newSpace">${tr('Создать')}</button>
     </div>
 
-    <h2>Теги</h2>
+    <h2>${tr('Теги')}</h2>
     <div class="chips">
       ${space.tags
         .map(
           (t) =>
-            `<button class="chip ${filter.tagIds.includes(t.id) ? 'on' : ''}" data-tag="${esc(t.id)}" style="--c:${esc(t.color)}">#${esc(t.name)}</button>`,
+            `<button class="chip ${filter.tagIds.includes(t.id) ? 'on' : ''}" data-tag="${esc(t.id)}" style="--c:${esc(t.color)}">#${esc(tagName(t))}</button>`,
         )
         .join('')}
     </div>
     <div class="row">
-      <label><input type="radio" name="mode" value="any" ${filter.mode === 'any' ? 'checked' : ''}> любой</label>
-      <label><input type="radio" name="mode" value="all" ${filter.mode === 'all' ? 'checked' : ''}> все</label>
-      <button id="clearFilter" ${filter.tagIds.length ? '' : 'disabled'}>Сбросить</button>
+      <label><input type="radio" name="mode" value="any" ${filter.mode === 'any' ? 'checked' : ''}> ${tr('любой')}</label>
+      <label><input type="radio" name="mode" value="all" ${filter.mode === 'all' ? 'checked' : ''}> ${tr('все')}</label>
+      <button id="clearFilter" ${filter.tagIds.length ? '' : 'disabled'}>${tr('Сбросить')}</button>
     </div>
 
-    <h2>Создать</h2>
+    <h2>${tr('Создать')}</h2>
     <div class="row">
-      <button id="addNote">+ Запись</button>
-      <button id="addGroup">+ Группа</button>
+      <button id="addNote">${tr('+ Запись')}</button>
+      <button id="addGroup">${tr('+ Группа')}</button>
     </div>
     <div class="muted">${esc(targetHint())}</div>
 
-    <h2>Настройки вида</h2>
-    <label>Яркость связей: <span id="linkOpacityValue">${Math.round(settings.linkOpacity * 100)}%</span>
+    <h2>${tr('Настройки вида')}</h2>
+    <label>${tr('Яркость связей:')} <span id="linkOpacityValue">${Math.round(settings.linkOpacity * 100)}%</span>
       <input id="linkOpacity" type="range" min="0" max="100" step="1" value="${Math.round(settings.linkOpacity * 100)}">
     </label>
-    <label title="Во сколько раз содержимое группы меньше самой группы — на каждом уровне вложенности (размер записей, шаг уровней, отступы)">Масштаб вложенных групп: <span id="depthScaleValue">${Math.round(settings.depthScale * 100)}%</span>
+    <label title="${tr('Во сколько раз содержимое группы меньше самой группы — на каждом уровне вложенности (размер записей, шаг уровней, отступы)')}">${tr('Масштаб вложенных групп:')} <span id="depthScaleValue">${Math.round(settings.depthScale * 100)}%</span>
       <input id="depthScale" type="range" min="40" max="100" step="5" value="${Math.round(settings.depthScale * 100)}">
     </label>
-    <label title="Во сколько раз уменьшается подпись на каждом уровне вложенности — дополнительно к тому, что подпись соразмерна своему объекту">Шрифт вложенных уровней: <span id="labelShrinkValue">${Math.round(settings.labelDepthShrink * 100)}%</span>
+    <label title="${tr('Во сколько раз уменьшается подпись на каждом уровне вложенности — дополнительно к тому, что подпись соразмерна своему объекту')}">${tr('Шрифт вложенных уровней:')} <span id="labelShrinkValue">${Math.round(settings.labelDepthShrink * 100)}%</span>
       <input id="labelShrink" type="range" min="40" max="100" step="5" value="${Math.round(settings.labelDepthShrink * 100)}">
     </label>
-    <label>Размер подписей: <span id="labelScaleValue">${Math.round(settings.labelScale * 100)}%</span>
+    <label>${tr('Размер подписей:')} <span id="labelScaleValue">${Math.round(settings.labelScale * 100)}%</span>
       <input id="labelScale" type="range" min="50" max="200" step="5" value="${Math.round(settings.labelScale * 100)}">
     </label>
-    <label title="Подписи вдали от камеры тускнеют; при приближении к объекту его подписи становятся ярче">Затухание подписей вдали: <span id="labelFadeValue">${Math.round(settings.labelDepthFade * 100)}%</span>
+    <label title="${tr('Подписи вдали от камеры тускнеют; при приближении к объекту его подписи становятся ярче')}">${tr('Затухание подписей вдали:')} <span id="labelFadeValue">${Math.round(settings.labelDepthFade * 100)}%</span>
       <input id="labelFade" type="range" min="0" max="100" step="1" value="${Math.round(settings.labelDepthFade * 100)}">
     </label>
-    <label title="Удалённые от камеры объекты растворяются в фоне">Растворение объектов вдали: <span id="objectFadeValue">${Math.round(settings.objectDepthFade * 100)}%</span>
+    <label title="${tr('Удалённые от камеры объекты растворяются в фоне')}">${tr('Растворение объектов вдали:')} <span id="objectFadeValue">${Math.round(settings.objectDepthFade * 100)}%</span>
       <input id="objectFade" type="range" min="0" max="100" step="1" value="${Math.round(settings.objectDepthFade * 100)}">
     </label>
-    <label class="check" title="Тонкая вертикальная линия через центр пространства"><input id="showAxis" type="checkbox" ${settings.showAxis ? 'checked' : ''}> Центральная ось</label>
-    <label class="check" title="Пунктирное кольцо на высоте локального уровня 0 каждой группы"><input id="showFrames" type="checkbox" ${settings.showFrames ? 'checked' : ''}> Нулевой уровень групп</label>
+    <label class="check" title="${tr('Тонкая вертикальная линия через центр пространства')}"><input id="showAxis" type="checkbox" ${settings.showAxis ? 'checked' : ''}> ${tr('Центральная ось')}</label>
+    <label class="check" title="${tr('Плоскость с сеткой под пространством')}"><input id="showGrid" type="checkbox" ${settings.showGrid ? 'checked' : ''}> ${tr('Сетка внизу')}</label>
+    <label class="check" title="${tr('Пунктирное кольцо на высоте локального уровня 0 каждой группы')}"><input id="showFrames" type="checkbox" ${settings.showFrames ? 'checked' : ''}> ${tr('Нулевой уровень групп')}</label>
 
-    <h2>Управление</h2>
+    <h2>${tr('Управление')}</h2>
     <ul class="help">
-      <li>ЛКМ — вращение, ПКМ — сдвиг, колесо — масштаб</li>
-      <li>Клик — выбрать (по группе — ещё и перенести к ней центр), двойной клик — перенести центр к объекту, клик в пустоту — настройки пространства</li>
-      <li>Задержите курсор на объекте ~0,5 с — появится его описание</li>
-      <li>Пунктирное кольцо — нулевой уровень группы (её система отсчёта)</li>
-      <li>Пунктирная линия — запись с глобальным уровнем внутри группы</li>
+      <li>${tr('ЛКМ — вращение, ПКМ — сдвиг, колесо — масштаб')}</li>
+      <li>${tr('Клик — выбрать (по группе — ещё и перенести к ней центр), двойной клик — перенести центр к объекту, клик в пустоту — настройки пространства')}</li>
+      <li>${tr('Задержите курсор на объекте ~0,5 с — появится его описание')}</li>
+      <li>${tr('Пунктирное кольцо — нулевой уровень группы (её система отсчёта)')}</li>
+      <li>${tr('Пунктирная линия — запись с глобальным уровнем внутри группы')}</li>
     </ul>
   `;
 
@@ -265,6 +291,12 @@ function renderLeft() {
     saveSettings(settings);
     renderScene();
   });
+  on(left, '#showGrid', 'change', (e) => {
+    settings.showGrid = (e.target as HTMLInputElement).checked;
+    viewer.showGrid = settings.showGrid;
+    saveSettings(settings);
+    renderScene();
+  });
   on(left, '#showFrames', 'change', (e) => {
     settings.showFrames = (e.target as HTMLInputElement).checked;
     viewer.showFrames = settings.showFrames;
@@ -276,7 +308,7 @@ function renderLeft() {
   });
   on(left, '#newSpace', 'click', () => {
     const tpl = TEMPLATES.find((t) => t.id === (left.querySelector('#templateSelect') as HTMLSelectElement).value)!;
-    const title = prompt('Название нового пространства', tpl.id === 'empty' ? 'Новое пространство' : tpl.name);
+    const title = prompt(tr('Название нового пространства'), tpl.id === 'empty' ? tr('Новое пространство') : tpl.name);
     if (title === null) return;
     const s = createFromTemplate(tpl);
     s.title = title.trim() || s.title;
@@ -313,7 +345,7 @@ function creationParent(): string | null {
 
 function targetHint(): string {
   const p = creationParent();
-  return p ? `Будет создано в группе «${space.nodes.find((n) => n.id === p)!.title}»` : 'Будет создано в корне';
+  return p ? tr('Будет создано в группе «{name}»', { name: nodeTitle(space.nodes.find((n) => n.id === p)!) }) : tr('Будет создано в корне');
 }
 
 /** Whether the "belongs to group" list offers every element, not only groups (picking a note turns it into a group). */
@@ -331,8 +363,8 @@ function addNode(kind: SpaceNode['kind']) {
     id: newId(),
     kind,
     parentId: creationParent(),
-    title: kind === 'group' ? 'Новая группа' : 'Новая запись',
-    contentHtml: '<p>Текст записи</p>',
+    title: kind === 'group' ? tr('Новая группа') : tr('Новая запись'),
+    contentHtml: '<p>' + tr('Текст записи') + '</p>',
     tags: [],
     levelMode: 'local',
     level: 0,
@@ -355,195 +387,201 @@ function renderRight() {
   const idx = new SpaceIndex(space);
   const parentOptions = space.nodes.filter((g) => g.id !== n.id && (showAllParents || g.kind === 'group') && !idx.wouldCreateCycle(n.id, g.id));
   const links = space.links.filter((l) => l.from === n.id || l.to === n.id);
-  const title = (id: string) => space.nodes.find((x) => x.id === id)?.title ?? '?';
+  const title = (id: string) => {
+    const x = space.nodes.find((y) => y.id === id);
+    return x ? nodeTitle(x) : '?';
+  };
 
   right.innerHTML = `
-    <h2>${n.kind === 'group' ? 'Группа' : 'Запись'}</h2>
-    <label>Название<input id="f-title" value="${esc(n.title)}"></label>
+    <h2>${n.kind === 'group' ? tr('Группа') : tr('Запись')}</h2>
+    <label>${tr('Название')}${lang === 'en' ? ' (EN)' : ''}<input id="f-title" ${titleAttrs(n)}></label>
     <fieldset class="parent-pick">
-      <legend>Принадлежит группе</legend>
+      <legend>${tr('Принадлежит группе')}</legend>
       <div id="f-parent"></div>
-      <label class="check"><input id="f-parent-all" type="checkbox" ${showAllParents ? 'checked' : ''}>Показать все элементы (выбранный станет группой)</label>
+      <label class="check"><input id="f-parent-all" type="checkbox" ${showAllParents ? 'checked' : ''}>${tr('Показать все элементы (выбранный станет группой)')}</label>
     </fieldset>
 
     <fieldset>
-      <legend>Уровень <span class="hint" tabindex="0" title="${esc(LEVEL_HINT)}">?</span></legend>
+      <legend>${tr('Уровень')} <span class="hint" tabindex="0" title="${esc(LEVEL_HINT)}">?</span></legend>
       <div class="row">
         <select id="f-mode" title="${esc(LEVEL_MODE_HINT)}">
-          <option value="local" ${n.levelMode === 'local' ? 'selected' : ''}>локальный</option>
-          <option value="global" ${n.levelMode === 'global' ? 'selected' : ''}>глобальный</option>
+          <option value="local" ${n.levelMode === 'local' ? 'selected' : ''}>${tr('локальный')}</option>
+          <option value="global" ${n.levelMode === 'global' ? 'selected' : ''}>${tr('глобальный')}</option>
         </select>
         <input id="f-level" type="number" step="0.5" value="${n.level}" title="${esc(LEVEL_HINT)}">
       </div>
       <div class="muted">${
         n.levelMode === 'local'
           ? idx.parentOf(n.id)
-            ? 'Относительно системы отсчёта родительской группы'
-            : 'В корне локальный = глобальный'
-          : `Y = уровень × ${space.globalStep}, независимо от группы`
+            ? tr('Относительно системы отсчёта родительской группы')
+            : tr('В корне локальный = глобальный')
+          : tr('Y = уровень × {step}, независимо от группы', { step: space.globalStep })
       }</div>
-      <label class="check"><input id="f-center" type="checkbox" ${n.pinned ? 'checked' : ''}> Закрепить в центре ${idx.parentOf(n.id) ? 'группы' : 'сцены'}</label>
+      <label class="check"><input id="f-center" type="checkbox" ${n.pinned ? 'checked' : ''}> ${idx.parentOf(n.id) ? tr('Закрепить в центре группы') : tr('Закрепить в центре сцены')}</label>
     </fieldset>
 
     ${
       n.kind === 'group'
         ? `<fieldset>
-            <legend>Система отсчёта группы</legend>
-            <label>Смещение нуля<input id="f-offset" type="number" step="0.5" value="${n.frame!.offset}"></label>
-            <label>Шаг уровня<input id="f-step" type="number" step="0.5" min="0.5" value="${n.frame!.levelStep}"></label>
-            <label>Расположение содержимого
+            <legend>${tr('Система отсчёта группы')}</legend>
+            <label>${tr('Смещение нуля')}<input id="f-offset" type="number" step="0.5" value="${n.frame!.offset}"></label>
+            <label>${tr('Шаг уровня')}<input id="f-step" type="number" step="0.5" min="0.5" value="${n.frame!.levelStep}"></label>
+            <label>${tr('Расположение содержимого')}
               <select id="f-arrange">
-                <option value="free" ${n.frame!.arrange !== 'ring' ? 'selected' : ''}>свободное</option>
-                <option value="ring" ${n.frame!.arrange === 'ring' ? 'selected' : ''}>по кругу (закреплённые — в центре)</option>
-                <option value="wedges" ${n.frame!.arrange === 'wedges' ? 'selected' : ''}>клинья вокруг центра (закреплённые — в центре)</option>
-                <option value="cells" ${n.frame!.arrange === 'cells' ? 'selected' : ''}>ячейки клина (дети — по номеру ячейки)</option>
+                <option value="free" ${n.frame!.arrange !== 'ring' ? 'selected' : ''}>${tr('свободное')}</option>
+                <option value="ring" ${n.frame!.arrange === 'ring' ? 'selected' : ''}>${tr('по кругу (закреплённые — в центре)')}</option>
+                <option value="wedges" ${n.frame!.arrange === 'wedges' ? 'selected' : ''}>${tr('клинья вокруг центра (закреплённые — в центре)')}</option>
+                <option value="cells" ${n.frame!.arrange === 'cells' ? 'selected' : ''}>${tr('ячейки клина (дети — по номеру ячейки)')}</option>
               </select>
             </label>
-            <label>Форма оболочки
+            <label>${tr('Форма оболочки')}
               <select id="f-shell">
-                <option value="ellipsoid" ${n.frame!.shell !== 'torus' && n.frame!.shell !== 'sphere' && n.frame!.shell !== 'wedge' ? 'selected' : ''}>эллипсоид</option>
-                <option value="sphere" ${n.frame!.shell === 'sphere' ? 'selected' : ''}>шар</option>
-                <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>тор (содержимое по кольцу, закреплённые в центре)</option>
-                <option value="wedge" ${n.frame!.shell === 'wedge' ? 'selected' : ''}>клин (кусок диска; в группе с расположением «клинья»)</option>
+                <option value="ellipsoid" ${n.frame!.shell !== 'torus' && n.frame!.shell !== 'sphere' && n.frame!.shell !== 'wedge' && n.frame!.shell !== 'drop' ? 'selected' : ''}>${tr('эллипсоид')}</option>
+                <option value="sphere" ${n.frame!.shell === 'sphere' ? 'selected' : ''}>${tr('шар')}</option>
+                <option value="torus" ${n.frame!.shell === 'torus' ? 'selected' : ''}>${tr('тор (содержимое по кольцу, закреплённые в центре)')}</option>
+                <option value="drop" ${n.frame!.shell === 'drop' ? 'selected' : ''}>${tr('капля (от точки группы вверх или вниз)')}</option>
+                <option value="wedge" ${n.frame!.shell === 'wedge' ? 'selected' : ''}>${tr('клин (кусок диска; в группе с расположением «клинья»)')}</option>
               </select>
             </label>
-            <label title="Ширина полосы кольца в процентах от того, что оно окружает (внутреннего радиуса). 0 — по размеру содержимого." ${n.frame!.shell === 'torus' ? '' : 'hidden'}>Ширина кольца, % от внутреннего радиуса
+            <label title="${tr('Ширина полосы кольца в процентах от того, что оно окружает (внутреннего радиуса). 0 — по размеру содержимого.')}" ${n.frame!.shell === 'torus' ? '' : 'hidden'}>${tr('Ширина кольца, % от внутреннего радиуса')}
               <input id="f-ringWidth" type="number" min="0" step="1" value="${Math.round((n.frame!.ringWidth ?? 0) * 100)}">
             </label>
-            <label title="Толщина кольца в процентах от его ширины: 100 — круглое сечение, меньше — приплюснутое. Действует, когда задана ширина." ${n.frame!.shell === 'torus' && n.frame!.ringWidth ? '' : 'hidden'}>Толщина кольца, % от ширины
+            <label title="${tr('Толщина кольца в процентах от его ширины: 100 — круглое сечение, меньше — приплюснутое. Действует, когда задана ширина.')}" ${n.frame!.shell === 'torus' && n.frame!.ringWidth ? '' : 'hidden'}>${tr('Толщина кольца, % от ширины')}
               <input id="f-ringThickness" type="number" min="1" max="100" step="1" value="${Math.round((n.frame!.ringThickness ?? 0.24) * 100)}">
             </label>
-            <label title="Яркость линий оболочки относительно обычной: 100 — как у всех, меньше — тусклее" ${n.frame!.shell === 'wedge' || n.frame!.shell === 'torus' || !n.frame!.shell ? '' : 'hidden'}>Яркость линий оболочки, %
+            <label title="${tr('Яркость линий оболочки относительно обычной: 100 — как у всех, меньше — тусклее')}" ${n.frame!.shell === 'wedge' || n.frame!.shell === 'torus' || !n.frame!.shell ? '' : 'hidden'}>${tr('Яркость линий оболочки, %')}
               <input id="f-edgeOpacity" type="number" min="1" max="200" step="5" value="${Math.round((n.frame!.edgeOpacity ?? 1) * 100)}">
             </label>
-            <label title="Для расположения «ячейки клина»: на сколько ячеек разделён клин. Середина остаётся под столицу (дети без номера ячейки)" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}>Число ячеек
+            <label title="${tr('Для расположения «ячейки клина»: на сколько ячеек разделён клин. Середина остаётся под столицу (дети без номера ячейки)')}" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}>${tr('Число ячеек')}
               <input id="f-cells" type="number" min="1" step="1" value="${n.frame!.cells ? (n.frame!.cells.count ?? (n.frame!.cells.rings ?? 10) * (n.frame!.cells.slices ?? 10)) : 100}">
             </label>
-            <label class="check" title="По умолчанию ячейки нумеруются от внешнего кольца; с галочкой — от внутреннего (у центра)" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}><input id="f-cellsInner" type="checkbox" ${n.frame!.cells?.from === 'inner' ? 'checked' : ''}>Нумерация ячеек от центра</label>
-            <label title="Для расположения «клинья» с фиксированным размером: какая часть радиуса в середине остаётся пустой" ${n.frame!.arrange === 'wedges' ? '' : 'hidden'}>Пустой центр, % радиуса
+            <label class="check" title="${tr('По умолчанию ячейки нумеруются от внешнего кольца; с галочкой — от внутреннего (у центра)')}" ${n.frame!.arrange === 'cells' ? '' : 'hidden'}><input id="f-cellsInner" type="checkbox" ${n.frame!.cells?.from === 'inner' ? 'checked' : ''}>${tr('Нумерация ячеек от центра')}</label>
+            <label title="${tr('Для расположения «клинья» с фиксированным размером: какая часть радиуса в середине остаётся пустой')}" ${n.frame!.arrange === 'wedges' ? '' : 'hidden'}>${tr('Пустой центр, % радиуса')}
               <input id="f-wedgeInner" type="number" min="0" max="90" step="1" value="${Math.round((n.frame!.wedgeInner ?? 0.25) * 100)}">
             </label>
-            <label title="Отношение размера север–юг к размеру восток–запад для колец и групп с расположением по кругу: 1 — круг, 7/6 — как Остров Рай. Можно ввести дробь." ${n.frame!.shell === 'torus' || n.frame!.arrange === 'ring' ? '' : 'hidden'}>Вытянутость север–юг
+            <label title="${tr('Отношение размера север–юг к размеру восток–запад для колец и групп с расположением по кругу: 1 — круг, 7/6 — как Остров Рай. Можно ввести дробь.')}" ${n.frame!.shell === 'torus' || n.frame!.arrange === 'ring' ? '' : 'hidden'}>${tr('Вытянутость север–юг')}
               <input id="f-ringAspect" type="text" value="${n.frame!.ringAspect ? +n.frame!.ringAspect.toFixed(4) : 1}">
             </label>
             ${
               n.frame!.fixedSize
-                ? '<div class="muted">Центр оболочки — на нулевом уровне: у фиксированного размера он всегда там. Чтобы выбрать другой, переключите «Размер оболочки» на «по содержимому».</div>'
+                ? tr('<div class="muted">Центр оболочки — на нулевом уровне: у фиксированного размера он всегда там. Чтобы выбрать другой, переключите «Размер оболочки» на «по содержимому».</div>')
                 : ''
             }
-            <label title="${esc(CENTER_HINT)}" ${n.frame!.fixedSize ? 'hidden' : ''}>Центр оболочки
+            <label title="${esc(CENTER_HINT)}" ${n.frame!.fixedSize ? 'hidden' : ''}>${tr('Центр оболочки')}
               <select id="f-centerMode">
-                <option value="content" ${centerOf(n) === 'content' ? 'selected' : ''}>по содержимому</option>
-                <option value="shift" ${centerOf(n) === 'shift' ? 'selected' : ''}>на уровне группы (сдвиг содержимого)</option>
-                <option value="zero" ${centerOf(n) === 'zero' ? 'selected' : ''}>на нулевом уровне (симметрично)</option>
+                <option value="content" ${centerOf(n) === 'content' ? 'selected' : ''}>${tr('по содержимому')}</option>
+                <option value="shift" ${centerOf(n) === 'shift' ? 'selected' : ''}>${tr('на уровне группы (сдвиг содержимого)')}</option>
+                <option value="zero" ${centerOf(n) === 'zero' ? 'selected' : ''}>${tr('на нулевом уровне (симметрично)')}</option>
               </select>
             </label>
-            <label title="${esc(FIXED_HINT)}">Размер оболочки
+            <label title="${esc(FIXED_HINT)}">${tr('Размер оболочки')}
               <select id="f-sizing">
-                <option value="content" ${n.frame!.fixedSize ? '' : 'selected'}>по содержимому</option>
-                <option value="fixed" ${n.frame!.fixedSize ? 'selected' : ''}>фиксированный (содержимое масштабируется)</option>
+                <option value="content" ${n.frame!.fixedSize ? '' : 'selected'}>${tr('по содержимому')}</option>
+                <option value="fixed" ${n.frame!.fixedSize ? 'selected' : ''}>${tr('фиксированный (содержимое масштабируется)')}</option>
               </select>
             </label>
             ${
               n.frame!.fixedSize
-                ? `<div class="row" title="Диаметры оболочки">
-                    <label>В–З (X)<input id="f-fx" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.x}"></label>
-                    <label>С–Ю (Z)<input id="f-fz" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.z}"></label>
-                    <label>Толщина (Y)<input id="f-fy" type="number" step="0.1" min="0.05" value="${n.frame!.fixedSize.y}"></label>
+                ? `<div class="row" title="${tr('Диаметры оболочки')}">
+                    <label>${tr('В–З (X)')}<input id="f-fx" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.x}"></label>
+                    <label>${tr('С–Ю (Z)')}<input id="f-fz" type="number" step="0.5" min="0.1" value="${n.frame!.fixedSize.z}"></label>
+                    <label>${tr('Толщина (Y)')}<input id="f-fy" type="number" step="0.1" min="0.05" value="${n.frame!.fixedSize.y}"></label>
                   </div>
-                  <label title="Какую долю ширины оболочки занимает содержимое. 100% — заполняет целиком (может и увеличить содержимое), меньше — всё внутри, вместе с подписями, пропорционально уменьшается">Заполнение содержимым: <span id="f-fillValue">${Math.round((n.frame!.fill ?? 1) * 100)}%</span>
+                  <label title="${tr('Какую долю ширины оболочки занимает содержимое. 100% — заполняет целиком (может и увеличить содержимое), меньше — всё внутри, вместе с подписями, пропорционально уменьшается')}">${tr('Заполнение содержимым:')} <span id="f-fillValue">${Math.round((n.frame!.fill ?? 1) * 100)}%</span>
                     <input id="f-fill" type="range" min="5" max="100" step="5" value="${Math.round((n.frame!.fill ?? 1) * 100)}">
                   </label>`
                 : ''
             }
-            <label>Видимость оболочки: ${Math.round((n.frame!.shellOpacity ?? 1) * 100)}%
+            <label>${tr('Видимость оболочки:')} ${Math.round((n.frame!.shellOpacity ?? 1) * 100)}%
               <input id="f-shellOpacity" type="range" min="0" max="100" step="5" value="${Math.round((n.frame!.shellOpacity ?? 1) * 100)}">
             </label>
-            <label class="check"><input id="f-collapsed" type="checkbox" ${n.frame!.collapsed ? 'checked' : ''}> Свернуть</label>
+            <label class="check"><input id="f-collapsed" type="checkbox" ${n.frame!.collapsed ? 'checked' : ''}> ${tr('Свернуть')}</label>
           </fieldset>`
         : ''
     }
 
     <fieldset>
-      <legend>Вид</legend>
-      <label>Стиль
+      <legend>${tr('Вид')}</legend>
+      <label>${tr('Стиль')}
         <select id="f-style">
-          <option value="">— свой —</option>
-          ${(space.styles ?? []).map((s) => `<option value="${esc(s.id)}" ${n.styleId === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
+          <option value="">${tr('— свой —')}</option>
+          ${(space.styles ?? []).map((s) => `<option value="${esc(s.id)}" ${n.styleId === s.id ? 'selected' : ''}>${esc(styleName(s))}</option>`).join('')}
         </select>
       </label>
       ${
         n.styleId
-          ? '<div class="muted">Цвет, форма и размер берутся из стиля. Изменить стиль — в настройках пространства (снимите выделение).</div>'
+          ? tr('<div class="muted">Цвет, форма и размер берутся из стиля. Изменить стиль — в настройках пространства (снимите выделение).</div>')
           : `<div class="row">
-              <select id="f-shape">${SHAPES.map((s) => `<option value="${s}" ${n.style.shape === s ? 'selected' : ''}>${SHAPE_NAMES[s]}</option>`).join('')}</select>
+              <select id="f-shape">${SHAPES.map((s) => `<option value="${s}" ${n.style.shape === s ? 'selected' : ''}>${SHAPE_NAMES()[s]}</option>`).join('')}</select>
               <input id="f-color" type="color" value="${esc(n.style.color)}">
-              <input id="f-size" type="number" step="0.1" min="0.3" value="${n.style.size}" title="Размер">
+              <input id="f-size" type="number" step="0.1" min="0.3" value="${n.style.size}" title="${tr('Размер')}">
             </div>
-            <div class="row" title="Фигура делится на равные цветные доли (например, природа Отца и Сына)">
-              <span class="muted">Доли цвета:</span>
+            <div class="row" title="${tr('Фигура делится на равные цветные доли (например, природа Отца и Сына)')}">
+              <span class="muted">${tr('Доли цвета:')}</span>
               ${(n.style.colors ?? [])
-                .map((c, i) => `<input type="color" data-ci="${i}" value="${esc(c)}"><button data-cdel="${i}" title="Убрать долю">×</button>`)
+                .map((c, i) => `<input type="color" data-ci="${i}" value="${esc(c)}"><button data-cdel="${i}" title="${tr('Убрать долю')}">×</button>`)
                 .join('')}
-              <button id="f-cadd" title="Добавить цветную долю">+ доля</button>
+              <button id="f-cadd" title="${tr('Добавить цветную долю')}">${tr('+ доля')}</button>
             </div>
             ${imageRowHtml(n.style.image, 'id="f-img"', 'id="f-imgdel"')}
-            <button id="f-saveStyle">Сохранить как новый стиль…</button>`
+            <button id="f-saveStyle">${tr('Сохранить как новый стиль…')}</button>`
       }
-      <div class="field" title="Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу">Направить на
+      <div class="field" title="${tr('Для узлов внутри группы с расположением по кругу или формой «тор»: узел встаёт на кольце на линии от центра группы к выбранному узлу')}">${tr('Направить на')}
         <div id="f-aimAt"></div>
       </div>
-      <label class="check" title="Название не рисуется рядом с объектом; карточка с описанием при наведении остаётся"><input id="f-nolabel" type="checkbox" ${n.hideLabel ? 'checked' : ''}>Не показывать название</label>
-      <label title="Если родитель — группа с расположением «ячейки клина»: номер ячейки, которую занимает этот объект. Нумерация с 1: сначала средний слой, затем слои выше и ниже по очереди; в слое — по кольцам от внешнего края (или от центра, если так задано у родителя), в кольце — по углу. Центральная ячейка среднего слоя отдана столице и не нумеруется.">Номер ячейки
+      <label class="check" title="${tr('Название не рисуется рядом с объектом; карточка с описанием при наведении остаётся')}"><input id="f-nolabel" type="checkbox" ${n.hideLabel ? 'checked' : ''}>${tr('Не показывать название')}</label>
+      <label class="check" title="${tr('Всегда заметна: точка постоянного размера видна с любого расстояния, на неё можно навести мышь издалека, название не тускнеет')}"><input id="f-beacon" type="checkbox" ${n.beacon ? 'checked' : ''}>${tr('Всегда заметна')}</label>
+      <label class="check" title="${tr('Не подсвечивается и не показывает карточку при наведении: мышь «проходит» к тому, что вокруг')}"><input id="f-passive" type="checkbox" ${n.passive ? 'checked' : ''}>${tr('Не реагирует на мышь')}</label>
+      <label title="${tr('Если родитель — группа с расположением «ячейки клина»: номер ячейки, которую занимает этот объект. Нумерация с 1: сначала средний слой, затем слои выше и ниже по очереди; в слое — по кольцам от внешнего края (или от центра, если так задано у родителя), в кольце — по углу. Центральная ячейка среднего слоя отдана столице и не нумеруется.')}">${tr('Номер ячейки')}
         <input id="f-cell" type="number" min="0" step="1" value="${n.cell ?? ''}">
       </label>
-      <label title="Во сколько раз название этого объекта крупнее обычного (1 — как у всех)">Размер названия, ×
+      <label title="${tr('Во сколько раз название этого объекта крупнее обычного (1 — как у всех)')}">${tr('Размер названия, ×')}
         <input id="f-labelScale" type="number" min="0.2" max="20" step="0.1" value="${n.labelScale ?? 1}">
       </label>
-      <label title="Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается">Вращение (об/мин)
+      <label title="${tr('Вращение вокруг вертикальной оси, оборотов в минуту. 0 — не вращается')}">${tr('Вращение (об/мин)')}
         <input id="f-spin" type="number" step="1" value="${n.spin ?? 0}">
       </label>
-      <div class="field">Размер как
+      <div class="field">${tr('Размер как')}
         <div id="f-sizeAs"></div>
       </div>
     </fieldset>
 
     <fieldset>
-      <legend>Теги</legend>
+      <legend>${tr('Теги')}</legend>
       <div class="chips">
         ${space.tags
           .map(
             (t) =>
-              `<label class="chip ${n.tags.includes(t.id) ? 'on' : ''}" style="--c:${esc(t.color)}"><input type="checkbox" data-ntag="${esc(t.id)}" ${n.tags.includes(t.id) ? 'checked' : ''}>#${esc(t.name)}</label>`,
+              `<label class="chip ${n.tags.includes(t.id) ? 'on' : ''}" style="--c:${esc(t.color)}"><input type="checkbox" data-ntag="${esc(t.id)}" ${n.tags.includes(t.id) ? 'checked' : ''}>#${esc(tagName(t))}</label>`,
           )
           .join('')}
       </div>
     </fieldset>
 
-    <label>Содержимое (HTML)<textarea id="f-html" rows="6">${esc(n.contentHtml)}</textarea></label>
+    <label>${tr('Содержимое (HTML)')}${lang === 'en' ? ' (EN)' : ''}<textarea id="f-html" rows="6" ${htmlAttrs(n)}>${esc(lang === 'en' ? (n.en?.contentHtml ?? '') : n.contentHtml)}</textarea></label>
 
     <fieldset>
-      <legend>Связи</legend>
+      <legend>${tr('Связи')}</legend>
       <ul class="links">
         ${links
           .map(
             (l) =>
-              `<li>${l.from === n.id ? '→' : '←'} ${esc(title(l.from === n.id ? l.to : l.from))}${l.label ? ` <i>(${esc(l.label)})</i>` : ''} <button data-unlink="${esc(l.id)}" title="Удалить связь">×</button></li>`,
+              `<li>${l.from === n.id ? '→' : '←'} ${esc(title(l.from === n.id ? l.to : l.from))}${l.label ? ` <i>(${esc(l.label)})</i>` : ''} <button data-unlink="${esc(l.id)}" title="${tr('Удалить связь')}">×</button></li>`,
           )
-          .join('') || '<li class="muted">нет</li>'}
+          .join('') || `<li class="muted">${tr('нет')}</li>`}
       </ul>
       <div class="row">
         <div id="l-target"></div>
       </div>
       <div class="row">
-        <input id="l-label" placeholder="подпись">
+        <input id="l-label" placeholder="${tr('подпись')}">
         <label class="check"><input id="l-directed" type="checkbox" checked>→</label>
-        <button id="l-add">Связать</button>
+        <button id="l-add">${tr('Связать')}</button>
       </div>
     </fieldset>
 
-    ${n.kind === 'group' ? '' : '<button id="make-group">Сделать группой</button>'}
-    <button id="delete" class="danger">Удалить ${n.kind === 'group' ? 'группу (содержимое поднимется выше)' : 'запись'}</button>
+    ${n.kind === 'group' ? '' : `<button id="make-group">${tr('Сделать группой')}</button>`}
+    <button id="delete" class="danger">${n.kind === 'group' ? tr('Удалить группу (содержимое поднимется выше)') : tr('Удалить запись')}</button>
   `;
 
   const edit = (sel: string, apply: (el: HTMLInputElement) => void, relayout = true) =>
@@ -552,7 +590,10 @@ function renderRight() {
       refresh(relayout);
     });
 
-  edit('#f-title', (el) => (n.title = el.value.trim() || n.title));
+  edit('#f-title', (el) => {
+    if (lang === 'en') setEn(n, 'title', el.value.trim());
+    else n.title = el.value.trim() || n.title;
+  });
   on(right, '#f-parent-all', 'change', (e) => {
     showAllParents = (e.target as HTMLInputElement).checked;
     renderRight();
@@ -565,7 +606,7 @@ function renderRight() {
     space,
     nodes: parentOptions,
     value: idx.parentOf(n.id),
-    emptyLabel: '— корень —',
+    emptyLabel: tr('— корень —'),
     onChange: (id) => {
       n.parentId = id;
       n.pinned = undefined;
@@ -579,7 +620,7 @@ function renderRight() {
     space,
     nodes: others,
     value: n.aimAt,
-    emptyLabel: '— по порядку —',
+    emptyLabel: tr('— по порядку —'),
     onChange: (id) => {
       n.aimAt = id ?? undefined;
       refresh(true);
@@ -589,7 +630,7 @@ function renderRight() {
     space,
     nodes: others,
     value: n.sizeAs,
-    emptyLabel: '— собственный —',
+    emptyLabel: tr('— собственный —'),
     onChange: (id) => {
       n.sizeAs = id ?? undefined;
       refresh(true);
@@ -608,7 +649,7 @@ function renderRight() {
   edit('#f-step', (el) => (n.frame!.levelStep = Math.max(0.5, num(el, n.frame!.levelStep))));
   edit('#f-collapsed', (el) => (n.frame!.collapsed = el.checked));
   edit('#f-arrange', (el) => (n.frame!.arrange = el.value as Arrange));
-  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' || el.value === 'wedge' ? el.value : undefined));
+  edit('#f-shell', (el) => (n.frame!.shell = el.value === 'torus' || el.value === 'sphere' || el.value === 'wedge' || el.value === 'drop' ? el.value : undefined));
   edit('#f-ringWidth', (el) => {
     const v = Math.max(0, num(el, 0)) / 100;
     n.frame!.ringWidth = v > 0 ? v : undefined;
@@ -676,6 +717,8 @@ function renderRight() {
   edit('#f-center', (el) => (n.pinned = el.checked ? { x: 0, z: 0 } : undefined));
   edit('#f-style', (el) => (n.styleId = el.value || undefined));
   edit('#f-nolabel', (el) => (n.hideLabel = el.checked || undefined), false);
+  edit('#f-beacon', (el) => (n.beacon = el.checked || undefined), false);
+  edit('#f-passive', (el) => (n.passive = el.checked || undefined), false);
   edit('#f-labelScale', (el) => {
     const v = num(el, 1);
     n.labelScale = v > 0 && Math.abs(v - 1) > 1e-6 ? v : undefined;
@@ -701,7 +744,7 @@ function renderRight() {
     refresh(false);
   });
   on(right, '#f-saveStyle', 'click', () => {
-    const name = prompt('Название стиля (например, «Ангелы»)')?.trim();
+    const name = prompt(tr('Название стиля (например, «Ангелы»)'))?.trim();
     if (!name) return;
     const style: NamedStyle = { id: newId(), name, ...n.style };
     space.styles = [...(space.styles ?? []), style];
@@ -722,7 +765,7 @@ function renderRight() {
   edit('#f-shape', (el) => (n.style.shape = el.value as Shape), false);
   edit('#f-color', (el) => (n.style.color = el.value), false);
   edit('#f-size', (el) => (n.style.size = Math.max(0.3, num(el, n.style.size))));
-  edit('#f-html', (el) => (n.contentHtml = el.value), false);
+  edit('#f-html', (el) => (lang === 'en' ? setEn(n, 'contentHtml', el.value) : (n.contentHtml = el.value)), false);
   right.querySelectorAll<HTMLInputElement>('[data-ntag]').forEach((cb) =>
     cb.addEventListener('change', () => {
       const t = cb.dataset.ntag!;
@@ -745,7 +788,7 @@ function renderRight() {
     refresh(true);
   });
   on(right, '#delete', 'click', () => {
-    if (!confirm(`Удалить «${n.title}»?`)) return;
+    if (!confirm(tr('Удалить «{name}»?', { name: nodeTitle(n) }))) return;
     const parent = idx.parentOf(n.id);
     for (const c of space.nodes) if (c.parentId === n.id) c.parentId = parent;
     space.nodes = space.nodes.filter((x) => x.id !== n.id);
@@ -760,102 +803,103 @@ function renderRight() {
 function renderSpaceSettings() {
   const usage = (tagId: string) => space.nodes.filter((n) => n.tags.includes(tagId)).length;
   right.innerHTML = `
-    <h2>Пространство</h2>
-    <label>Название<input id="s-title" value="${esc(space.title)}"></label>
-    <label>Шаг глобального уровня<input id="s-step" type="number" step="1" min="1" value="${space.globalStep}"></label>
+    <h2>${tr('Пространство')}</h2>
+    <label>${tr('Название')}${lang === 'en' ? ' (EN)' : ''}<input id="s-title" ${lang === 'en' ? `value="${esc(space.en?.title ?? '')}" placeholder="${esc(space.title)}"` : `value="${esc(space.title)}"`}></label>
+    <label>${tr('Шаг глобального уровня')}<input id="s-step" type="number" step="1" min="1" value="${space.globalStep}"></label>
 
-    <div class="field">Ближе к зрителю при открытии
+    <div class="field">${tr('Ближе к зрителю при открытии')}
       <div id="s-front"></div>
     </div>
-    <div class="field">Начало координат
+    <div class="field">${tr('Начало координат')}
       <div id="s-origin"></div>
     </div>
 
     <fieldset>
-      <legend>Шаблон</legend>
+      <legend>${tr('Шаблон')}</legend>
       <div class="row">
         <select id="s-template">
           ${TEMPLATES.filter((t) => t.id !== 'empty')
             .map((t) => `<option value="${t.id}" ${templateOf(space)?.id === t.id ? 'selected' : ''}>${esc(t.name)}</option>`)
             .join('')}
         </select>
-        <button id="s-update">Обновить из шаблона</button>
+        <button id="s-update">${tr('Обновить из шаблона')}</button>
       </div>
-      <div class="muted">Записи, связи, теги и стили шаблона заменятся текущей версией. Ваши собственные записи и связи сохранятся, но правки в записях шаблона будут потеряны.</div>
+      <div class="muted">${tr('Записи, связи, теги и стили шаблона заменятся текущей версией. Ваши собственные записи и связи сохранятся, но правки в записях шаблона будут потеряны.')}</div>
     </fieldset>
 
     <fieldset>
-      <legend>Резервные копии</legend>
+      <legend>${tr('Резервные копии')}</legend>
       <div class="row">
-        <button id="b-make">Сделать копию</button>
-        <button id="b-export" title="Скачать пространство файлом .json">Экспорт</button>
-        <button id="b-import" title="Загрузить пространство из файла .json">Импорт…</button>
+        <button id="b-make">${tr('Сделать копию')}</button>
+        <button id="b-export" title="${tr('Скачать пространство файлом .json')}">${tr('Экспорт')}</button>
+        <button id="b-import" title="${tr('Загрузить пространство из файла .json')}">${tr('Импорт…')}</button>
       </div>
-      <ul class="links" id="b-list"><li class="muted">загрузка…</li></ul>
-      <div class="muted">Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Файлы: data/backups/</div>
+      <ul class="links" id="b-list"><li class="muted">${tr('загрузка…')}</li></ul>
+      <div class="muted">${tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Файлы: data/backups/')}</div>
     </fieldset>
 
     <fieldset>
-      <legend>Теги</legend>
+      <legend>${tr('Теги')}</legend>
       <ul class="links">
         ${space.tags
           .map(
             (t) =>
-              `<li><input type="color" data-tagcolor="${esc(t.id)}" value="${esc(t.color)}"><span style="color:${esc(t.color)}">#${esc(t.name)}</span><span class="muted">${usage(t.id)}</span><button data-deltag="${esc(t.id)}" title="Удалить тег">×</button></li>`,
+              `<li><input type="color" data-tagcolor="${esc(t.id)}" value="${esc(t.color)}"><span style="color:${esc(t.color)}">#${esc(tagName(t))}</span><span class="muted">${usage(t.id)}</span><button data-deltag="${esc(t.id)}" title="${tr('Удалить тег')}">×</button></li>`,
           )
-          .join('') || '<li class="muted">нет</li>'}
+          .join('') || `<li class="muted">${tr('нет')}</li>`}
       </ul>
       <div class="row">
-        <input id="t-name" placeholder="новый тег">
+        <input id="t-name" placeholder="${tr('новый тег')}">
         <input id="t-color" type="color" value="#7aa2f7">
-        <button id="t-add">Добавить</button>
+        <button id="t-add">${tr('Добавить')}</button>
       </div>
     </fieldset>
 
     <fieldset>
-      <legend>Стили</legend>
+      <legend>${tr('Стили')}</legend>
       ${(space.styles ?? [])
         .map(
           (s) => `<div class="style-row">
             <div class="row">
-              <input data-sname="${esc(s.id)}" value="${esc(s.name)}">
-              <span class="muted" title="Узлов с этим стилем">${space.nodes.filter((n) => n.styleId === s.id).length}</span>
-              <button data-sdel="${esc(s.id)}" title="Удалить стиль">×</button>
+              <input data-sname="${esc(s.id)}" ${lang === 'en' ? `value="${esc(s.en ?? '')}" placeholder="${esc(s.name)}"` : `value="${esc(s.name)}"`}>
+              <span class="muted" title="${tr('Узлов с этим стилем')}">${space.nodes.filter((n) => n.styleId === s.id).length}</span>
+              <button data-sdel="${esc(s.id)}" title="${tr('Удалить стиль')}">×</button>
             </div>
             <div class="row">
-              <select data-sshape="${esc(s.id)}">${SHAPES.map((sh) => `<option value="${sh}" ${s.shape === sh ? 'selected' : ''}>${SHAPE_NAMES[sh]}</option>`).join('')}</select>
+              <select data-sshape="${esc(s.id)}">${SHAPES.map((sh) => `<option value="${sh}" ${s.shape === sh ? 'selected' : ''}>${SHAPE_NAMES()[sh]}</option>`).join('')}</select>
               <input type="color" data-scolor="${esc(s.id)}" value="${esc(s.color)}">
-              <input type="number" step="0.1" min="0.3" data-ssize="${esc(s.id)}" value="${s.size}" title="Размер">
+              <input type="number" step="0.1" min="0.3" data-ssize="${esc(s.id)}" value="${s.size}" title="${tr('Размер')}">
             </div>
             ${imageRowHtml(s.image, `data-simg="${esc(s.id)}"`, `data-simgdel="${esc(s.id)}"`)}
           </div>`,
         )
-        .join('') || '<div class="muted">нет — создайте здесь или кнопкой «Сохранить как новый стиль» у записи</div>'}
+        .join('') || `<div class="muted">${tr('нет — создайте здесь или кнопкой «Сохранить как новый стиль» у записи')}</div>`}
       <div class="row">
-        <input id="st-name" placeholder="новый стиль">
-        <button id="st-add">Добавить</button>
+        <input id="st-name" placeholder="${tr('новый стиль')}">
+        <button id="st-add">${tr('Добавить')}</button>
       </div>
     </fieldset>
 
-    <div class="muted">Выберите запись или группу в сцене, чтобы редактировать её.</div>
-    <button id="s-delete" class="danger" ${listSpaces().length > 1 ? '' : 'disabled'}>Удалить пространство</button>
+    <div class="muted">${tr('Выберите запись или группу в сцене, чтобы редактировать её.')}</div>
+    <button id="s-delete" class="danger" ${listSpaces().length > 1 ? '' : 'disabled'}>${tr('Удалить пространство')}</button>
   `;
 
   bindBackups();
   on(right, '#s-update', 'click', () => {
     const tpl = TEMPLATES.find((t) => t.id === (right.querySelector('#s-template') as HTMLSelectElement).value)!;
-    if (!confirm(`Обновить «${space.title}» из шаблона «${tpl.name}»?\nПравки в записях шаблона будут потеряны, ваши собственные записи сохранятся.`)) return;
+    if (!confirm(tr(`Обновить «{space}» из шаблона «{tpl}»?
+Правки в записях шаблона будут потеряны, ваши собственные записи сохранятся.`, { space: spaceTitle(space), tpl: tpl.name }))) return;
     void backupSpace(space, 'before-template-update').then(() => {
       const { space: updated, keptNodes } = updateFromTemplate(space, tpl);
       switchTo(updated);
-      flash(`Обновлено из шаблона. Резервная копия сохранена${keptNodes ? `, ваших записей сохранено: ${keptNodes}` : ''}.`);
+      flash(keptNodes ? tr('Обновлено из шаблона. Резервная копия сохранена, ваших записей сохранено: {n}.', { n: keptNodes }) : tr('Обновлено из шаблона. Резервная копия сохранена.'));
     });
   });
   mountNodeCombo(right.querySelector('#s-origin') as HTMLElement, {
     space,
     nodes: space.nodes,
     value: space.originNodeId,
-    emptyLabel: '— по уровням —',
+    emptyLabel: tr('— по уровням —'),
     onChange: (id) => {
       space.originNodeId = id ?? undefined;
       viewer.resetView();
@@ -866,7 +910,7 @@ function renderSpaceSettings() {
     space,
     nodes: space.nodes,
     value: space.frontNodeId,
-    emptyLabel: '— авто —',
+    emptyLabel: tr('— авто —'),
     onChange: (id) => {
       space.frontNodeId = id ?? undefined;
       viewer.resetView();
@@ -874,7 +918,9 @@ function renderSpaceSettings() {
     },
   });
   on(right, '#s-title', 'change', (e) => {
-    space.title = (e.target as HTMLInputElement).value.trim() || space.title;
+    const v = (e.target as HTMLInputElement).value.trim();
+    if (lang === 'en') space.en = v ? { ...space.en, title: v } : undefined;
+    else space.title = v || space.title;
     refresh(false);
   });
   on(right, '#s-step', 'change', (e) => {
@@ -891,7 +937,7 @@ function renderSpaceSettings() {
     b.addEventListener('click', () => {
       const id = b.dataset.deltag!;
       const t = space.tags.find((x) => x.id === id)!;
-      if (usage(id) && !confirm(`Тег #${t.name} используется в ${usage(id)} узлах. Удалить?`)) return;
+      if (usage(id) && !confirm(tr('Тег #{tag} используется в {n} узлах. Удалить?', { tag: tagName(t), n: usage(id) }))) return;
       space.tags = space.tags.filter((x) => x.id !== id);
       for (const n of space.nodes) n.tags = n.tags.filter((x) => x !== id);
       filter = { ...filter, tagIds: filter.tagIds.filter((x) => x !== id) };
@@ -912,7 +958,7 @@ function renderSpaceSettings() {
         refresh(relayout);
       }),
     );
-  bindStyle('sname', (s, el) => (s.name = el.value.trim() || s.name), false);
+  bindStyle('sname', (s, el) => (lang === 'en' ? (s.en = el.value.trim() || undefined) : (s.name = el.value.trim() || s.name)), false);
   bindStyle('sshape', (s, el) => (s.shape = el.value as Shape), false);
   bindStyle('scolor', (s, el) => (s.color = el.value), false);
   bindStyle('ssize', (s, el) => (s.size = Math.max(0.3, num(el, s.size))), true);
@@ -935,7 +981,7 @@ function renderSpaceSettings() {
     b.addEventListener('click', () => {
       const s = styleById(b.dataset.sdel!);
       const users = space.nodes.filter((n) => n.styleId === s.id);
-      if (users.length && !confirm(`Стиль «${s.name}» используют ${users.length} узлов. Удалить? Они сохранят его вид как собственный.`)) return;
+      if (users.length && !confirm(tr('Стиль «{style}» используют {n} узлов. Удалить? Они сохранят его вид как собственный.', { style: styleName(s), n: users.length }))) return;
       for (const n of users) {
         n.style = { color: s.color, shape: s.shape, size: s.size, ...(s.colors ? { colors: s.colors } : {}), ...(s.image ? { image: s.image } : {}) };
         n.styleId = undefined;
@@ -951,7 +997,7 @@ function renderSpaceSettings() {
     refresh(false);
   });
   on(right, '#s-delete', 'click', () => {
-    if (!confirm(`Удалить пространство «${space.title}» со всеми записями?`)) return;
+    if (!confirm(tr('Удалить пространство «{name}» со всеми записями?', { name: spaceTitle(space) }))) return;
     void deleteSpace(space.id)
       .then((nextId) => (nextId ? loadSpace(nextId) : null))
       .then((next) => next && switchTo(next));
@@ -1004,18 +1050,37 @@ function setupSidePanels() {
   }
 }
 
+/** Interface language: rail tooltips and the switch button under the left toggle. */
+function setupLanguage() {
+  document.documentElement.lang = lang;
+  for (const [sel, text] of [
+    ['[data-toggle="left"]', tr('Скрыть / показать левую панель')],
+    ['[data-toggle="right"]', tr('Скрыть / показать правую панель')],
+  ] as const)
+    document.querySelector(sel)?.setAttribute('title', text);
+  document.querySelectorAll('.resizer').forEach((el) => el.setAttribute('title', tr('Потяните, чтобы изменить ширину')));
+  const rail = document.querySelector('#left-side .rail');
+  if (!rail) return;
+  const btn = document.createElement('button');
+  btn.className = 'rail-btn lang-btn';
+  btn.textContent = lang === 'en' ? 'RU' : 'EN';
+  btn.title = lang === 'en' ? 'Переключить интерфейс на русский' : 'Switch the interface to English';
+  btn.addEventListener('click', () => setLang(lang === 'en' ? 'ru' : 'en'));
+  rail.append(btn);
+}
+
 // ---------- backups, export, import ----------
 
 function bindBackups() {
   const forId = space.id;
   const list = right.querySelector('#b-list') as HTMLElement;
-  const fmt = (t: number) => new Date(t).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+  const fmt = (t: number) => new Date(t).toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
   const reasons: Record<string, string> = {
-    manual: 'вручную',
-    'before-template-update': 'перед обновлением из шаблона',
-    'before-delete': 'перед удалением',
-    'before-restore': 'перед восстановлением',
-    'before-import': 'перед импортом',
+    manual: tr('вручную'),
+    'before-template-update': tr('перед обновлением из шаблона'),
+    'before-delete': tr('перед удалением'),
+    'before-restore': tr('перед восстановлением'),
+    'before-import': tr('перед импортом'),
   };
   const fill = () =>
     void listBackups(forId).then((items) => {
@@ -1025,22 +1090,22 @@ function bindBackups() {
           .slice(0, 10)
           .map(
             (b) =>
-              `<li><span>${esc(fmt(b.time))}</span><span class="muted">${esc(reasons[b.reason] ?? b.reason)}</span><button data-restore="${esc(b.name)}">Восстановить</button></li>`,
+              `<li><span>${esc(fmt(b.time))}</span><span class="muted">${esc(reasons[b.reason] ?? b.reason)}</span><button data-restore="${esc(b.name)}">${tr('Восстановить')}</button></li>`,
           )
-          .join('') || '<li class="muted">пока нет</li>';
+          .join('') || `<li class="muted">${tr('пока нет')}</li>`;
       list.querySelectorAll<HTMLButtonElement>('[data-restore]').forEach((btn) =>
         btn.addEventListener('click', () => {
-          if (!confirm('Восстановить эту копию? Текущее состояние тоже сохранится в копию.')) return;
+          if (!confirm(tr('Восстановить эту копию? Текущее состояние тоже сохранится в копию.'))) return;
           void restoreBackup(forId, btn.dataset.restore!).then((s) => {
             switchTo(s);
-            flash('Копия восстановлена');
+            flash(tr('Копия восстановлена'));
           });
         }),
       );
     });
   fill();
 
-  on(right, '#b-make', 'click', () => void backupSpace(space, 'manual').then(() => (fill(), flash('Копия сохранена'))));
+  on(right, '#b-make', 'click', () => void backupSpace(space, 'manual').then(() => (fill(), flash(tr('Копия сохранена')))));
   on(right, '#b-export', 'click', () => {
     const blob = new Blob([JSON.stringify(space, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -1062,9 +1127,9 @@ function bindBackups() {
         // An import never overwrites an existing space: it gets its own id if that one is taken.
         if (listSpaces().some((m) => m.id === s.id)) s.id = newId();
         switchTo(s);
-        flash(`Импортировано: «${s.title}»`);
+        flash(tr('Импортировано: «{name}»', { name: spaceTitle(s) }));
       } catch (e) {
-        alert(`Не удалось импортировать файл: ${String(e)}`);
+        alert(tr('Не удалось импортировать файл: {error}', { error: String(e) }));
       }
     });
     input.click();
@@ -1093,10 +1158,10 @@ function pickImage(): Promise<string | null> {
 /** Markup of a "Картинка" row; `upload` / `remove` are the attributes (id or data-*) that bind its two buttons. */
 function imageRowHtml(image: string | undefined, upload: string, remove: string): string {
   return `<div class="row">
-    <span class="muted">Картинка:</span>
-    ${image ? `<img class="style-thumb" src="${esc(imageUrl(image))}" alt="">` : '<span class="muted">нет</span>'}
-    <button ${upload} title="Показывать элемент этой картинкой вместо фигуры (png, jpg, gif, webp, svg)">Загрузить…</button>
-    ${image ? `<button ${remove} title="Убрать картинку">×</button>` : ''}
+    <span class="muted">${tr('Картинка:')}</span>
+    ${image ? `<img class="style-thumb" src="${esc(imageUrl(image))}" alt="">` : `<span class="muted">${tr('нет')}</span>`}
+    <button ${upload} title="${tr('Показывать элемент этой картинкой вместо фигуры (png, jpg, gif, webp, svg)')}">${tr('Загрузить…')}</button>
+    ${image ? `<button ${remove} title="${tr('Убрать картинку')}">×</button>` : ''}
   </div>`;
 }
 
@@ -1109,6 +1174,24 @@ function flash(text: string) {
 }
 
 // ---------- helpers ----------
+
+/** Attributes of the title field: in English mode it edits `n.en.title`, the Russian shows as a placeholder. */
+function titleAttrs(n: SpaceNode): string {
+  return lang === 'en' ? `value="${esc(n.en?.title ?? '')}" placeholder="${esc(n.title)}"` : `value="${esc(n.title)}"`;
+}
+
+function htmlAttrs(n: SpaceNode): string {
+  return lang === 'en' ? `placeholder="${esc(n.contentHtml)}"` : '';
+}
+
+/** Sets (or, when empty, clears) an English field of a node; drops `en` when nothing is left in it. */
+function setEn(n: SpaceNode, key: 'title' | 'contentHtml', value: string) {
+  const en = { ...n.en };
+  if (value) en[key] = value;
+  else delete en[key];
+  n.en = Object.keys(en).length ? en : undefined;
+}
+
 
 function on(root: HTMLElement, sel: string, type: string, fn: (e: Event) => void) {
   root.querySelector(sel)?.addEventListener(type, fn);

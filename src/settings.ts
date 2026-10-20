@@ -14,6 +14,7 @@ export interface ViewSettings {
   showFrames: boolean;
   /** Show the vertical axis through the centre of the space. */
   showAxis: boolean;
+  showGrid: boolean;
   /** How strongly labels far from the camera fade, 0..1. */
   labelDepthFade: number;
   /** Labels grow when the camera comes closer. */
@@ -40,6 +41,7 @@ const DEFAULTS: ViewSettings = {
   linkOpacity: DEFAULT_LINK_OPACITY,
   showFrames: true,
   showAxis: true,
+  showGrid: false,
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,
   labelScale: 1,

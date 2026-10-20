@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { imageUrl } from '../storage';
+import { nodeContent, nodeTitle, styleName, tr } from '../i18n';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { matchesFilter, type TagFilter } from '../core/filter';
 import { attachPoint, isExpandedGroup, SpaceIndex, type Layout, type Shell, type Vec3 } from '../core/layout';
-import { mainColor, styleOf, type Shape, type Space } from '../core/types';
+import { mainColor, styleOf, type Shape, type Space, type SpaceNode } from '../core/types';
 
 const GEOMETRY: Record<Shape, THREE.BufferGeometry> = {
   sphere: new THREE.SphereGeometry(1, 24, 16),
@@ -15,8 +16,10 @@ const GEOMETRY: Record<Shape, THREE.BufferGeometry> = {
   cylinder: new THREE.CylinderGeometry(0.9, 0.9, 1.8, 24),
 };
 const SHELL_GEOMETRY = new THREE.SphereGeometry(1, 40, 24);
+/** Finer sphere for shells with a picture wrapped on them. */
+const WRAP_GEOMETRY = new THREE.SphereGeometry(1, 96, 64);
 const ARROW_GEOMETRY = new THREE.ConeGeometry(0.5, 1.6, 12);
-const SHARED = new Set<THREE.BufferGeometry>([...Object.values(GEOMETRY), SHELL_GEOMETRY, ARROW_GEOMETRY]);
+const SHARED = new Set<THREE.BufferGeometry>([...Object.values(GEOMETRY), SHELL_GEOMETRY, WRAP_GEOMETRY, ARROW_GEOMETRY]);
 
 /** Height of a picture node relative to the radius of a solid shape. */
 const SPRITE_HEIGHT_K = 2.4;
@@ -33,6 +36,20 @@ const CARD_DELAY_MS = 500;
 const ACTIVE_GRACE_MS = 1200;
 /** Spinning objects smaller than this on screen (pixels across) are not animated. */
 const MIN_SPIN_PX = 6;
+/** A level enters the list once the view is no wider than this many of its radii. */
+const CRUMB_SCALE_K = 3;
+/** Wheel zoom stops at this many times the distance to (and size of) the nearest object at the focus. */
+const ZOOM_FLOOR_K = 3;
+/** The wheel aims at things no farther than this many view widths away. */
+const ZOOM_REACH_K = 4;
+/** Beacons: dot size, caption size at least, and up to which on-screen radius the dot is what gets picked. */
+const BEACON_PX = 5;
+const BEACON_LABEL_PX = 11;
+/** A beacon's caption fades with distance, but not below this. */
+const BEACON_MIN_FADE = 0.5;
+/** A beacon range named by a group: up to this many of its radii of view width. */
+const BEACON_RANGE_K = 2;
+const BEACON_PICK_UNTIL_PX = 25;
 /** Closest the camera may come to its focus point: tiny, so that zooming can go as deep as the data does. */
 const MIN_VIEW_DIST = 1e-12;
 /** Smallest on-screen radius (pixels) at which a slice or cell of a disc can be picked. */
@@ -116,12 +133,16 @@ export class Viewer {
   private readonly content = new THREE.Group();
   private readonly pickNodes: THREE.Object3D[] = [];
   private readonly pickShells: THREE.Object3D[] = [];
+  /** Markers of `beacon` nodes: fixed-size dots, pickable from any distance. */
+  private readonly beacons: THREE.Object3D[] = [];
   private focusGoal: THREE.Vector3 | null = null;
   private fitted = false;
   private hoverId: string | null = null;
   /** Wheel zoom still to apply (log scale: + away, − closer) and the point it zooms about. */
   private zoomPending = 0;
   private zoomPoint: THREE.Vector3 | null = null;
+  /** Closest the wheel may bring the camera to `zoomPoint`. */
+  private zoomLimit = 0;
   private readonly ringSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   private readonly arcTexts: { label: CSS2DObject; path: SVGPathElement; text: SVGTextElement }[] = [];
   private space: Space | null = null;
@@ -142,6 +163,8 @@ export class Viewer {
   showFrames = true;
   /** Draw the vertical axis through the centre of the space. Takes effect on the next render. */
   showAxis = true;
+  /** Draw the floor grid under the space. Takes effect on the next render. */
+  showGrid = false;
   private labelDepthFade = DEFAULT_LABEL_DEPTH_FADE;
   private objectDepthFade = DEFAULT_OBJECT_DEPTH_FADE;
   /** Labels grow when the camera comes closer to them. */
@@ -165,10 +188,10 @@ export class Viewer {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     container.append(this.renderer.domElement);
     for (const [text, x, z, color] of [
-      ['С', 0, -1, '#7aa2f7'],
-      ['Ю', 0, 1, '#7aa2f7'],
-      ['З', -1, 0, '#f7768e'],
-      ['В', 1, 0, '#f7768e'],
+      [tr('С'), 0, -1, '#7aa2f7'],
+      [tr('Ю'), 0, 1, '#7aa2f7'],
+      [tr('З'), -1, 0, '#f7768e'],
+      [tr('В'), 1, 0, '#f7768e'],
     ] as [string, number, number, string][]) {
       const el = document.createElement('div');
       el.textContent = text;
@@ -176,6 +199,11 @@ export class Viewer {
       container.append(el);
       this.edgeCompass.push({ el, dir: new THREE.Vector3(x, 0, z) });
     }
+    // Under the search box (.stage-search: top 10px, left 10px, width min(320px, 55%)).
+    this.crumbs.style.cssText =
+      'position:absolute;top:52px;left:10px;display:none;z-index:6;max-width:min(320px, 55%);max-height:calc(100% - 64px);overflow:auto;' +
+      'padding:6px 8px;border-radius:6px;background:rgba(22,22,30,0.72);font:13px sans-serif;';
+    container.append(this.crumbs);
     this.labels.domElement.className = 'labels';
     container.append(this.labels.domElement);
     // Curved captions of rings (text along the projected ring), drawn under the regular labels.
@@ -189,7 +217,11 @@ export class Viewer {
     // Wheel zoom is our own (see `bindSmoothZoom`): OrbitControls applies each wheel step at once.
     this.controls.enableZoom = false;
     this.controls.target.set(0, 15, 0);
-    this.controls.addEventListener('start', () => this.cancelFlight());
+    this.controls.addEventListener('start', () => {
+      this.cancelFlight();
+      // Rotating or panning ends a wheel zoom still gliding: it would keep moving the pivot.
+      this.zoomPending = 0;
+    });
     // Frames are drawn on demand: any input or camera movement wakes the loop for a while.
     this.controls.addEventListener('change', () => {
       this.invalidate();
@@ -365,7 +397,8 @@ export class Viewer {
         const shell = layout.shells.get(n.id)!;
         minY = Math.min(minY, shell.center.y - shell.radii.y);
         maxY = Math.max(maxY, shell.center.y + shell.radii.y);
-        this.addShell(n.id, mainColor(style), shell, a * (n.frame?.shellOpacity ?? 1), selected, n.frame?.edgeOpacity ?? 1);
+        this.addShell(n.id, mainColor(style), shell, a * (n.frame?.shellOpacity ?? 1), selected, n.frame?.edgeOpacity ?? 1, !n.passive, style.image);
+        if (n.beacon) this.addBeacon(n.id, shell.center, Math.max(shell.radii.x, shell.radii.z), mainColor(style), this.beaconRange(n, layout));
         // Ring at the group's local zero level: makes its frame of reference visible.
         if (this.showFrames) {
           this.addRing(
@@ -377,7 +410,10 @@ export class Viewer {
           );
         }
         if (!n.hideLabel) {
-          const label = this.addLabel(n.title, { ...shell.center, y: shell.center.y + shell.radii.y }, mainColor(style), a, 'group', fontScale, n.id);
+          // A drop is captioned over its middle; other shells above their top.
+          const capY = shell.drop ? shell.center.y : shell.center.y + shell.radii.y;
+          const label = this.addLabel(nodeTitle(n), { ...shell.center, y: capY }, mainColor(style), a * (n.labelOpacity ?? 1), 'group', fontScale, n.id);
+          if (n.beacon) label.userData.beacon = true;
           // Caption height follows the group's size on screen.
           // A ring is a thin tube: its caption follows the tube's thickness, not the ring's radius,
           // but may take the free room up to the neighbouring concentric rings.
@@ -385,9 +421,20 @@ export class Viewer {
             ? Math.max(Math.max(shell.torus.tube, shell.torus.tubeY) * RING_LABEL_K * Math.pow(this.labelShrink, p.depth), ringRoom(layout, idx, n.id) * RING_ROOM_K)
             : // Nested groups are often nearly as big as their parents: shrink captions per level too.
               Math.max(shell.radii.x, shell.radii.z) * GROUP_LABEL_K * Math.pow(this.labelShrink, p.depth));
-          if (!shell.torus) {
+          if (!shell.torus && !shell.drop) {
             label.userData.groupRadius = Math.max(shell.radii.x, shell.radii.z);
+            label.userData.shell = shell;
             label.userData.groupCenter = new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z);
+          }
+          // A drop: the caption runs along its surface, on the front arc of its widest circle.
+          if (shell.drop) {
+            const d = shell.drop;
+            const prof = dropProfile(d.height, d.radius);
+            const widest = prof.reduce((b, q) => (q.x > b.x ? q : b), prof[0]);
+            const y = d.base.y + (d.dir === 'down' ? -widest.y : widest.y);
+            label.userData.shell = shell;
+            label.userData.ring = { x: d.base.x, z: d.base.z, y, major: widest.x, tube: 0, tubeY: 0, members: [] };
+            this.addArcText(label, nodeTitle(n), mainColor(style));
           }
           // Concentric tori share a centre: their captions go onto the ring itself (see `placeRingLabels`).
           if (shell.torus) {
@@ -398,7 +445,7 @@ export class Viewer {
               .map((c) => Math.atan2(c.world.z - shell.center.z, c.world.x - shell.center.x))
               .sort((a, b) => a - b);
             label.userData.ring = { x: shell.center.x, z: shell.center.z, ...shell.torus, members };
-            this.addArcText(label, n.title, mainColor(style));
+            this.addArcText(label, nodeTitle(n), mainColor(style));
           }
         }
         continue;
@@ -429,12 +476,14 @@ export class Viewer {
       } else mesh.scale.setScalar(scale);
       mesh.position.set(p.world.x, p.world.y, p.world.z);
       mesh.userData.id = n.id;
+      if (n.beacon) this.addBeacon(n.id, p.world, scale, mainColor(style), this.beaconRange(n, layout));
       if (n.spin) mesh.userData.spin = (n.spin * Math.PI * 2) / 60;
       this.content.add(mesh);
       this.pickNodes.push(mesh);
       if (!n.hideLabel) {
-        const title = hidden ? `${n.title} (+${hidden})` : n.title;
-        const label = this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a, n.kind, fontScale, n.id);
+        const title = hidden ? `${nodeTitle(n)} (+${hidden})` : nodeTitle(n);
+        const label = this.addLabel(title, { ...p.world, y: p.world.y + scale * 1.4 }, mainColor(style), a * (n.labelOpacity ?? 1), n.kind, fontScale, n.id);
+        if (n.beacon) label.userData.beacon = true;
         // Caption height follows the object's size on screen.
         // Notes already get smaller with nesting, so their captions just follow their size (the extra
         // per-level shrink is for groups, whose nested shells can be almost as big as their parents).
@@ -484,10 +533,10 @@ export class Viewer {
       ];
       // Paradise's long (north–south) axis is Z: north on −Z (left in the default view), east on +X.
       const compass: [string, Vec3, string][] = [
-        ['Север', { x: 0, y: 0, z: -h }, '#7aa2f7'],
-        ['Юг', { x: 0, y: 0, z: h }, '#7aa2f7'],
-        ['Запад', { x: -h, y: 0, z: 0 }, '#f7768e'],
-        ['Восток', { x: h, y: 0, z: 0 }, '#f7768e'],
+        [tr('Север'), { x: 0, y: 0, z: -h }, '#7aa2f7'],
+        [tr('Юг'), { x: 0, y: 0, z: h }, '#7aa2f7'],
+        [tr('Запад'), { x: -h, y: 0, z: 0 }, '#f7768e'],
+        [tr('Восток'), { x: h, y: 0, z: 0 }, '#f7768e'],
       ];
       for (const [text, at, color] of compass) this.addLabel(text, at, color, 1, 'group');
       for (const [from, to, color] of axes) {
@@ -499,7 +548,7 @@ export class Viewer {
         );
       }
     }
-    this.content.add(grid);
+    if (this.showGrid) this.content.add(grid);
 
     if (!this.fitted) {
       this.fitted = true;
@@ -526,7 +575,7 @@ export class Viewer {
     const p = this.layout?.placed.get(id);
     if (!n || !p?.visible || !this.space || !this.layout) return;
     const named = n.styleId ? this.space.styles?.find((s) => s.id === n.styleId) : undefined;
-    this.cardObj = this.addCard(n.title, n.contentHtml, attachPoint(this.layout, id), styleOf(this.space, n).color, named?.name);
+    this.cardObj = this.addCard(nodeTitle(n), nodeContent(n), attachPoint(this.layout, id), styleOf(this.space, n).color, named && styleName(named));
     this.cardId = id;
   }
 
@@ -648,22 +697,33 @@ export class Viewer {
     return ((c.x - o.x) / r.x) ** 2 + ((c.y - o.y) / r.y) ** 2 + ((c.z - o.z) / r.z) ** 2 < 1;
   }
 
-  private addShell(id: string, color: string, shell: Shell, a: number, selected: boolean, edge = 1) {
+  private addShell(id: string, color: string, shell: Shell, a: number, selected: boolean, edge = 1, pickable = true, image?: string) {
     const { center: c, radii: r, torus, wedge } = shell;
     // A slice is built around its own centre (small numbers for the GPU), not around the disc's centre.
     const wedgeMid = wedge ? wedgeCentre(wedge) : null;
     const wedgeGeo = wedge ? wedgeGeometry(wedge, r.y * 2, wedgeMid!) : null;
+    const drop = shell.drop;
+    const dropGeo = drop ? new THREE.LatheGeometry(dropProfile(drop.height, drop.radius), 64) : null;
+    // A picture on a round shell (e.g. a map on a planet): wrapped around it, seen only from outside,
+    // so that from inside the contents stay visible.
+    const wrapped = image && !torus && !wedge && !drop;
     const mesh = new THREE.Mesh(
-      wedgeGeo ?? (torus ? new THREE.TorusGeometry(torus.major, torus.tube, 20, 72) : SHELL_GEOMETRY),
-      new THREE.MeshStandardMaterial({
-        color,
-        transparent: true,
-        opacity: (selected ? 0.16 : 0.07) * a,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-      }),
+      wedgeGeo ?? dropGeo ?? (torus ? new THREE.TorusGeometry(torus.major, torus.tube, 20, 72) : wrapped ? WRAP_GEOMETRY : SHELL_GEOMETRY),
+      wrapped
+        ? new THREE.MeshStandardMaterial({ map: this.picture(image).texture, transparent: a < 1, opacity: a, side: THREE.FrontSide, roughness: 0.9 })
+        : new THREE.MeshStandardMaterial({
+            color,
+            transparent: true,
+            opacity: (selected ? 0.16 : 0.07) * a,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+          }),
     );
-    if (wedge) {
+    if (drop) {
+      // Built pointing up from its point; a downward drop is the same turned over.
+      mesh.position.set(drop.base.x, drop.base.y, drop.base.z);
+      if (drop.dir === 'down') mesh.scale.y = -1;
+    } else if (wedge) {
       // The slice is built flat in XY and extruded along z: lay it down, top at the shell's top.
       mesh.rotation.x = Math.PI / 2;
       mesh.position.set(wedge.cx + wedgeMid!.x, c.y + r.y, wedge.cz + wedgeMid!.y);
@@ -680,6 +740,7 @@ export class Viewer {
     // For picking the innermost of nested shells, and for picking by apparent size.
     mesh.userData.size = r.x * r.y * r.z;
     mesh.userData.radius = Math.max(r.x, r.z);
+    mesh.userData.shell = shell;
     // Slices and cells tile their parent: nothing else is under the pointer there, so they may be aimed at when small.
     if (wedge) {
       mesh.userData.pickMinPx = WEDGE_PICK_MIN_PX;
@@ -688,11 +749,32 @@ export class Viewer {
     mesh.userData.baseOpacity = (mesh.material as THREE.Material).opacity;
     mesh.renderOrder = -1;
     this.content.add(mesh);
-    this.pickShells.push(mesh);
+    if (pickable) this.pickShells.push(mesh);
 
     const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: (selected ? 0.5 : 0.18) * a * edge });
     let outline: THREE.Object3D;
-    if (wedgeGeo) {
+    if (drop) {
+      // A few meridians and the widest circle: a smooth outline instead of the mesh's edges.
+      outline = new THREE.Group();
+      const prof = dropProfile(drop.height, drop.radius);
+      for (let m = 0; m < 4; m++) {
+        const a = (m * Math.PI) / 4;
+        const pts = [...prof.map((p) => new THREE.Vector3(p.x * Math.cos(a), p.y, p.x * Math.sin(a)))];
+        const back = [...prof].reverse().map((p) => new THREE.Vector3(-p.x * Math.cos(a), p.y, -p.x * Math.sin(a)));
+        outline.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([...pts, ...back]), material));
+      }
+      const widest = prof.reduce((b, p) => (p.x > b.x ? p : b), prof[0]);
+      outline.add(
+        new THREE.LineLoop(
+          new THREE.BufferGeometry().setFromPoints(
+            new THREE.EllipseCurve(0, 0, widest.x, widest.x).getPoints(96).map((p) => new THREE.Vector3(p.x, widest.y, p.y)),
+          ),
+          material,
+        ),
+      );
+      outline.position.copy(mesh.position);
+      outline.scale.copy(mesh.scale);
+    } else if (wedgeGeo) {
       outline = new THREE.LineSegments(new THREE.EdgesGeometry(wedgeGeo, 30), material);
       outline.rotation.copy(mesh.rotation);
       outline.position.copy(mesh.position);
@@ -755,7 +837,8 @@ export class Viewer {
     });
     const grid = new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity: CELL_GRID_OPACITY * a, depthWrite: false }),
+      // The denser the grid, the dimmer its lines (100 cells: the base brightness).
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: CELL_GRID_OPACITY * a * Math.min(1, Math.sqrt(100 / Math.max(1, layers.reduce((s, l) => s + l.counts.reduce((x, y) => x + y, 0), 0)))) * (layers.length > 3 ? 0.6 : 1), depthWrite: false }),
     );
     grid.position.set(w.cx + mid.x, y, w.cz + mid.y);
     this.content.add(grid);
@@ -789,7 +872,8 @@ export class Viewer {
   private readonly pictures = new Map<string, { texture: THREE.Texture; aspect: number; ready: boolean; waiting: THREE.Sprite[] }>();
 
   /** A node drawn as a picture that always faces the viewer. Its width follows the picture once loaded. */
-  private makeSprite(image: string, opacity: number): THREE.Sprite {
+  /** A picture from `data/images`, loaded once and shared. */
+  private picture(image: string) {
     let pic = this.pictures.get(image);
     if (!pic) {
       const entry: { texture: THREE.Texture; aspect: number; ready: boolean; waiting: THREE.Sprite[] } = {
@@ -810,6 +894,11 @@ export class Viewer {
       this.pictures.set(image, entry);
       pic = entry;
     }
+    return pic;
+  }
+
+  private makeSprite(image: string, opacity: number): THREE.Sprite {
+    const pic = this.picture(image);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: pic.texture, transparent: true, opacity }));
     sprite.userData.aspect = pic.aspect;
     if (!pic.ready) pic.waiting.push(sprite);
@@ -871,7 +960,17 @@ export class Viewer {
     // A group that fills the view: its caption must stay readable however deeply it is nested.
     let floorK = 0;
     const gc = obj.userData.groupCenter as THREE.Vector3 | undefined;
-    if (gc) {
+    const sh = obj.userData.shell as Shell | undefined;
+    // Inside a group its caption would hang in front of everything: the breadcrumbs name it instead.
+    if (sh && insideShell(sh, this.camera.position)) {
+      if (obj.userData.shownOpacity !== 0) {
+        obj.userData.shownOpacity = 0;
+        obj.element.style.opacity = '0';
+      }
+      return;
+    }
+    // Only the group being looked into keeps a readable caption; others fade with distance like the rest.
+    if (gc && (!sh || insideShell(sh, this.controls.target))) {
       const dc = Math.max(this.camera.position.distanceTo(gc), MIN_VIEW_DIST);
       const radiusPx =
         ((obj.userData.groupRadius as number) * this.renderer.domElement.clientHeight) / (2 * dc * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
@@ -879,6 +978,9 @@ export class Viewer {
       fade += (1 - fade) * floorK; // the caption sits on the far edge, but the group is right here
     }
     const hovered = obj.element.classList.contains('hovered');
+    // A beacon's caption does not fade with distance.
+    const beaconOn = !!obj.userData.beacon && this.beacons.some((b) => b.userData.id === obj.userData.forId && b.visible);
+    if (beaconOn) fade = Math.max(fade, BEACON_MIN_FADE);
     let opacity = hovered ? 1 : (obj.userData.baseOpacity as number) * fade;
     let px: number;
     const worldSize = obj.userData.worldSize as number | undefined;
@@ -888,6 +990,7 @@ export class Viewer {
       const pxPerUnit = this.renderer.domElement.clientHeight / (2 * d * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2));
       px = Math.min(MAX_LABEL_PX * this.labelScale, worldSize * pxPerUnit * this.labelScale);
       px = Math.max(px, GROUP_MIN_LABEL_PX * floorK * this.labelScale);
+      if (beaconOn) px = Math.max(px, BEACON_LABEL_PX * this.labelScale);
       // Too small to read: fade out instead of piling up into an unreadable blot.
       if (!hovered) opacity *= THREE.MathUtils.clamp((px - LABEL_HIDE_PX) / (LABEL_FULL_PX - LABEL_HIDE_PX), 0, 1);
       px = Math.max(px, LABEL_HIDE_PX);
@@ -932,7 +1035,7 @@ export class Viewer {
     }
     const close = document.createElement('button');
     close.className = 'card-close';
-    close.title = 'Закрыть (Esc)';
+    close.title = tr('Закрыть (Esc)');
     close.textContent = '×';
     close.addEventListener('click', () => this.removeCard());
     el.addEventListener('pointerenter', () => (this.overCard = true));
@@ -989,6 +1092,7 @@ export class Viewer {
     this.ringSvg.replaceChildren();
     this.arcTexts.length = 0;
     this.pickShells.length = 0;
+    this.beacons.length = 0;
   }
 
   private bindPicking() {
@@ -1009,7 +1113,7 @@ export class Viewer {
         shellHits.at(-1);
       // Nodes win over shells, but only once they are big enough on screen to be told apart.
       const nodeHit = ray.intersectObjects(this.pickNodes).find((h) => this.screenRadius(h.object, h.object.scale.x) >= PICK_NODE_MIN_PX);
-      const hit = nodeHit ?? this.nearestNode(ndc, rect, 12) ?? shellHit;
+      const hit = nodeHit ?? this.nearestBeacon(ndc, rect, 14) ?? this.nearestNode(ndc, rect, 12) ?? shellHit;
       return (hit?.object.userData.id as string | undefined) ?? null;
     };
     // Hover highlight, at most once per frame.
@@ -1242,6 +1346,53 @@ export class Viewer {
     return best;
   }
 
+  /** A beacon within `px` of the pointer, while its object is still small on screen (up close the object itself is picked). */
+  private nearestBeacon(ndc: THREE.Vector2, rect: DOMRect, px: number): { object: THREE.Object3D } | undefined {
+    let best: { object: THREE.Object3D; depth: number } | undefined;
+    for (const obj of this.beacons) {
+      if (!obj.visible || this.screenRadius(obj, obj.userData.radius as number) > BEACON_PICK_UNTIL_PX) continue;
+      const s = obj.position.clone().project(this.camera);
+      if (s.z > 1) continue;
+      const dx = ((s.x - ndc.x) * rect.width) / 2;
+      const dy = ((s.y - ndc.y) * rect.height) / 2;
+      if (Math.hypot(dx, dy) <= px && (!best || s.z < best.depth)) best = { object: obj, depth: s.z };
+    }
+    return best;
+  }
+
+  /** A dot of fixed screen size marking a `beacon` node, so it can be seen and pointed at from afar. */
+  /** View widths (camera to focus) in which a beacon works, from the sizes of the groups it names. */
+  private beaconRange(n: SpaceNode, layout: Layout): [number, number] {
+    const size = (id?: string) => {
+      const sh = id ? layout.shells.get(id) : undefined;
+      return sh ? Math.max(sh.radii.x, sh.radii.z) * BEACON_RANGE_K : undefined;
+    };
+    return [size(n.beaconFrom) ?? 0, size(n.beaconTo) ?? Infinity];
+  }
+
+  /** Shows the beacons that work at the current view width; hidden ones are neither seen nor picked. */
+  private updateBeacons() {
+    const dist = this.camera.position.distanceTo(this.controls.target);
+    for (const dot of this.beacons) {
+      const [lo, hi] = dot.userData.range as [number, number];
+      dot.visible = dist >= lo && dist <= hi;
+    }
+  }
+
+  private addBeacon(id: string, at: Vec3, radius: number, color: string, range: [number, number] = [0, Infinity]) {
+    const dot = new THREE.Points(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0)]),
+      new THREE.PointsMaterial({ color, size: BEACON_PX, sizeAttenuation: false, depthTest: false, transparent: true }),
+    );
+    dot.position.set(at.x, at.y, at.z);
+    dot.renderOrder = 10;
+    dot.userData.id = id;
+    dot.userData.radius = radius;
+    dot.userData.range = range;
+    this.content.add(dot);
+    this.beacons.push(dot);
+  }
+
   /** Apparent radius in screen pixels of something of world radius `r` at `obj`'s position. */
   private screenRadius(obj: THREE.Object3D, r: number): number {
     // A slice or cell is positioned at the centre of its disc, far from where it is: it names its own centre.
@@ -1274,17 +1425,52 @@ export class Viewer {
         // Normalise wheel units (lines / pages / pixels); one notch ≈ 100 px ≈ 15 % closer or farther.
         const px = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1);
         this.zoomPending += THREE.MathUtils.clamp(px, -400, 400) * 0.0015;
-        // Zoom towards the point under the cursor, on the plane through the focus point facing the camera.
+        // Zoom towards what is under the cursor: an object there (or one within a few pixels), else the
+        // innermost group shell hit; only over empty space, the plane through the focus point.
         const rect = el.getBoundingClientRect();
         const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
         const ray = new THREE.Raycaster();
         ray.setFromCamera(ndc, this.camera);
-        const normal = this.camera.getWorldDirection(new THREE.Vector3());
-        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, this.controls.target);
-        this.zoomPoint = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? this.controls.target.clone();
+        // A beacon dot under the cursor is what is aimed at, even if something stands in front of it.
+        const beacon = this.nearestBeacon(ndc, rect, 14);
+        // Only what is within reach of the current view: not something far behind the thing looked at.
+        const reach = this.camera.position.distanceTo(this.controls.target) * ZOOM_REACH_K;
+        const inReach = (q: THREE.Vector3) => q.distanceTo(this.camera.position) <= reach;
+        const nodeHit = beacon ? undefined : ray.intersectObjects(this.pickNodes).find((h) => inReach(h.point));
+        const nearObj = beacon || nodeHit ? null : this.nearestNode(ndc, rect, 14);
+        const near = nearObj && inReach(nearObj.object.position) ? nearObj : null;
+        const shellHit = ray
+          .intersectObjects(this.pickShells)
+          // Not the wall of a shell the camera is inside: aim at what is beyond it.
+          .filter((h) => inReach(h.point) && !(h.object.userData.shell && insideShell(h.object.userData.shell as Shell, this.camera.position)))
+          .sort((x, y) => x.object.userData.size - y.object.userData.size)[0];
+        let p: THREE.Vector3 | null = beacon?.object.position.clone() ?? nodeHit?.point ?? near?.object.position.clone() ?? shellHit?.point ?? null;
+        if (!p) {
+          const normal = this.camera.getWorldDirection(new THREE.Vector3());
+          const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, this.controls.target);
+          p = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? this.controls.target.clone();
+        }
+        this.zoomPoint = p;
+        // How close the camera may come to it: a few radii of the smallest object around that point.
+        this.zoomLimit = this.zoomFloor(p, this.camera.position.distanceTo(p));
       },
       { passive: false },
     );
+  }
+
+  /**
+   * Closest sensible viewing distance at a point seen from `dist` away: a few radii of the smallest
+   * object still around it (within the view). Deep inside, objects are tiny, so this allows deep zoom;
+   * with nothing around at all, zooming further in would only sink into empty space.
+   */
+  private zoomFloor(at: THREE.Vector3, dist: number): number {
+    let smallest = Infinity;
+    for (const obj of this.pickNodes) {
+      const r = obj.scale.x;
+      if (r < smallest && obj.position.distanceTo(at) - r < 2 * dist) smallest = r;
+    }
+    // Nothing around the point under the pointer: zooming on would only sink into empty space.
+    return Number.isFinite(smallest) ? Math.max(MIN_VIEW_DIST, smallest * ZOOM_FLOOR_K) : dist;
   }
 
   /** Applies a share of the pending wheel zoom (called every frame). */
@@ -1301,12 +1487,74 @@ export class Viewer {
     // Scale camera and focus about the point under the cursor, so that point stays put on screen.
     const newCam = this.camera.position.clone().sub(p).multiplyScalar(factor).add(p);
     const newTarget = this.controls.target.clone().sub(p).multiplyScalar(factor).add(p);
-    if (newCam.distanceTo(newTarget) < MIN_VIEW_DIST) return; // do not pass through the focus point
+    // Do not pass through the focus point, nor sink into empty space: stop at a distance in keeping
+    // with the nearest object there (deep inside, objects are tiny, so this still allows deep zoom).
+    if (factor < 1 && newCam.distanceTo(p) < this.zoomLimit) return;
+    if (newCam.distanceTo(newTarget) < MIN_VIEW_DIST) return;
     this.camera.position.copy(newCam);
-    this.controls.target.copy(newTarget);
+    // The pivot of rotation goes onto the view line at the depth of what is zoomed at (not left
+    // somewhere in front of or behind it): the view does not turn, and rotating then turns about that thing.
+    const dir = newTarget.clone().sub(newCam).normalize();
+    const depth = p.clone().sub(newCam).dot(dir);
+    this.controls.target.copy(depth > MIN_VIEW_DIST ? newCam.clone().addScaledVector(dir, depth) : newTarget);
   }
 
   private lastFrame = performance.now();
+  /** Path of groups around the focus point, at the top of the view; each step flies there. */
+  private readonly crumbs = document.createElement('div');
+  private crumbsKey = '';
+
+  /**
+   * Levels the camera is inside, from the outermost: a list under the search box, each with the
+   * object's colour and a small picture of it; a click flies there. Outside everything it is empty,
+   * and it grows as the camera goes in.
+   */
+  private updateCrumbs() {
+    const layout = this.layout;
+    const space = this.space;
+    if (!layout || !space) return;
+    // The groups around the point looked at, of those whose scale has been reached: a group counts
+    // once the view is no wider than a few of its sizes (flat shells would rarely contain the camera).
+    const t = this.controls.target;
+    const dist = this.camera.position.distanceTo(t);
+    let best: string | null = null;
+    let bestDepth = -1;
+    for (const [id, sh] of layout.shells) {
+      const depth = layout.placed.get(id)?.depth ?? 0;
+      if (depth > bestDepth && insideShell(sh, t)) {
+        best = id;
+        bestDepth = depth;
+      }
+    }
+    const byId = new Map(space.nodes.map((n) => [n.id, n]));
+    const chain: SpaceNode[] = [];
+    for (let n = best ? byId.get(best) : undefined; n; n = n.parentId ? byId.get(n.parentId) : undefined) {
+      const sh = layout.shells.get(n.id);
+      const size = sh ? Math.max(sh.radii.x, sh.radii.z, sh.torus ? sh.torus.major + sh.torus.tube : 0) : 0;
+      if (size * CRUMB_SCALE_K >= dist) chain.unshift(n);
+    }
+    const key = chain.map((n) => n.id).join('/');
+    if (key === this.crumbsKey) return;
+    this.crumbsKey = key;
+    this.crumbs.replaceChildren();
+    this.crumbs.style.display = chain.length ? '' : 'none';
+    chain.forEach((n, i) => {
+      const style = styleOf(space, n);
+      const color = mainColor(style);
+      const row = document.createElement('div');
+      row.style.cssText = `display:flex;align-items:center;gap:6px;padding:1px 0 1px ${i * 8}px;cursor:pointer;white-space:nowrap;color:${color};`;
+      if (i < chain.length - 1) row.style.opacity = '0.8';
+      else row.style.fontWeight = '600';
+      row.append(crumbIcon(n, layout.shells.get(n.id), color, style.image));
+      const text = document.createElement('span');
+      text.textContent = nodeTitle(n);
+      text.style.cssText = 'overflow:hidden;text-overflow:ellipsis;';
+      row.append(text);
+      row.title = nodeTitle(n);
+      row.addEventListener('click', () => this.flyTo(n.id));
+      this.crumbs.append(row);
+    });
+  }
   /** Length of the drawn axes (0 when they are off). */
   private axisLen = 0;
   /** Cardinal-direction letters at the screen edge where an axis leaves the view. */
@@ -1442,6 +1690,7 @@ export class Viewer {
     }
     this.controls.update();
     this.fitClipping();
+    this.updateBeacons();
     // Fog follows the zoom, so objects dissolve relative to the point the camera looks at:
     // with full strength fading starts a bit in front of it and ends not far behind it.
     const fog = this.scene.fog as THREE.Fog;
@@ -1464,6 +1713,7 @@ export class Viewer {
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
     this.labels.render(this.scene, this.camera);
     this.updateEdgeCompass();
+    this.updateCrumbs();
     this.separateLabels();
     // The label renderer orders elements by depth; the card must stay above every caption.
     if (this.cardObj) {
@@ -1471,6 +1721,73 @@ export class Viewer {
       this.cardObj.element.style.zIndex = '1000000';
     }
   }
+}
+
+/**
+ * Profile of a drop (x = distance from the axis, y = height): a point at the bottom, widening, the
+ * widest part above the middle, a rounded top.
+ */
+function dropProfile(height: number, radius: number): THREE.Vector2[] {
+  const n = 64;
+  const c = 0.55; // the widest part, as a share of the height
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const s = i / n;
+    // Below the widest part: from the point outwards; above it: a rounded (elliptic) cap.
+    const r = s <= c ? Math.sin((Math.PI / 2) * (s / c)) : Math.sqrt(Math.max(0, 1 - ((s - c) / (1 - c)) ** 2));
+    return new THREE.Vector2(r * radius, s * height);
+  });
+}
+
+/** A small picture of an object for the level list: its picture, or a sketch of its shell or shape. */
+function crumbIcon(n: SpaceNode, shell: Shell | undefined, color: string, image?: string): HTMLElement {
+  if (image) {
+    const img = document.createElement('img');
+    img.src = imageUrl(image);
+    img.style.cssText = 'width:14px;height:14px;border-radius:50%;object-fit:cover;flex:none;';
+    return img;
+  }
+  const kind = shell?.drop ? 'drop' : shell?.wedge ? 'wedge' : shell?.torus ? 'ring' : shell ? 'shell' : n.style.shape;
+  const paths: Record<string, string> = {
+    ring: '<circle cx="7" cy="7" r="5" fill="none" stroke="C" stroke-width="2.2"/>',
+    wedge: '<path d="M7 13 L2 3 A7 7 0 0 1 12 3 Z" fill="C" fill-opacity=".45" stroke="C" stroke-width="1.2"/>',
+    drop: '<path d="M7 13 C2 8 3 2 7 1.5 C11 2 12 8 7 13 Z" fill="C" fill-opacity=".45" stroke="C" stroke-width="1.2"/>',
+    shell: '<ellipse cx="7" cy="7" rx="6" ry="4.5" fill="C" fill-opacity=".35" stroke="C" stroke-width="1.2"/>',
+    sphere: '<circle cx="7" cy="7" r="5" fill="C"/>',
+    box: '<rect x="2.5" y="2.5" width="9" height="9" fill="C"/>',
+    cone: '<path d="M7 1.5 L12.5 12.5 L1.5 12.5 Z" fill="C"/>',
+    octahedron: '<path d="M7 1 L12.5 7 L7 13 L1.5 7 Z" fill="C"/>',
+    torus: '<circle cx="7" cy="7" r="4.5" fill="none" stroke="C" stroke-width="2.5"/>',
+    cylinder: '<rect x="3" y="1.5" width="8" height="11" rx="3" fill="C"/>',
+  };
+  const span = document.createElement('span');
+  span.style.cssText = 'display:inline-flex;flex:none;';
+  span.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14">${(paths[kind] ?? paths.sphere).replace(/C/g, color)}</svg>`;
+  return span;
+}
+
+/** Whether a point is inside a group's shell (a slice: its piece of the disc; a ring: never). */
+function insideShell(sh: Shell, p: THREE.Vector3): boolean {
+  if (sh.wedge) {
+    const w = sh.wedge;
+    const dx = p.x - w.cx;
+    const dz = p.z - w.cz;
+    const r = Math.hypot(dx, dz);
+    if (r < w.r0 || r > w.r1 || Math.abs(p.y - sh.center.y) > sh.radii.y) return false;
+    let a = Math.atan2(dz, dx);
+    while (a < w.a0) a += Math.PI * 2;
+    while (a > w.a0 + Math.PI * 2) a -= Math.PI * 2;
+    return a <= w.a1;
+  }
+  if (sh.torus) {
+    // Inside the ring's tube (elliptic in both directions).
+    const t = sh.torus;
+    const dx = p.x - sh.center.x;
+    const dz = (p.z - sh.center.z) / (t.aspect ?? 1);
+    const ring = Math.hypot(dx, dz) - t.major;
+    return (ring / t.tube) ** 2 + ((p.y - t.y) / t.tubeY) ** 2 < 1;
+  }
+  const { center: c, radii: r } = sh;
+  return ((p.x - c.x) / r.x) ** 2 + ((p.y - c.y) / r.y) ** 2 + ((p.z - c.z) / r.z) ** 2 < 1;
 }
 
 /** Middle of a slice relative to the centre of its disc (mid radius, mid angle). */
@@ -1502,12 +1819,15 @@ function ringRoom(layout: Layout, idx: SpaceIndex, id: string): number {
   const me = layout.shells.get(id)?.center;
   const parent = idx.parentOf(id);
   if (!own || !me) return 0;
+  // Free room up to the nearest edge of a neighbour sharing the centre: another ring (its tube), or a
+  // shell in the middle (its outer radius). A wide neighbour does not leave room up to its middle line.
   let room = Infinity;
   for (const sib of idx.children.get(parent) ?? []) {
     if (sib.id === id) continue;
     const sh = layout.shells.get(sib.id);
-    if (!sh?.torus || Math.hypot(sh.center.x - me.x, sh.center.z - me.z) > 1e-6) continue;
-    room = Math.min(room, Math.abs(sh.torus.major - own.major));
+    if (!sh || Math.hypot(sh.center.x - me.x, sh.center.z - me.z) > Math.max(own.major, 1e-300) * 1e-9) continue;
+    if (sh.torus) room = Math.min(room, Math.max(Math.abs(sh.torus.major - own.major) - sh.torus.tube, own.tube));
+    else if (!sh.wedge) room = Math.min(room, Math.max(own.major - Math.max(sh.radii.x, sh.radii.z), own.tube));
   }
   return Number.isFinite(room) ? room : 0;
 }

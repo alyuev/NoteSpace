@@ -110,6 +110,16 @@ body {
   fill: var(--accent);
 }
 
+.rail-btn.lang-btn {
+  font: 600 10px/1 sans-serif;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.rail-btn.lang-btn:hover {
+  color: var(--accent);
+}
+
 .resizer {
   width: 5px;
   flex: none;
@@ -672,6 +682,11 @@ legend {
   left: 10px;
   width: min(320px, 55%);
   z-index: 30;
+}
+
+/* The search list over the scene is taller than the pickers in the panels (about 5 more lines). */
+.stage-search .pick-list {
+  max-height: 330px;
 }
 
 .stage-search input {

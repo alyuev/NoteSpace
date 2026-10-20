@@ -1,6 +1,7 @@
 import { sampleSpace } from './core/sample';
 import { urantiaSpace } from './core/templates/urantia';
 import type { Space } from './core/types';
+import { tr } from './i18n';
 
 /**
  * Persistence through the dev server (see server/dataPlugin.ts): one JSON file per space in
@@ -11,6 +12,7 @@ import type { Space } from './core/types';
 export interface SpaceMeta {
   id: string;
   title: string;
+  en?: { title?: string };
 }
 
 export interface BackupInfo {
@@ -47,7 +49,7 @@ function remember(space: Space, rev: number) {
 }
 
 async function refreshList() {
-  metas = (await api<SpaceMeta[]>('/api/spaces')).map(({ id, title }) => ({ id, title }));
+  metas = (await api<SpaceMeta[]>('/api/spaces')).map(({ id, title, en }) => ({ id, title, ...(en ? { en } : {}) }));
 }
 
 // ---------- one-time migration from the old in-browser storage ----------
@@ -124,8 +126,8 @@ export async function loadSpace(id: string): Promise<Space | null> {
 /** Saves (debounced, skipped when unchanged), registers the space in the list and makes it active. */
 export function saveSpace(space: Space) {
   const i = metas.findIndex((m) => m.id === space.id);
-  if (i >= 0) metas[i] = { id: space.id, title: space.title };
-  else metas.push({ id: space.id, title: space.title });
+  if (i >= 0) metas[i] = { id: space.id, title: space.title, ...(space.en ? { en: space.en } : {}) };
+  else metas.push({ id: space.id, title: space.title, ...(space.en ? { en: space.en } : {}) });
   if (activeId !== space.id) {
     activeId = space.id;
     void api('/api/index', { method: 'PUT', body: JSON.stringify({ activeId }) }).catch(() => undefined);
@@ -198,9 +200,9 @@ export function imageUrl(name: string): string {
 /** Uploads a picture to `data/images/` under a new unique name and returns that name. */
 export async function uploadImage(file: File): Promise<string> {
   const ext = IMAGE_EXT.exec(file.name)?.[1]?.toLowerCase();
-  if (!ext) throw new Error('Поддерживаются png, jpg, gif, webp и svg');
+  if (!ext) throw new Error(tr('Поддерживаются png, jpg, gif, webp и svg'));
   const name = `${crypto.randomUUID().replace(/-/g, '')}.${ext}`;
   const res = await fetch(imageUrl(name), { method: 'POST', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
-  if (!res.ok) throw new Error(res.status === 413 ? 'Файл пустой или больше 8 МБ' : `Не удалось загрузить (${res.status})`);
+  if (!res.ok) throw new Error(res.status === 413 ? tr('Файл пустой или больше 8 МБ') : tr('Не удалось загрузить ({status})', { status: res.status }));
   return name;
 }
