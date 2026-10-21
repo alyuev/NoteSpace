@@ -1,6 +1,6 @@
 {
   "name": "notespace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "NoteSpace — 3D knowledge base with nested groups, levels and tags",
   "type": "module",

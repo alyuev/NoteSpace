@@ -81,6 +81,8 @@ const devBackend: Backend = {
 const isTauri = () => '__TAURI_INTERNALS__' in window;
 
 let tauriDataPath = '';
+/** Path separator of the data folder: '\\' on Windows, '/' on Linux and macOS. */
+const sep = () => (tauriDataPath.includes('\\') ? '\\' : '/');
 const tauriImages = new Set<string>();
 
 function tauriBackend(): Backend {
@@ -112,7 +114,7 @@ function tauriBackend(): Backend {
     },
     // Pictures saved by the app live in the data folder; starter pictures come with the app.
     imageUrl: (name) =>
-      tauriImages.has(name) && convert ? convert(`${tauriDataPath}\\images\\${name}`) : `starter/images/${encodeURIComponent(name)}`,
+      tauriImages.has(name) && convert ? convert(`${tauriDataPath}${sep()}images${sep()}${name}`) : `starter/images/${encodeURIComponent(name)}`,
     saveImage: async (name, file) => {
       if (file.size > 8 * 1024 * 1024) throw new Error(tr('Файл пустой или больше 8 МБ'));
       await invoke('save_image', { name, data: Array.from(new Uint8Array(await file.arrayBuffer())) });

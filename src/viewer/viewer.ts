@@ -34,6 +34,10 @@ const DIM = 0.1;
 const CARD_DELAY_MS = 500;
 /** After any change (input, data, resize) full frames keep coming this long: damping, card timers. */
 const ACTIVE_GRACE_MS = 1200;
+/** Idle redraws for spinning objects: they turn slowly, a few frames a second are enough. */
+const IDLE_SPIN_FPS = 20;
+/** Sharper than 2× device pixels is not visible, but costs the GPU a lot on 4K screens. */
+const MAX_PIXEL_RATIO = 2;
 /** Spinning objects smaller than this on screen (pixels across) are not animated. */
 const MIN_SPIN_PX = 6;
 /** A level enters the list once the view is no wider than this many of its radii. */
@@ -187,7 +191,7 @@ export class Viewer {
     sun.position.set(60, 120, 80);
     this.scene.add(sun, this.content);
 
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
     container.append(this.renderer.domElement);
     for (const [text, x, z, color] of [
       [tr('С'), 0, -1, '#7aa2f7'],
@@ -1502,6 +1506,62 @@ export class Viewer {
   }
 
   private lastFrame = performance.now();
+  /** Upper frame rate (0 = as fast as the screen refreshes). */
+  maxFps = 60;
+  private lastRender = 0;
+  /** Frame statistics for the FPS overlay. */
+  private stats = { frames: 0, cpuMs: 0, since: performance.now(), mode: 'idle' as 'active' | 'spin' | 'idle' };
+  private statsEl: HTMLDivElement | null = null;
+  private gpuName = '';
+
+  /** Shows or hides the FPS overlay (frames per second, frame time, draw calls, GPU). */
+  setShowFps(on: boolean) {
+    if (on && !this.statsEl) {
+      this.statsEl = document.createElement('div');
+      this.statsEl.className = 'fps-stats';
+      this.container.append(this.statsEl);
+      const gl = this.renderer.getContext();
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      this.gpuName = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+        // "ANGLE (NVIDIA, NVIDIA GeForce RTX 2080 Ti (0x…) Direct3D11 vs_5_0 ps_5_0, D3D11)" → the card's name
+        .replace(/^ANGLE \([^,]*,\s*/, '')
+        .replace(/\s*\(0x[0-9a-f]+\)/i, '')
+        .replace(/\s*Direct3D.*$/i, '');
+      this.stats = { frames: 0, cpuMs: 0, since: performance.now(), mode: 'idle' };
+      this.updateStats(performance.now());
+    } else if (!on && this.statsEl) {
+      this.statsEl.remove();
+      this.statsEl = null;
+    }
+  }
+
+  /** Counts a drawn frame (`cpuMs`: time spent preparing and submitting it). */
+  private noteFrame(cpuMs: number, mode: 'active' | 'spin') {
+    this.stats.frames++;
+    this.stats.cpuMs += cpuMs;
+    this.stats.mode = mode;
+  }
+
+  /** Refreshes the FPS overlay twice a second (also when no frames are drawn: then it shows 0). */
+  private updateStats(now: number) {
+    if (!this.statsEl) return;
+    const s = this.stats;
+    const span = now - s.since;
+    if (span < 500) return;
+    const fps = (s.frames * 1000) / span;
+    const info = this.renderer.info.render;
+    const mode = s.frames === 0 ? 'покой — кадры не рисуются' : s.mode === 'spin' ? 'покой — только вращение' : 'отрисовка';
+    this.statsEl.textContent = [
+      `FPS ${fps.toFixed(fps < 10 ? 1 : 0)}${this.maxFps ? ` (предел ${this.maxFps})` : ''}`,
+      s.frames ? `кадр ${(s.cpuMs / s.frames).toFixed(1)} мс` : '',
+      `вызовов ${info.calls} · треуг. ${(info.triangles / 1000).toFixed(0)} тыс.`,
+      mode,
+      this.gpuName,
+    ]
+      .filter(Boolean)
+      .join('\n');
+    this.stats = { frames: 0, cpuMs: 0, since: now, mode: s.mode };
+  }
   /** Path of groups around the focus point, at the top of the view; each step flies there. */
   private readonly crumbs = document.createElement('div');
   private crumbsKey = '';
@@ -1652,18 +1712,25 @@ export class Viewer {
 
   private frame() {
     const now = performance.now();
+    this.updateStats(now);
+    const active = now < this.activeUntil || this.focusGoal !== null || this.zoomPending !== 0;
+    // Frame-rate limit: on 120–240 Hz screens drawing every refresh only heats the GPU.
+    const fps = active ? this.maxFps : Math.min(this.maxFps || IDLE_SPIN_FPS, IDLE_SPIN_FPS);
+    if (fps && now - this.lastRender < 1000 / fps - 1) return;
     const dt = Math.min((now - this.lastFrame) / 1000, 0.1);
     this.lastFrame = now;
-    const active = now < this.activeUntil || this.focusGoal !== null || this.zoomPending !== 0;
     if (!active) {
       // Idle: only small spinning objects in view keep turning, and only the 3D scene is redrawn
-      // (labels do not move). Nothing to animate: no frame at all.
+      // (labels do not move), at a low rate. Nothing to animate: no frame at all.
       const spinners = this.visibleSpinners();
       if (!spinners.length) return;
       for (const obj of spinners) obj.rotation.y += obj.userData.spin * dt;
       this.renderer.render(this.scene, this.camera);
+      this.lastRender = now;
+      this.noteFrame(performance.now() - now, 'spin');
       return;
     }
+    this.lastRender = now;
     for (const obj of this.visibleSpinners()) obj.rotation.y += obj.userData.spin * dt;
     this.stepZoom();
     if (this.focusGoal) {
@@ -1722,6 +1789,7 @@ export class Viewer {
       this.placeCard();
       this.cardObj.element.style.zIndex = '1000000';
     }
+    this.noteFrame(performance.now() - now, 'active');
   }
 }
 

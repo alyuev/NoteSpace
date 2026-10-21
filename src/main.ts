@@ -78,6 +78,8 @@ viewer.labelShrink = settings.labelDepthShrink;
 viewer.showFrames = settings.showFrames;
 viewer.showAxis = settings.showAxis;
 viewer.showLinks = settings.showLinks;
+viewer.maxFps = settings.maxFps;
+viewer.setShowFps(settings.showFps);
 viewer.showGrid = settings.showGrid ?? false;
 viewer.onSelect = (id) => {
   selectedId = id;
@@ -213,6 +215,12 @@ function renderLeft() {
     <div class="muted">${esc(targetHint())}</div>
 
     <h2>${tr('Настройки вида')}</h2>
+    <label class="check" title="${tr('Кадры в секунду, время кадра, нагрузка на видеокарту — в правом верхнем углу сцены')}"><input id="showFps" type="checkbox" ${settings.showFps ? 'checked' : ''}> ${tr('Показывать FPS')}</label>
+    <label title="${tr('Верхний предел частоты кадров. На мониторах 120–240 Гц без ограничения видеокарта рисует лишние кадры и греется')}">${tr('Частота кадров')}
+      <select id="maxFps">
+        ${[0, 60, 30].map((v) => `<option value="${v}" ${settings.maxFps === v ? 'selected' : ''}>${v ? tr('не выше {n}', { n: v }) : tr('без ограничения')}</option>`).join('')}
+      </select>
+    </label>
     <label class="check" title="${tr('Линии между связанными записями и группами')}"><input id="showLinks" type="checkbox" ${settings.showLinks ? 'checked' : ''}> ${tr('Линии связей')}</label>
     <label>${tr('Яркость связей:')} <span id="linkOpacityValue">${Math.round(settings.linkOpacity * 100)}%</span>
       <input id="linkOpacity" type="range" min="0" max="100" step="1" value="${Math.round(settings.linkOpacity * 100)}">
@@ -287,6 +295,16 @@ function renderLeft() {
     settings.objectDepthFade = Number((e.target as HTMLInputElement).value) / 100;
     viewer.setObjectDepthFade(settings.objectDepthFade);
     left.querySelector('#objectFadeValue')!.textContent = `${Math.round(settings.objectDepthFade * 100)}%`;
+    saveSettings(settings);
+  });
+  on(left, '#showFps', 'change', (e) => {
+    settings.showFps = (e.target as HTMLInputElement).checked;
+    viewer.setShowFps(settings.showFps);
+    saveSettings(settings);
+  });
+  on(left, '#maxFps', 'change', (e) => {
+    settings.maxFps = Number((e.target as HTMLSelectElement).value);
+    viewer.maxFps = settings.maxFps;
     saveSettings(settings);
   });
   on(left, '#showLinks', 'change', (e) => {
@@ -1211,7 +1229,7 @@ function backupsHint(): string {
   const kind = storageKind();
   if (kind === 'desktop')
     return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Хранятся в папке данных программы: {path}', {
-      path: `${dataFolder()}\\backups`,
+      path: `${dataFolder()}${dataFolder().includes('\\') ? '\\' : '/'}backups`,
     });
   if (kind === 'browser') return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Хранятся в этом браузере — чтобы не потерять работу, делайте «Экспорт».');
   return tr('Копия создаётся сама перед обновлением из шаблона, удалением и восстановлением. Файлы: data/backups/');

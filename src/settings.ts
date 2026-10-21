@@ -16,6 +16,10 @@ export interface ViewSettings {
   showAxis: boolean;
   /** Draw link lines between nodes (off by default: a calmer first view). */
   showLinks: boolean;
+  /** FPS overlay (frames per second, frame time, GPU). */
+  showFps: boolean;
+  /** Frame-rate limit: 0 = as fast as the screen refreshes. */
+  maxFps: number;
   showGrid: boolean;
   /** How strongly labels far from the camera fade, 0..1. */
   labelDepthFade: number;
@@ -44,6 +48,8 @@ const DEFAULTS: ViewSettings = {
   showFrames: true,
   showAxis: true,
   showLinks: false,
+  showFps: false,
+  maxFps: 60,
   showGrid: false,
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,

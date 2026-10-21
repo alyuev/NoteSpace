@@ -1,0 +1,90 @@
+# Builds NoteSpace for Windows and Linux and publishes a GitHub release, and updates the web
+# version (gh-pages branch), whenever a version tag is pushed:
+#
+#   git tag v0.1.2 && git push origin v0.1.2
+#
+# The version in package.json, src-tauri/tauri.conf.json and src-tauri/Cargo.toml should match the tag.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+          - platform: ubuntu-22.04
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux build dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - run: npm ci
+
+      # Builds the web part (with the starter set from data/) and the installers, and uploads them
+      # to the release of this tag (created if it does not exist yet).
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'NoteSpace ${{ github.ref_name }}'
+          releaseBody: |
+            **NoteSpace** — 3D-база знаний: вложенные группы и записи, связи, уровни по высоте, теги и стили. В комплекте — пространство «Книга Урантии».
+
+            ## Скачать
+
+            | Система | Файл |
+            |---|---|
+            | Windows 10/11 (64-бит) | `NoteSpace_…_x64-setup.exe` (или `.msi`) |
+            | Linux, любой дистрибутив | `NoteSpace_…_amd64.AppImage` — сделать исполняемым и запустить |
+            | Ubuntu / Debian | `NoteSpace_…_amd64.deb` |
+            | Fedora / openSUSE | `NoteSpace-…x86_64.rpm` |
+
+            Установщик для Windows не подписан: если Windows покажет «Windows защитила ваш компьютер», нажмите **«Подробнее» → «Выполнить в любом случае»**.
+
+            Без установки: https://alyuev.github.io/NoteSpace/ — веб-версия в браузере.
+          releaseDraft: false
+          prerelease: false
+
+  web:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:web
+      - run: touch dist/.nojekyll
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          commit_message: 'Web version ${{ github.ref_name }}'

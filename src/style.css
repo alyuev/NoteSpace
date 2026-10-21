@@ -716,3 +716,19 @@ legend {
 .side-body textarea {
   user-select: text;
 }
+
+/* FPS overlay. */
+.fps-stats {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgba(22, 22, 30, 0.85);
+  border: 1px solid var(--line);
+  color: #9ece6a;
+  font: 11px/1.45 Consolas, monospace;
+  white-space: pre;
+  pointer-events: none;
+}
