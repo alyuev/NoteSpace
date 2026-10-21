@@ -110,6 +110,34 @@ body {
   fill: var(--accent);
 }
 
+.side .rail-btn.rotate-btn svg {
+  stroke: var(--muted);
+}
+
+.side .rail-btn.rotate-btn svg .bar {
+  fill: var(--muted);
+}
+
+.side .rail-btn.rotate-btn:hover svg,
+.side .rail-btn.rotate-btn.on svg {
+  stroke: var(--accent);
+}
+
+.side .rail-btn.rotate-btn:hover svg .bar,
+.side .rail-btn.rotate-btn.on svg .bar {
+  fill: var(--accent);
+}
+
+.rail-btn.rotate-btn.on svg {
+  animation: rotate-btn-spin 4s linear infinite;
+}
+
+@keyframes rotate-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .rail-btn.lang-btn {
   font: 600 10px/1 sans-serif;
   letter-spacing: 0.5px;

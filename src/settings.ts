@@ -21,6 +21,8 @@ export interface ViewSettings {
   /** Frame-rate limit: 0 = as fast as the screen refreshes. */
   maxFps: number;
   showGrid: boolean;
+  /** Show the space's galaxy picture, when it has one. */
+  showGalaxy: boolean;
   /** How strongly labels far from the camera fade, 0..1. */
   labelDepthFade: number;
   /** Labels grow when the camera comes closer. */
@@ -51,6 +53,7 @@ const DEFAULTS: ViewSettings = {
   showFps: false,
   maxFps: 60,
   showGrid: false,
+  showGalaxy: true,
   labelDepthFade: DEFAULT_LABEL_DEPTH_FADE,
   labelZoom: true,
   labelScale: 1,

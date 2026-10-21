@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { imageUrl } from '../storage';
-import { nodeContent, nodeTitle, styleName, tr } from '../i18n';
+import { lang, nodeContent, nodeTitle, styleName, tr } from '../i18n';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { matchesFilter, type TagFilter } from '../core/filter';
@@ -19,7 +19,35 @@ const SHELL_GEOMETRY = new THREE.SphereGeometry(1, 40, 24);
 /** Finer sphere for shells with a picture wrapped on them. */
 const WRAP_GEOMETRY = new THREE.SphereGeometry(1, 96, 64);
 const ARROW_GEOMETRY = new THREE.ConeGeometry(0.5, 1.6, 12);
-const SHARED = new Set<THREE.BufferGeometry>([...Object.values(GEOMETRY), SHELL_GEOMETRY, WRAP_GEOMETRY, ARROW_GEOMETRY]);
+/** Seconds per turn in the rotation animation: about the parent's centre, and about the own axis. */
+const ORBIT_PERIOD_S = 60;
+const AXIAL_PERIOD_S = 20;
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
+/**
+ * One rotation of the animation, in the horizontal plane about (cx, cz). `k` stretches it along Z
+ * (an elliptical ring or orbit); `sign` +1 is clockwise seen from above (north up), -1 counter-clockwise.
+ */
+interface Rotor {
+  node: string;
+  cx: number;
+  cz: number;
+  k: number;
+  sign: number;
+  period: number;
+}
+
+/** Flat arrowhead in the horizontal plane, pointing along +X, about 1 unit long. */
+const FLAT_ARROW_GEOMETRY = (() => {
+  const shape = new THREE.Shape();
+  shape.moveTo(0.6, 0);
+  shape.lineTo(-0.4, 0.4);
+  shape.lineTo(-0.15, 0);
+  shape.lineTo(-0.4, -0.4);
+  shape.closePath();
+  return new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2);
+})();
+const SHARED = new Set<THREE.BufferGeometry>([FLAT_ARROW_GEOMETRY, ...Object.values(GEOMETRY), SHELL_GEOMETRY, WRAP_GEOMETRY, ARROW_GEOMETRY]);
 
 /** Height of a picture node relative to the radius of a solid shape. */
 const SPRITE_HEIGHT_K = 2.4;
@@ -171,6 +199,14 @@ export class Viewer {
   showLinks = false;
   /** Draw the floor grid under the space. Takes effect on the next render. */
   showGrid = false;
+  /** Draw the space's galaxy picture (`Space.galaxy`). Takes effect on the next render. */
+  showGalaxy = true;
+  /** Rotation animation: nodes with `orbit` / `axial` turn, carrying their contents. */
+  private animating = false;
+  private animTime = 0;
+  private galaxy: THREE.Mesh | null = null;
+  private galaxyLabel: CSS2DObject | null = null;
+  private readonly animObjs: { obj: THREE.Object3D; p: THREE.Vector3; q: THREE.Quaternion; chain: { r: Rotor; turn: boolean }[]; ring?: { x: number; z: number } }[] = [];
   private labelDepthFade = DEFAULT_LABEL_DEPTH_FADE;
   private objectDepthFade = DEFAULT_OBJECT_DEPTH_FADE;
   /** Labels grow when the camera comes closer to them. */
@@ -387,7 +423,17 @@ export class Viewer {
     let minY = 0;
     let maxY = 0;
     let extent = 0;
+    // Every object added for a node remembers it: the rotation animation moves it with that node.
+    let owner: string | null = null;
+    let mark = this.content.children.length;
+    const own = () => {
+      const all = this.content.children;
+      for (let i = mark; i < all.length; i++) all[i].userData.owner ??= owner;
+      mark = all.length;
+    };
     for (const n of space.nodes) {
+      own();
+      owner = n.id;
       const p = layout.placed.get(n.id)!;
       if (!p.visible) continue;
       minY = Math.min(minY, p.world.y);
@@ -503,6 +549,14 @@ export class Viewer {
       }
     }
 
+    own();
+    owner = null;
+    this.addOrbitArrows(space, layout);
+    this.galaxy = null;
+    this.galaxyLabel = null;
+    if (this.showGalaxy && space.galaxy) this.addGalaxy(space, layout);
+    own();
+
     for (const l of this.showLinks ? space.links : []) {
       const a = layout.placed.get(l.from)?.anchorId;
       const b = layout.placed.get(l.to)?.anchorId;
@@ -566,10 +620,234 @@ export class Viewer {
       }
     }
 
+    this.setupAnimation(space, layout);
+
     // The scene was rebuilt: re-apply the highlight of whatever is under the pointer.
     this.applyHover(this.hoverId, true);
 
     if (this.cardId) this.showCard(this.cardId);
+  }
+
+  // ---------- rotation ----------
+
+  get rotating() {
+    return this.animating;
+  }
+
+  /** Starts or stops the rotation animation; stopping puts everything back where the layout has it. */
+  setRotating(on: boolean) {
+    this.animating = on;
+    // The motion itself shows the direction: the arrows are only for the still picture.
+    for (const obj of this.content.children) if (obj.userData.orbitArrow) obj.visible = !on;
+    if (!on) {
+      this.animTime = 0;
+      this.applyAnimation();
+    }
+    this.invalidate();
+  }
+
+  /**
+   * Flat arrows along the rings and orbits of nodes with `orbit` (hidden while the rotation animation
+   * runs). A torus gets a few on its ring; nodes orbiting the same centre at the same distance (the
+   * superuniverses) share arrows placed in every other gap between them.
+   */
+  private addOrbitArrows(space: Space, layout: Layout) {
+    let rings = 0;
+    const orbits = new Map<string, { cx: number; cz: number; y: number; r: number; k: number; sign: number; color: string; owner: string; angles: number[] }>();
+    for (const n of space.nodes) {
+      const p = layout.placed.get(n.id);
+      if (!n.orbit || !p?.visible) continue;
+      const sign = n.orbit === 'cw' ? 1 : -1;
+      const color = mainColor(styleOf(space, n));
+      const shell = layout.shells.get(n.id);
+      if (shell?.torus) {
+        const t = shell.torus;
+        const size = Math.max(t.tube, t.tubeY, t.major * 0.012) * 1.4;
+        // Shifted ring by ring (golden-ratio steps), so the arrows of concentric rings do not line up into spokes.
+        const shift = (rings++ * 0.618) % 1;
+        for (let i = 0; i < 3; i++) {
+          this.addOrbitArrow(shell.center.x, t.y + t.tubeY, shell.center.z, t.major, t.aspect ?? 1, ((i + shift) / 3) * Math.PI * 2, sign, size, color, n.id);
+        }
+        continue;
+      }
+      const parent = n.parentId ? space.nodes.find((m) => m.id === n.parentId) : undefined;
+      if (!parent) continue;
+      const c = layout.shells.get(parent.id)?.center ?? layout.placed.get(parent.id)!.world;
+      const k = parent.frame?.ringAspect ?? 1;
+      const at = shell?.center ?? p.world;
+      const dx = at.x - c.x;
+      const dz = (at.z - c.z) / k;
+      const r = Math.hypot(dx, dz);
+      if (r < 1e-6) continue;
+      const key = `${parent.id}|${sign}|${Math.round(r * 10)}`;
+      const o = orbits.get(key) ?? { cx: c.x, cz: c.z, y: at.y, r, k, sign, color: mainColor(styleOf(space, parent)), owner: parent.id, angles: [] };
+      o.angles.push(Math.atan2(dz, dx));
+      orbits.set(key, o);
+    }
+    for (const o of orbits.values()) {
+      // Arrows halfway between neighbouring members, in every other gap (or evenly when there is only one).
+      const a = [...o.angles].sort((x, y) => x - y);
+      const at =
+        a.length > 1
+          ? a.map((v, i) => (i + 1 < a.length ? (v + a[i + 1]) / 2 : (v + a[0] + Math.PI * 2) / 2)).filter((_, i) => i % 2 === 0)
+          : [0, 1, 2].map((i) => a[0] + Math.PI / 3 + (i * Math.PI * 2) / 3);
+      for (const t of at) this.addOrbitArrow(o.cx, o.y, o.cz, o.r, o.k, t, o.sign, o.r * 0.04, o.color, o.owner);
+    }
+  }
+
+  /** A flat arrowhead lying on the ellipse (r, r·k) about (cx, cz) at parameter angle `t`, pointing along the motion. */
+  private addOrbitArrow(cx: number, y: number, cz: number, r: number, k: number, t: number, sign: number, size: number, color: string, owner: string) {
+    const arrow = new THREE.Mesh(
+      FLAT_ARROW_GEOMETRY,
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false }),
+    );
+    arrow.position.set(cx + Math.cos(t) * r, y, cz + Math.sin(t) * r * k);
+    arrow.scale.setScalar(size);
+    // The geometry points along +X in the horizontal plane: turn it to the direction of motion.
+    arrow.rotation.y = -Math.atan2(Math.cos(t) * k * sign, -Math.sin(t) * sign);
+    arrow.userData.owner = owner;
+    arrow.userData.orbitArrow = true;
+    arrow.visible = !this.animating;
+    this.content.add(arrow);
+  }
+
+  /**
+   * The galaxy picture lying in the plane of its anchor node, with the Sun's place in the picture on the
+   * anchor. With `diameterLy` it has that size and its centre lies towards `towardId`; without it the
+   * centre is on `towardId` itself and the rim a share `rimK` beyond the anchor.
+   */
+  private addGalaxy(space: Space, layout: Layout) {
+    const g = space.galaxy!;
+    const ly = space.lightYearsPerUnit;
+    const e = layout.placed.get(g.anchorId);
+    const toward = layout.shells.get(g.towardId)?.center ?? layout.placed.get(g.towardId)?.world;
+    if (!ly || !e?.visible || !toward) return;
+    // A group anchor (e.g. a solar system) is taken at its centre.
+    const at = layout.shells.get(g.anchorId)?.center ?? e.world;
+    let ux = toward.x - at.x;
+    let uz = toward.z - at.z;
+    const len = Math.hypot(ux, uz) || 1;
+    const size = g.diameterLy ? g.diameterLy / ly : 2 * len * (g.rimK ?? 1.1);
+    const sun = g.diameterLy ? (g.sunDistanceLy ?? 0) / ly : len;
+    ux /= len;
+    uz /= len;
+    const centre = { x: at.x + ux * sun, y: at.y, z: at.z + uz * sun };
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(size, size),
+      new THREE.MeshBasicMaterial({
+        map: galaxyTexture(sun / size),
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        // A faint picture: fog would dissolve it before the objects around it.
+        fog: false,
+      }),
+    );
+    // Lay the picture flat (its top to the north), then turn it so that the Sun (right of its centre) is on the anchor.
+    mesh.quaternion.setFromAxisAngle(Y_AXIS, Math.atan2(uz, -ux)).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
+    mesh.position.set(centre.x, centre.y, centre.z);
+    // After the shells around it, so they do not veil it.
+    mesh.renderOrder = 1;
+    mesh.userData.owner = g.anchorId;
+    mesh.userData.galaxySize = size;
+    this.galaxy = mesh;
+    this.content.add(mesh);
+    const label = this.addLabel((lang === 'en' && g.en) || g.title || tr('Млечный Путь'), centre, '#e6dcc4', 0.85, 'group');
+    label.userData.worldSize = size * 0.05;
+    label.userData.owner = g.anchorId;
+    this.galaxyLabel = label;
+  }
+
+  /**
+   * The galaxy picture fades as the view narrows to things inside it.
+   */
+  private fadeGalaxy(dist: number) {
+    const g = this.galaxy;
+    if (!g) return;
+    // Seen whole it is bright; looking at things inside it, only a faint hint stays, so it does not
+    // outshine them; right next to small objects (where its plane cuts through them) it is gone.
+    const r = dist / (g.userData.galaxySize as number);
+    const k = THREE.MathUtils.smoothstep(r, 0.004, 0.03) * (0.04 + 0.96 * THREE.MathUtils.smoothstep(r, 0.15, 0.9));
+    (g.material as THREE.MeshBasicMaterial).opacity = 0.9 * k;
+    g.visible = k > 0;
+    if (this.galaxyLabel) this.galaxyLabel.visible = k > 0.3;
+  }
+
+  /** Remembers where every object stands and which rotations (innermost first) carry it. */
+  private setupAnimation(space: Space, layout: Layout) {
+    this.animObjs.length = 0;
+    const byId = new Map(space.nodes.map((n) => [n.id, n]));
+    const chains = new Map<string, Rotor[]>();
+    const chainOf = (id: string): Rotor[] => {
+      let chain = chains.get(id);
+      if (chain) return chain;
+      chain = [];
+      for (let m = byId.get(id); m; m = m.parentId ? byId.get(m.parentId) : undefined) {
+        const shell = layout.shells.get(m.id);
+        if (m.axial) {
+          const c = shell?.center ?? layout.placed.get(m.id)!.world;
+          chain.push({ node: m.id, cx: c.x, cz: c.z, k: 1, sign: m.axial === 'cw' ? 1 : -1, period: AXIAL_PERIOD_S });
+        }
+        const parent = m.parentId ? byId.get(m.parentId) : undefined;
+        if (m.orbit && parent) {
+          const c = layout.shells.get(parent.id)?.center ?? layout.placed.get(parent.id)!.world;
+          const k = (shell?.torus ? shell.torus.aspect : parent.frame?.ringAspect) ?? 1;
+          chain.push({ node: m.id, cx: c.x, cz: c.z, k, sign: m.orbit === 'cw' ? 1 : -1, period: ORBIT_PERIOD_S });
+        }
+      }
+      chains.set(id, chain);
+      return chain;
+    };
+    for (const obj of this.content.children) {
+      const owner = obj.userData.owner as string | null | undefined;
+      const chain = owner ? chainOf(owner) : [];
+      if (!chain.length) continue;
+      const ring = obj.userData.ring as { x: number; z: number } | undefined;
+      this.animObjs.push({
+        obj,
+        p: obj.position.clone(),
+        q: obj.quaternion.clone(),
+        // An elliptical ring turning in itself keeps its shape: its own shell is not turned.
+        chain: chain.map((r) => ({ r, turn: !(r.k !== 1 && (obj.userData.outlineOf === r.node || (obj.userData.shell && obj.userData.id === r.node))) })),
+        ring: ring && { x: ring.x, z: ring.z },
+      });
+    }
+    if (this.animating) this.applyAnimation();
+  }
+
+  private applyAnimation() {
+    const t = this.animTime;
+    const v = new THREE.Vector3();
+    const q = new THREE.Quaternion();
+    const turn = new THREE.Quaternion();
+    const move = (r: Rotor, a: number, x: number, z: number): [number, number] => {
+      const dx = x - r.cx;
+      const dz = (z - r.cz) / r.k;
+      return [r.cx + dx * Math.cos(a) - dz * Math.sin(a), r.cz + (dx * Math.sin(a) + dz * Math.cos(a)) * r.k];
+    };
+    for (const e of this.animObjs) {
+      v.copy(e.p);
+      q.copy(e.q);
+      let rx = e.ring?.x ?? 0;
+      let rz = e.ring?.z ?? 0;
+      for (const { r, turn: turns } of e.chain) {
+        // Clockwise seen from above is the angle atan2(z, x) growing (north is -Z, east +X).
+        const a = (r.sign * Math.PI * 2 * t) / r.period;
+        [v.x, v.z] = move(r, a, v.x, v.z);
+        if (e.ring) [rx, rz] = move(r, a, rx, rz);
+        if (turns) q.premultiply(turn.setFromAxisAngle(Y_AXIS, -a));
+      }
+      e.obj.position.copy(v);
+      // Objects with their own `spin` keep turning by it.
+      if (!e.obj.userData.spin) e.obj.quaternion.copy(q);
+      if (e.ring) {
+        const ring = e.obj.userData.ring as { x: number; z: number };
+        ring.x = rx;
+        ring.z = rz;
+      }
+    }
   }
 
   // ---------- hover card ----------
@@ -1713,7 +1991,7 @@ export class Viewer {
   private frame() {
     const now = performance.now();
     this.updateStats(now);
-    const active = now < this.activeUntil || this.focusGoal !== null || this.zoomPending !== 0;
+    const active = now < this.activeUntil || this.focusGoal !== null || this.zoomPending !== 0 || this.animating;
     // Frame-rate limit: on 120–240 Hz screens drawing every refresh only heats the GPU.
     const fps = active ? this.maxFps : Math.min(this.maxFps || IDLE_SPIN_FPS, IDLE_SPIN_FPS);
     if (fps && now - this.lastRender < 1000 / fps - 1) return;
@@ -1732,6 +2010,10 @@ export class Viewer {
     }
     this.lastRender = now;
     for (const obj of this.visibleSpinners()) obj.rotation.y += obj.userData.spin * dt;
+    if (this.animating) {
+      this.animTime += dt;
+      this.applyAnimation();
+    }
     this.stepZoom();
     if (this.focusGoal) {
       const delta = this.focusGoal.clone().sub(this.controls.target).multiplyScalar(FLY_EASE);
@@ -1768,6 +2050,7 @@ export class Viewer {
     // Large finite values when off: the fog shader does not handle Infinity.
     fog.near = k > 0 ? dist * (1.3 - 0.8 * k) : 1e9;
     fog.far = k > 0 ? fog.near + dist * (2.6 - 2 * k) : 2e9;
+    this.fadeGalaxy(dist);
     this.renderer.render(this.scene, this.camera);
     // Fade reference: the nearer of the focus point and the closest labels, so that when the camera
     // is close to something, labels far behind it fade even if the focus point stayed elsewhere.
@@ -1964,4 +2247,80 @@ function toV(p: Vec3) {
 
 function lerp(a: Vec3, b: Vec3, t: number): Vec3 {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t };
+}
+
+/**
+ * A schematic barred spiral galaxy seen face-on (like the Milky Way), on a transparent background:
+ * four arms with a pitch of about 12°, the Sun (marked) at `sunFrac` of the diameter right of the
+ * centre, between two arms on a short spur. Built once per `sunFrac`.
+ */
+const galaxyTextures = new Map<number, THREE.Texture>();
+function galaxyTexture(sunFrac: number): THREE.Texture {
+  const cached = galaxyTextures.get(sunFrac);
+  if (cached) return cached;
+  const N = 1024;
+  const R = N / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = N;
+  const g = canvas.getContext('2d')!;
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-9)) * Math.cos(2 * Math.PI * rnd());
+  const disc = g.createRadialGradient(R, R, 0, R, R, R);
+  disc.addColorStop(0, 'rgba(255,236,200,0.5)');
+  disc.addColorStop(0.15, 'rgba(255,220,180,0.22)');
+  disc.addColorStop(0.5, 'rgba(160,180,255,0.07)');
+  disc.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = disc;
+  g.fillRect(0, 0, N, N);
+  g.globalCompositeOperation = 'lighter';
+  const dot = (r: number, a: number, size: number, color: string) => {
+    g.fillStyle = color;
+    g.fillRect(R + Math.cos(a) * r * R, R + Math.sin(a) * r * R, size, size);
+  };
+  // Radii in shares of the galaxy's radius; angles from the Sun's direction (to the right).
+  const sun = sunFrac * 2;
+  const b = 1 / Math.tan((12 * Math.PI) / 180);
+  const r0 = 0.22;
+  // Arms start at the ends of the bar and pass the Sun's radius halfway between it.
+  const phase = (k: number) => Math.PI / 4 + (k * Math.PI) / 2 - b * Math.log(sun / r0);
+  for (let k = 0; k < 4; k++) {
+    const count = k % 2 ? 7000 : 11000;
+    for (let i = 0; i < count; i++) {
+      const r = r0 + (0.97 - r0) * Math.pow(rnd(), 1.2);
+      const a = phase(k) + b * Math.log(r / r0) + gauss() * 0.1;
+      const glow = 0.35 * (1 - r * 0.7);
+      dot(r + gauss() * 0.02, a, rnd() < 0.08 ? 2.5 : 1.4, rnd() < 0.06 ? `rgba(255,140,170,${glow})` : `rgba(185,205,255,${glow})`);
+    }
+  }
+  // The Orion spur through the Sun.
+  for (let i = 0; i < 2500; i++) {
+    const r = sun - 0.12 + rnd() * 0.22;
+    dot(r + gauss() * 0.012, b * Math.log(r / sun) * 0.5 + gauss() * 0.04, 1.3, 'rgba(185,205,255,0.25)');
+  }
+  // Bar and bulge.
+  const bar = phase(0);
+  for (let i = 0; i < 9000; i++) {
+    const t = Math.max(-1, Math.min(1, gauss() * 0.45)) * r0;
+    const w = gauss() * 0.035;
+    const x = Math.cos(bar) * t - Math.sin(bar) * w;
+    const y = Math.sin(bar) * t + Math.cos(bar) * w;
+    dot(Math.hypot(x, y), Math.atan2(y, x), 1.6, 'rgba(255,215,160,0.3)');
+  }
+  const bulge = g.createRadialGradient(R, R, 0, R, R, R * 0.12);
+  bulge.addColorStop(0, 'rgba(255,240,210,0.9)');
+  bulge.addColorStop(1, 'rgba(255,200,140,0)');
+  g.fillStyle = bulge;
+  g.fillRect(0, 0, N, N);
+  // The Sun's place.
+  g.globalCompositeOperation = 'source-over';
+  g.strokeStyle = '#7dcfff';
+  g.lineWidth = 2;
+  g.beginPath();
+  g.arc(R + sun * R, R, 7, 0, Math.PI * 2);
+  g.stroke();
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  galaxyTextures.set(sunFrac, texture);
+  return texture;
 }

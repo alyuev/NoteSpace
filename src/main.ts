@@ -81,6 +81,8 @@ viewer.showLinks = settings.showLinks;
 viewer.maxFps = settings.maxFps;
 viewer.setShowFps(settings.showFps);
 viewer.showGrid = settings.showGrid ?? false;
+viewer.showGalaxy = settings.showGalaxy;
+setupRotateButton();
 viewer.onSelect = (id) => {
   selectedId = id;
   refresh(false);
@@ -242,6 +244,7 @@ function renderLeft() {
     </label>
     <label class="check" title="${tr('Тонкая вертикальная линия через центр пространства')}"><input id="showAxis" type="checkbox" ${settings.showAxis ? 'checked' : ''}> ${tr('Центральная ось')}</label>
     <label class="check" title="${tr('Плоскость с сеткой под пространством')}"><input id="showGrid" type="checkbox" ${settings.showGrid ? 'checked' : ''}> ${tr('Сетка внизу')}</label>
+    ${space.galaxy ? `<label class="check" title="${tr('Прозрачное изображение галактики в настоящем масштабе: Солнце — на месте Земли')}"><input id="showGalaxy" type="checkbox" ${settings.showGalaxy ? 'checked' : ''}> ${tr('Млечный Путь')}</label>` : ''}
     <label class="check" title="${tr('Пунктирное кольцо на высоте локального уровня 0 каждой группы')}"><input id="showFrames" type="checkbox" ${settings.showFrames ? 'checked' : ''}> ${tr('Нулевой уровень групп')}</label>
 
     <h2>${tr('Управление')}</h2>
@@ -316,6 +319,12 @@ function renderLeft() {
   on(left, '#showAxis', 'change', (e) => {
     settings.showAxis = (e.target as HTMLInputElement).checked;
     viewer.showAxis = settings.showAxis;
+    saveSettings(settings);
+    renderScene();
+  });
+  on(left, '#showGalaxy', 'change', (e) => {
+    settings.showGalaxy = (e.target as HTMLInputElement).checked;
+    viewer.showGalaxy = settings.showGalaxy;
     saveSettings(settings);
     renderScene();
   });
@@ -1098,6 +1107,31 @@ function setupLanguage() {
   btn.title = lang === 'en' ? 'Переключить интерфейс на русский' : 'Switch the interface to English';
   btn.addEventListener('click', () => setLang(lang === 'en' ? 'ru' : 'en'));
   rail.append(btn);
+}
+
+/** Small rail button above the language switch: starts and stops the rotation animation. */
+function setupRotateButton() {
+  const rail = document.querySelector('#left-side .rail');
+  if (!rail) return;
+  const btn = document.createElement('button');
+  btn.className = 'rail-btn rotate-btn';
+  // An orbit with a body on it and an arrowhead: motion along a ring.
+  btn.innerHTML =
+    '<svg viewBox="0 0 20 16"><ellipse cx="10" cy="8" rx="8" ry="5"/><path d="M15.2 2.6 L18.4 3.9 L16.4 6.6"/><circle class="bar" cx="4.2" cy="11.3" r="2"/><circle class="bar" cx="10" cy="8" r="1.3"/></svg>';
+  const sync = () => {
+    btn.classList.toggle('on', viewer.rotating);
+    btn.title = viewer.rotating
+      ? tr('Остановить анимацию вращения')
+      : tr('Анимация вращения: кольца, пояса и сверхвселенные обращаются в направлении стрелок, сверхвселенные ещё и вокруг своей оси');
+  };
+  btn.addEventListener('click', () => {
+    viewer.setRotating(!viewer.rotating);
+    sync();
+  });
+  sync();
+  const langBtn = rail.querySelector('.lang-btn');
+  if (langBtn) rail.insertBefore(btn, langBtn);
+  else rail.append(btn);
 }
 
 // ---------- backups, export, import ----------

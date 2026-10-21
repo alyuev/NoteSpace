@@ -171,6 +171,13 @@ export interface SpaceNode {
   hideLabel?: boolean;
   /** Spins about the vertical axis, revolutions per minute (0 or absent: still). */
   spin?: number;
+  /**
+   * Revolves about its parent's centre, seen from above (north up): clockwise or counter-clockwise.
+   * Arrows along its ring (a torus) or orbit show the direction; the rotation animation moves it.
+   */
+  orbit?: 'cw' | 'ccw';
+  /** Turns about its own vertical axis during the rotation animation. */
+  axial?: 'cw' | 'ccw';
   /** Excluded from publishing/export. */
   private?: boolean;
   style: NodeStyle;
@@ -225,6 +232,21 @@ export interface Space {
    * scene unit stands for.
    */
   lightYearsPerUnit?: number;
+  /**
+   * Picture of a galaxy laid into the plane of the space at its real size: the Sun's place in it
+   * coincides with node `anchorId`, and the galaxy's centre lies towards node `towardId`.
+   */
+  galaxy?: {
+    anchorId: string;
+    towardId: string;
+    /** Real size: the galaxy's centre then lies `sunDistanceLy` from the anchor, towards `towardId`. */
+    diameterLy?: number;
+    sunDistanceLy?: number;
+    /** Without `diameterLy`: centre on `towardId`, radius = distance to the anchor x `rimK` (default 1.1). */
+    rimK?: number;
+    title?: string;
+    en?: string;
+  };
   /** Template the space was created from, for "update from template". */
   templateId?: string;
 }

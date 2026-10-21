@@ -414,7 +414,8 @@
       "en": {
         "title": "Sacred Worlds of the Father",
         "contentHtml": "<p><b>The seven sacred worlds of the Universal Father</b> — the inner circuit. They reflect the spiritual luminosity of the Father and are associated with the secrets of personality.</p><p class=\"ref\">Paper 13</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -593,7 +594,8 @@
       "en": {
         "title": "Worlds of the Eternal Son",
         "contentHtml": "<p><b>The seven luminous worlds of the Eternal Son</b> — the middle circuit. Associated with the spiritual light that the Eternal Son radiates throughout creation.</p><p class=\"ref\">Paper 13</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -772,7 +774,8 @@
       "en": {
         "title": "Worlds of the Infinite Spirit",
         "contentHtml": "<p><b>The seven worlds of the Infinite Spirit</b> — the outer circuit. Executive headquarters of the Seven Master Spirits, who preside over the seven superuniverses.</p><p class=\"ref\">Paper 13</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "group",
@@ -1021,7 +1024,8 @@
       "en": {
         "title": "Havona Circuit 1",
         "contentHtml": "<p>The first, inner circuit of Havona: about 35 million worlds. The last stage before Paradise. All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -1193,7 +1197,8 @@
       "en": {
         "title": "Havona Circuit 2",
         "contentHtml": "<p>Havona circuit 2: about 70 million worlds.  All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -1411,7 +1416,8 @@
       "en": {
         "title": "Havona Circuit 3",
         "contentHtml": "<p>Havona circuit 3: about 105 million worlds.  All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -1675,7 +1681,8 @@
       "en": {
         "title": "Havona Circuit 4",
         "contentHtml": "<p>Havona circuit 4: about 140 million worlds.  All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -1985,7 +1992,8 @@
       "en": {
         "title": "Havona Circuit 5",
         "contentHtml": "<p>Havona circuit 5: about 175 million worlds.  All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -2341,7 +2349,8 @@
       "en": {
         "title": "Havona Circuit 6",
         "contentHtml": "<p>Havona circuit 6: about 210 million worlds.  All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -2743,7 +2752,8 @@
       "en": {
         "title": "Havona Circuit 7",
         "contentHtml": "<p>The seventh, outer circuit of Havona: about 245 million worlds. Here the ascenders begin their Havona pilgrimage. All seven circuits move around Paradise in the same direction.</p><p class=\"ref\">Papers 14, 26</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -3224,7 +3234,8 @@
       "en": {
         "title": "Inner Belt of Dark Gravity Bodies, Ring 1",
         "contentHtml": "<p>One of the three rings of the inner belt of dark gravity bodies. The inner belt moves against the outer one. These bodies neither reflect nor absorb light; their gravity counterbalances Havona.</p><p class=\"ref\">Paper 14</p>"
-      }
+      },
+      "orbit": "ccw"
     },
     {
       "kind": "note",
@@ -3521,7 +3532,8 @@
       "en": {
         "title": "Inner Belt of Dark Gravity Bodies, Ring 2",
         "contentHtml": "<p>One of the three rings of the inner belt of dark gravity bodies. The inner belt moves against the outer one. These bodies neither reflect nor absorb light; their gravity counterbalances Havona.</p><p class=\"ref\">Paper 14</p>"
-      }
+      },
+      "orbit": "ccw"
     },
     {
       "kind": "note",
@@ -3818,7 +3830,8 @@
       "en": {
         "title": "Inner Belt of Dark Gravity Bodies, Ring 3",
         "contentHtml": "<p>One of the three rings of the inner belt of dark gravity bodies. The inner belt moves against the outer one. These bodies neither reflect nor absorb light; their gravity counterbalances Havona.</p><p class=\"ref\">Paper 14</p>"
-      }
+      },
+      "orbit": "ccw"
     },
     {
       "kind": "note",
@@ -4149,7 +4162,8 @@
       "en": {
         "title": "Outer Belt of Dark Gravity Bodies",
         "contentHtml": "<p>The outer belt of dark gravity bodies; it moves against the inner one. It separates Havona from the superuniverse level.</p><p class=\"ref\">Paper 14</p>"
-      }
+      },
+      "orbit": "cw"
     },
     {
       "kind": "note",
@@ -4563,7 +4577,9 @@
       "en": {
         "title": "Superuniverse 1",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4591,7 +4607,9 @@
       "en": {
         "title": "Superuniverse 2",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4619,7 +4637,9 @@
       "en": {
         "title": "Superuniverse 3",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4647,7 +4667,9 @@
       "en": {
         "title": "Superuniverse 4",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4675,7 +4697,9 @@
       "en": {
         "title": "Superuniverse 5",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4703,7 +4727,9 @@
       "en": {
         "title": "Superuniverse 6",
         "contentHtml": "<p>One of the seven superuniverses. Like each of them, it has a capital and three Ancients of Days.</p><p class=\"ref\">Paper 15</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -4736,7 +4762,9 @@
       "en": {
         "title": "Orvonton (Superuniverse 7)",
         "contentHtml": "<p>The seventh superuniverse, ours. 10 major sectors → 1000 minor sectors → 100,000 local universes.</p><p class=\"ref\">Paper 15</p><p>Size in the model: about 500 thousand light-years across. This is an estimate: Uversa stands at the centre of the superuniverse, and the most distant inhabited system is a little less than 250 thousand light-years from the centre (Paper 32:2.11). The thickness of the disc is notional.</p>"
-      }
+      },
+      "orbit": "ccw",
+      "axial": "ccw"
     },
     {
       "kind": "group",
@@ -48580,5 +48608,12 @@
   "lightYearsPerUnit": 6700,
   "en": {
     "title": "The Urantia Book"
+  },
+  "galaxy": {
+    "anchorId": "d98803dc-460b-42d5-a391-c619f5dca780",
+    "towardId": "orvonton",
+    "rimK": 1.07,
+    "title": "Млечный Путь",
+    "en": "Milky Way"
   }
 }
