@@ -251,6 +251,47 @@ async function loadStarter(): Promise<{ spaces: Space[]; activeId?: string }> {
   }
 }
 
+/** Fingerprint of a starter space, remembered per id once that version is in the store. */
+function starterKey(id: string) {
+  return `notespace.starter.v1.${id}`;
+}
+
+function fingerprint(space: Space): string {
+  const json = JSON.stringify(space);
+  let h = 0;
+  for (let i = 0; i < json.length; i++) h = (Math.imul(h, 31) + json.charCodeAt(i)) | 0;
+  return `${json.length}:${h}`;
+}
+
+function noteStarter(space: Space) {
+  try {
+    localStorage.setItem(starterKey(space.id), fingerprint(space));
+  } catch {
+    // not remembered: the next start compares again
+  }
+}
+
+/**
+ * A new version of the app brings a newer starter set: its spaces replace the stored copies (a
+ * backup of each is kept, see "Резервные копии"). Spaces whose starter version is already in the
+ * store, and spaces of the user's own, stay as they are.
+ */
+async function refreshStarter() {
+  const starter = await loadStarter();
+  for (const s of starter.spaces) {
+    if (!metas.some((m) => m.id === s.id)) continue;
+    const fp = fingerprint(s);
+    if (readLocal(starterKey(s.id)) === fp) continue;
+    const stored = await backend.get(s.id).catch(() => null);
+    if (stored && fingerprint(stored.space) !== fp) {
+      await backend.backup(s.id, 'before-app-update').catch(() => undefined);
+      await put(s);
+    }
+    noteStarter(s);
+  }
+  await refreshList();
+}
+
 // ---------- state shared by all backends ----------
 
 let metas: SpaceMeta[] = [];
@@ -332,7 +373,10 @@ export async function initStorage(): Promise<Space> {
   if (!metas.length) {
     const starter = backend.kind === 'dev' ? { spaces: [] as Space[] } : await loadStarter();
     if (starter.spaces.length) {
-      for (const s of starter.spaces) await put(s);
+      for (const s of starter.spaces) {
+        await put(s);
+        noteStarter(s);
+      }
       activeId = starter.activeId ?? starter.spaces[0].id;
     } else {
       await put({ ...sampleSpace(), templateId: 'demo' });
@@ -341,7 +385,7 @@ export async function initStorage(): Promise<Space> {
       activeId = u.id;
     }
     await refreshList();
-  }
+  } else if (backend.kind !== 'dev') await refreshStarter();
   const index = await backend.getIndex().catch(() => ({}) as { activeId?: string });
   const preferred = [index.activeId, migratedActive, activeId, metas[0]?.id].find((id) => id && metas.some((m) => m.id === id))!;
   // Remember the choice (a freshly filled store has no index yet), so a reload opens the same space.
