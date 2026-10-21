@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "build:web": "node scripts/bundle-starter.mjs && tsc --noEmit && vite build --base ./",
+    "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build"
   },
