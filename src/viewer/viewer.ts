@@ -47,6 +47,17 @@ const FLAT_ARROW_GEOMETRY = (() => {
   shape.closePath();
   return new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2);
 })();
+/** A slice of a disc whose sizes are captioned: centre, inner/outer radius, start/end angle, bottom/top. */
+interface CellDims {
+  cx: number;
+  cz: number;
+  r: [number, number];
+  a: [number, number];
+  y: [number, number];
+  centre: THREE.Vector3;
+}
+type DimKind = 'radial' | 'arc' | 'vertical';
+
 const SHARED = new Set<THREE.BufferGeometry>([FLAT_ARROW_GEOMETRY, ...Object.values(GEOMETRY), SHELL_GEOMETRY, WRAP_GEOMETRY, ARROW_GEOMETRY]);
 
 /** Height of a picture node relative to the radius of a solid shape. */
@@ -246,6 +257,13 @@ export class Viewer {
       'position:absolute;top:52px;left:10px;display:none;z-index:6;max-width:min(320px, 55%);max-height:calc(100% - 64px);overflow:auto;' +
       'padding:6px 8px;border-radius:6px;background:rgba(22,22,30,0.72);font:13px sans-serif;';
     container.append(this.crumbs);
+    this.scaleBox.style.cssText =
+      'position:absolute;left:12px;bottom:12px;display:none;z-index:6;pointer-events:none;font:12px sans-serif;color:#c0caf5;text-shadow:0 0 3px #000,0 0 2px #000;';
+    this.cellText.style.cssText = 'margin-bottom:6px;line-height:1.35;color:#a9b1d6;white-space:nowrap;';
+    this.scaleBar.style.cssText = 'height:6px;border:2px solid #c0caf5;border-top:none;box-shadow:0 1px 2px #000;';
+    this.scaleText.style.cssText = 'margin-top:3px;white-space:nowrap;';
+    this.scaleBox.append(this.cellText, this.scaleBar, this.scaleText);
+    container.append(this.scaleBox);
     this.labels.domElement.className = 'labels';
     container.append(this.labels.domElement);
     // Curved captions of rings (text along the projected ring), drawn under the regular labels.
@@ -411,6 +429,7 @@ export class Viewer {
     this.invalidate();
     this.layout = layout;
     this.space = space;
+    this.selectedId = view.selectedId;
     this.clear();
     const idx = new SpaceIndex(space);
     const filtering = view.filter.tagIds.length > 0;
@@ -552,6 +571,7 @@ export class Viewer {
     own();
     owner = null;
     this.addOrbitArrows(space, layout);
+    if (view.selectedId) this.addCellDims(space, layout, view.selectedId);
     this.galaxy = null;
     this.galaxyLabel = null;
     if (this.showGalaxy && space.galaxy) this.addGalaxy(space, layout);
@@ -692,6 +712,115 @@ export class Viewer {
           ? a.map((v, i) => (i + 1 < a.length ? (v + a[i + 1]) / 2 : (v + a[0] + Math.PI * 2) / 2)).filter((_, i) => i % 2 === 0)
           : [0, 1, 2].map((i) => a[0] + Math.PI / 3 + (i * Math.PI * 2) / 3);
       for (const t of at) this.addOrbitArrow(o.cx, o.y, o.cz, o.r, o.k, t, o.sign, o.r * 0.04, o.color, o.owner);
+    }
+  }
+
+  /**
+   * Sizes of the selected cell (a slice of a disc), rounded, in light years: from the centre outwards,
+   * along the arc (one value when the inner and the outer arc are about the same, as for small,
+   * nearly cubic cells) and the thickness. All three go onto the edges meeting at the corner nearest
+   * to the viewer, written along them and beside them, outside the cell (see `placeDims`).
+   */
+  private addCellDims(space: Space, layout: Layout, id: string) {
+    const ly = space.lightYearsPerUnit;
+    const shell = layout.shells.get(id);
+    if (!ly || !shell?.wedge) return;
+    const { cx, cz, r0, r1, a0, a1 } = shell.wedge;
+    const da = a1 - a0;
+    const text = (v: number) => '≈ ' + lyText(roundNice(v * ly));
+    const similar = r1 / Math.max(r0, 1e-9) < 1.2;
+    const cell: CellDims = {
+      cx, cz, r: [r0, r1], a: [a0, a1], y: [shell.center.y - shell.radii.y, shell.center.y + shell.radii.y],
+      centre: new THREE.Vector3(shell.center.x, shell.center.y, shell.center.z),
+    };
+    const kinds: [DimKind, string[]][] = [
+      ['radial', [text(r1 - r0)]],
+      ['arc', similar ? [text(((r0 + r1) / 2) * da)] : [text(r0 * da), text(r1 * da)]],
+      ['vertical', [text(shell.radii.y * 2)]],
+    ];
+    const size = Math.min(r1 - r0, r0 * da, shell.radii.y * 2) * 0.05;
+    for (const [kind, texts] of kinds) {
+      const label = this.addLabel('', cell.centre, '#e0af68', 1, 'note');
+      const span = document.createElement('span');
+      span.textContent = texts[0];
+      span.style.cssText = 'display:inline-block;white-space:nowrap;';
+      label.element.append(span);
+      label.center.set(0.5, 0.5);
+      label.userData.worldSize = size;
+      label.userData.dim = { cell, kind, texts, span };
+      label.userData.owner = id;
+      label.visible = !this.animating;
+    }
+  }
+
+  /** Every frame: the size captions onto the three edges at the cell's nearest corner, along and beside them. */
+  private placeDims() {
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    const cam = this.camera.position;
+    const p = new THREE.Vector3();
+    const q = new THREE.Vector3();
+    const c = new THREE.Vector3();
+    for (const obj of this.labelObjs) {
+      const dim = obj.userData.dim as { cell: CellDims; kind: DimKind; texts: string[]; span: HTMLElement } | undefined;
+      if (!dim) continue;
+      // While turning, the captions would stay behind: the animation hides them.
+      obj.visible = !this.animating;
+      if (this.animating) continue;
+      const { cell } = dim;
+      const at = (ri: number, ai: number, yi: number, v: THREE.Vector3) =>
+        v.set(cell.cx + Math.cos(cell.a[ai]) * cell.r[ri], cell.y[yi], cell.cz + Math.sin(cell.a[ai]) * cell.r[ri]);
+      let best = [0, 0, 0];
+      let bestD = Infinity;
+      for (let i = 0; i < 8; i++) {
+        const k = [i & 1, (i >> 1) & 1, (i >> 2) & 1];
+        const d = cam.distanceTo(at(k[0], k[1], k[2], p));
+        if (d < bestD) {
+          bestD = d;
+          best = k;
+        }
+      }
+      const [ri, ai, yi] = best;
+      at(ri, ai, yi, p);
+      if (dim.kind === 'radial') at(1 - ri, ai, yi, q);
+      else if (dim.kind === 'arc') at(ri, 1 - ai, yi, q);
+      else at(ri, ai, 1 - yi, q);
+      dim.span.textContent = dim.texts[dim.kind === 'arc' && dim.texts.length > 1 ? ri : 0];
+      // The caption hangs on the corner itself; its text starts right by it and runs along the edge.
+      obj.position.copy(p);
+      const sp = p.clone().project(this.camera);
+      // The direction from a short piece of the edge: a long one is bent by the perspective.
+      const sq = p.clone().lerp(q, 0.05).project(this.camera);
+      const far = q.clone().project(this.camera);
+      c.copy(cell.centre).project(this.camera);
+      const ex = (sq.x - sp.x) * w;
+      const ey = -(sq.y - sp.y) * h;
+      const len = Math.hypot(ex, ey);
+      const edgePx = Math.hypot((far.x - sp.x) * w, (far.y - sp.y) * h);
+      const textW = dim.span.offsetWidth;
+      const fontPx = parseFloat(obj.element.style.fontSize || '12');
+      const gap = fontPx * 0.6;
+      // Behind the viewer, or the edge too short on the screen for its caption (far away): hidden,
+      // so captions never pile up on each other.
+      const fits = sp.z < 1 && far.z < 1 && len > 1e-6 && edgePx > textW + gap * 2;
+      dim.span.style.visibility = fits ? '' : 'hidden';
+      if (!fits) continue;
+      const dx = ex / len;
+      const dy = ey / len;
+      // Beside the edge, on the side away from the cell's centre.
+      let nx = -dy;
+      let ny = dx;
+      if (nx * (sp.x - c.x) * w + ny * -(sp.y - c.y) * h < 0) {
+        nx = -nx;
+        ny = -ny;
+      }
+      let deg = (Math.atan2(dy, dx) * 180) / Math.PI;
+      // Keep the text reading left to right.
+      if (deg > 90) deg -= 180;
+      if (deg < -90) deg += 180;
+      const along = gap + textW / 2;
+      const off = fontPx * 0.8;
+      dim.span.style.transform = `translate(${(dx * along + nx * off).toFixed(1)}px, ${(dy * along + ny * off).toFixed(1)}px) rotate(${deg.toFixed(1)}deg)`;
     }
   }
 
@@ -1527,7 +1656,8 @@ export class Viewer {
     const items: { el: HTMLElement; px: number; lift: number; r: DOMRect }[] = [];
     const view = this.renderer.domElement.getBoundingClientRect();
     for (const obj of this.labelObjs) {
-      if (obj.userData.link || obj.userData.ring) continue; // link and ring captions have their own placement
+      // Link, ring and dimension captions have their own placement.
+      if (obj.userData.link || obj.userData.ring || obj.userData.dim) continue;
       const el = obj.element;
       if (el.style.display === 'none' || parseFloat(el.style.opacity || '1') < 0.05) continue;
       const r = el.getBoundingClientRect();
@@ -1705,41 +1835,70 @@ export class Viewer {
       'wheel',
       (e) => {
         e.preventDefault();
-        this.cancelFlight();
         // Normalise wheel units (lines / pages / pixels); one notch ≈ 100 px ≈ 15 % closer or farther.
         const px = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 800 : 1);
-        this.zoomPending += THREE.MathUtils.clamp(px, -400, 400) * 0.0015;
-        // Zoom towards what is under the cursor: an object there (or one within a few pixels), else the
-        // innermost group shell hit; only over empty space, the plane through the focus point.
-        const rect = el.getBoundingClientRect();
-        const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-        const ray = new THREE.Raycaster();
-        ray.setFromCamera(ndc, this.camera);
-        // A beacon dot under the cursor is what is aimed at, even if something stands in front of it.
-        const beacon = this.nearestBeacon(ndc, rect, 14);
-        // Only what is within reach of the current view: not something far behind the thing looked at.
-        const reach = this.camera.position.distanceTo(this.controls.target) * ZOOM_REACH_K;
-        const inReach = (q: THREE.Vector3) => q.distanceTo(this.camera.position) <= reach;
-        const nodeHit = beacon ? undefined : ray.intersectObjects(this.pickNodes).find((h) => inReach(h.point));
-        const nearObj = beacon || nodeHit ? null : this.nearestNode(ndc, rect, 14);
-        const near = nearObj && inReach(nearObj.object.position) ? nearObj : null;
-        const shellHit = ray
-          .intersectObjects(this.pickShells)
-          // Not the wall of a shell the camera is inside: aim at what is beyond it.
-          .filter((h) => inReach(h.point) && !(h.object.userData.shell && insideShell(h.object.userData.shell as Shell, this.camera.position)))
-          .sort((x, y) => x.object.userData.size - y.object.userData.size)[0];
-        let p: THREE.Vector3 | null = beacon?.object.position.clone() ?? nodeHit?.point ?? near?.object.position.clone() ?? shellHit?.point ?? null;
-        if (!p) {
-          const normal = this.camera.getWorldDirection(new THREE.Vector3());
-          const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, this.controls.target);
-          p = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? this.controls.target.clone();
-        }
-        this.zoomPoint = p;
-        // How close the camera may come to it: a few radii of the smallest object around that point.
-        this.zoomLimit = this.zoomFloor(p, this.camera.position.distanceTo(p));
+        this.zoomAt(e.clientX, e.clientY, THREE.MathUtils.clamp(px, -400, 400) * 0.0015);
       },
       { passive: false },
     );
+    // Pinch on a touch screen: the same zoom, towards the point between the two fingers.
+    let pinch = 0;
+    const spread = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    el.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) pinch = spread(e.touches);
+    });
+    el.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.touches.length !== 2 || !pinch) return;
+        e.preventDefault();
+        const d = spread(e.touches);
+        if (d < 1) return;
+        // Fingers apart: closer (log scale, like the wheel).
+        this.zoomAt((e.touches[0].clientX + e.touches[1].clientX) / 2, (e.touches[0].clientY + e.touches[1].clientY) / 2, Math.log(pinch / d));
+        pinch = d;
+        this.invalidate();
+      },
+      { passive: false },
+    );
+    el.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) pinch = 0;
+    });
+  }
+
+  /** Zooms by `amount` (log scale: + away, - closer) towards what is at the screen point (clientX, clientY). */
+  private zoomAt(clientX: number, clientY: number, amount: number) {
+    const el = this.renderer.domElement;
+    this.cancelFlight();
+    this.zoomPending += amount;
+    // Zoom towards what is under the cursor: an object there (or one within a few pixels), else the
+    // innermost group shell hit; only over empty space, the plane through the focus point.
+    const rect = el.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(ndc, this.camera);
+    // A beacon dot under the cursor is what is aimed at, even if something stands in front of it.
+    const beacon = this.nearestBeacon(ndc, rect, 14);
+    // Only what is within reach of the current view: not something far behind the thing looked at.
+    const reach = this.camera.position.distanceTo(this.controls.target) * ZOOM_REACH_K;
+    const inReach = (q: THREE.Vector3) => q.distanceTo(this.camera.position) <= reach;
+    const nodeHit = beacon ? undefined : ray.intersectObjects(this.pickNodes).find((h) => inReach(h.point));
+    const nearObj = beacon || nodeHit ? null : this.nearestNode(ndc, rect, 14);
+    const near = nearObj && inReach(nearObj.object.position) ? nearObj : null;
+    const shellHit = ray
+      .intersectObjects(this.pickShells)
+      // Not the wall of a shell the camera is inside: aim at what is beyond it.
+      .filter((h) => inReach(h.point) && !(h.object.userData.shell && insideShell(h.object.userData.shell as Shell, this.camera.position)))
+      .sort((x, y) => x.object.userData.size - y.object.userData.size)[0];
+    let p: THREE.Vector3 | null = beacon?.object.position.clone() ?? nodeHit?.point ?? near?.object.position.clone() ?? shellHit?.point ?? null;
+    if (!p) {
+      const normal = this.camera.getWorldDirection(new THREE.Vector3());
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, this.controls.target);
+      p = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? this.controls.target.clone();
+    }
+    this.zoomPoint = p;
+    // How close the camera may come to it: a few radii of the smallest object around that point.
+    this.zoomLimit = this.zoomFloor(p, this.camera.position.distanceTo(p));
   }
 
   /**
@@ -1843,12 +2002,75 @@ export class Viewer {
   /** Path of groups around the focus point, at the top of the view; each step flies there. */
   private readonly crumbs = document.createElement('div');
   private crumbsKey = '';
+  /** Deepest group of the breadcrumbs (the one looked at), for the scale bar. */
+  private crumbsLast: SpaceNode | null = null;
+  private selectedId: string | null = null;
+  /** Scale bar in the bottom-left corner, like on maps, and the size of the cell looked at. */
+  private readonly scaleBox = document.createElement('div');
+  private readonly scaleBar = document.createElement('div');
+  private readonly scaleText = document.createElement('div');
+  private readonly cellText = document.createElement('div');
+  private scaleKey = '';
 
   /**
    * Levels the camera is inside, from the outermost: a list under the search box, each with the
    * object's colour and a small picture of it; a click flies there. Outside everything it is empty,
    * and it grows as the camera goes in.
    */
+  /**
+   * The scale bar: a round length (1, 2 or 5 × 10ⁿ) about 120 px long at the distance of the point
+   * looked at, in light years (`Space.lightYearsPerUnit`). Inside the cells of a sector it is true;
+   * below them (systems, worlds) sizes are schematic, and the bar says so. Above it, the size of the
+   * cell (sector, universe…) looked at.
+   */
+  private updateScale(dist: number) {
+    const ly = this.space?.lightYearsPerUnit;
+    const h = this.container.clientHeight;
+    if (!ly || !h || !this.space) {
+      this.scaleBox.style.display = 'none';
+      return;
+    }
+    const perPx = (2 * dist * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2)) / h;
+    const want = perPx * 120 * ly;
+    const pow = Math.pow(10, Math.floor(Math.log10(want)));
+    const nice = [5, 2, 1].map((m) => m * pow).find((v) => v <= want) ?? pow;
+    const px = Math.round(nice / ly / perPx);
+    const byId = new Map(this.space.nodes.map((n) => [n.id, n]));
+    let schematic = false;
+    let cell: SpaceNode | null = null;
+    // The selected object if there is one, otherwise the group looked at.
+    const from = (this.selectedId && byId.get(this.selectedId)) || this.crumbsLast || undefined;
+    for (let n: SpaceNode | undefined = from; n; n = n.parentId ? byId.get(n.parentId) : undefined) {
+      const parent = n.parentId ? byId.get(n.parentId) : undefined;
+      if (parent?.frame?.arrange === 'cells' && n.frame?.shell !== 'wedge') schematic = true;
+      if (!cell && this.layout?.shells.get(n.id)?.wedge) cell = n;
+    }
+    let cellLine = '';
+    const w = cell && this.layout?.shells.get(cell.id);
+    if (cell && w?.wedge) {
+      const { r0, r1, a0, a1 } = w.wedge;
+      const da = a1 - a0;
+      cellLine =
+        `${esc(nodeTitle(cell))}<br>` +
+        tr('от центра к краю: {r}; по дуге: {a0} – {a1}; толщина: {t}', {
+          r: lyText((r1 - r0) * ly),
+          a0: lyText(r0 * da * ly),
+          a1: lyText(r1 * da * ly),
+          t: lyText(w.radii.y * 2 * ly),
+        });
+    }
+    const text = lyText(nice) + (schematic ? ' · ' + tr('ниже — схема, не в масштабе') : '');
+    const key = `${px}|${text}|${cellLine}`;
+    this.scaleBox.style.display = '';
+    if (key === this.scaleKey) return;
+    this.scaleKey = key;
+    this.scaleBar.style.width = `${px}px`;
+    this.scaleBar.style.opacity = schematic ? '0.45' : '1';
+    this.scaleText.textContent = text;
+    this.cellText.innerHTML = cellLine;
+    this.cellText.style.display = cellLine ? '' : 'none';
+  }
+
   private updateCrumbs() {
     const layout = this.layout;
     const space = this.space;
@@ -1874,6 +2096,7 @@ export class Viewer {
       if (size * CRUMB_SCALE_K >= dist) chain.unshift(n);
     }
     const key = chain.map((n) => n.id).join('/');
+    this.crumbsLast = chain[chain.length - 1] ?? null;
     if (key === this.crumbsKey) return;
     this.crumbsKey = key;
     this.crumbs.replaceChildren();
@@ -2061,11 +2284,13 @@ export class Viewer {
     }
     const ref = Math.min(dist, Math.max(nearest * 3, MIN_VIEW_DIST));
     this.placeRingLabels();
+    this.placeDims();
     this.layoutArcTexts();
     for (const obj of this.labelObjs) this.applyLabelDepth(obj, ref);
     this.labels.render(this.scene, this.camera);
     this.updateEdgeCompass();
     this.updateCrumbs();
+    this.updateScale(dist);
     this.separateLabels();
     // The label renderer orders elements by depth; the card must stay above every caption.
     if (this.cardObj) {
@@ -2323,4 +2548,27 @@ function galaxyTexture(sunFrac: number): THREE.Texture {
   texture.colorSpace = THREE.SRGBColorSpace;
   galaxyTextures.set(sunFrac, texture);
   return texture;
+}
+
+/** A distance in light years, readable at any scale (millions of light years down to kilometres). */
+function lyText(v: number): string {
+  const n = (x: number) => x.toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { maximumFractionDigits: x < 10 ? 1 : 0 });
+  if (v >= 1e6) return tr('{n} млн св. лет', { n: n(v / 1e6) });
+  // Thousands as plain digits grouped by a space: 20 000.
+  if (v >= 1e3) return tr('{n} св. лет', { n: String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') });
+  if (v >= 0.1) return tr('{n} св. лет', { n: n(v) });
+  const au = v * 63241;
+  if (au >= 0.1) return tr('{n} а. е.', { n: n(au) });
+  return tr('{n} км', { n: n(v * 9.4607e12) });
+}
+
+function esc(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+}
+
+/** A round value for a caption: two significant digits, the second one 0 or 5 (938 → 950, 1 067 → 1 000). */
+function roundNice(v: number): number {
+  if (v <= 0) return v;
+  const step = Math.pow(10, Math.floor(Math.log10(v)) - 1) * 5;
+  return Math.max(step, Math.round(v / step) * step);
 }
